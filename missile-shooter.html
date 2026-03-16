@@ -37,7 +37,6 @@ body {
     height: 100dvh;
     width: 100vw;
     overflow: hidden;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
     font-family: "Trebuchet MS", "Segoe UI", sans-serif;
     color: white;
     box-sizing: border-box;
@@ -590,10 +589,12 @@ function getViewportHeight() {
 }
 
 function resizeCanvas() {
+    const viewportHeight = getViewportHeight();
     const shellWidth = Math.min(window.innerWidth, 1200);
     appShell.style.width = shellWidth + "px";
+    appShell.style.height = viewportHeight + "px";
     const dockHeight = controlDock.offsetHeight || 78;
-    canvas.height = Math.max(320, getViewportHeight() - dockHeight);
+    canvas.height = Math.max(320, viewportHeight - dockHeight);
     R = Math.floor(canvas.height / 40);
     canvas.width = shellWidth;
     COLS = Math.floor(canvas.width / (R * Math.sqrt(3)));
