@@ -39,8 +39,10 @@ body {
     height: 100dvh; /* Fix for tabbed cellphones */
     width: 100vw;
     overflow: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     font-family: sans-serif;
     color: white;
+    box-sizing: border-box;
 }
 
 #appShell {
@@ -63,7 +65,7 @@ canvas {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px 14px;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(180deg, rgba(14, 19, 36, 0.98), rgba(10, 13, 24, 0.98));
     border-top: 1px solid rgba(95, 211, 255, 0.35);
     min-height: 78px;
@@ -531,12 +533,19 @@ function updateRoofHeight() {
     ceilingY = getBaseCeilingY() + roofLowerSteps * getRowHeight() * ROOF_LOWER_STEP_ROWS;
 }
 
+function getViewportHeight() {
+    if (window.visualViewport && Number.isFinite(window.visualViewport.height)) {
+        return Math.floor(window.visualViewport.height);
+    }
+    return window.innerHeight;
+}
+
 // Resize logic to fit window and handle mobile viewports safely
 function resizeCanvas() {
     const shellWidth = Math.min(window.innerWidth, 1200);
     appShell.style.width = shellWidth + "px";
     const dockHeight = controlDock.offsetHeight || 78;
-    canvas.height = Math.max(320, window.innerHeight - dockHeight);
+    canvas.height = Math.max(320, getViewportHeight() - dockHeight);
     R = Math.floor(canvas.height / 40);//Dynamic bubble size based on height, keeping ~30 rows visible
     canvas.width = shellWidth;
     COLS = Math.floor(canvas.width / (R * Math.sqrt(3)));
@@ -547,12 +556,20 @@ function resizeCanvas() {
     mouseY = shooter.y - 100;
 }
 window.addEventListener("resize", resizeCanvas);
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", resizeCanvas);
+}
 resizeCanvas();
 syncSettingsUi();
 
 // Hex math
 function key(q, r) { return q + "," + r; }
 function neighbors(q, r) { return [[q+1,r], [q-1,r], [q,r+1], [q,r-1], [q+1,r-1], [q-1,r+1]]; }
+function parseKey(k) {
+    const comma = k.indexOf(",");
+    return [Number(k.slice(0, comma)), Number(k.slice(comma + 1))];
+}
+function randomFrom(list) { return list[Math.floor(Math.random() * list.length)]; }
 function hexToPixel(q, r) { return { x: R * Math.sqrt(3) * (q + r/2) + canvas.width/2, y: R * 1.5 * r + ceilingY + R }; }
 function pixelToHex(x, y) {
     x -= canvas.width / 2; y -= ceilingY + R;
@@ -568,35 +585,104 @@ function hexRound(q, r) {
 
 function activeColors() { let s=new Set(); grid.forEach(v=>s.add(v.color)); return [...s]; }
 function unlockedColors() { return COLORS.slice(0, unlockedColorCount); }
-function randomColor(source = "shot") {
-    const active = activeColors();
+function getPlayableRowSlots(row) {
+    const slots = [];
+    const startQ = -Math.floor((COLS + 4) / 2);
+    for (let i = 0; i <= COLS + 4; i++) {
+        const q = startQ + i;
+        const p = hexToPixel(q, row);
+        if (p.x >= R && p.x <= canvas.width - R) slots.push(q);
+    }
+    return slots;
+}
+
+function getColorPools(source = "shot") {
     const unlocked = unlockedColors();
-    const available = unlocked.filter(c => !clearedColors.has(c));
-    if (available.length === 0) return COLORS[0];
+    if (unlocked.length === 0) {
+        return { available: [COLORS[0]], active: [] };
+    }
+
+    let available = unlocked.filter(c => !clearedColors.has(c));
+
+    // Keep shots matchable: active pool should only include colors we may spawn.
+    let active = activeColors().filter(c => available.includes(c));
+    if (active.length === 0 && available.length > 0) active = [...available];
+
+    return { available, active };
+}
+
+function buildCeilingRowColors(count) {
+    const colors = [];
+    for (let i = 0; i < count; i++) colors.push(randomColor("ceiling"));
+
+    if (count < 3) return colors;
+
+    const distinct = new Set(colors);
+    if (distinct.size > 1) return colors;
+
+    const pools = getColorPools("ceiling");
+    const diversityPool = pools.active.length > 0 && pools.active.length <= 2 ? pools.active : pools.available;
+    if (diversityPool.length < 2) return colors;
+
+    const base = colors[0];
+    const alternatives = diversityPool.filter(c => c !== base);
+    if (alternatives.length === 0) return colors;
+
+    const injectAt = Math.floor(Math.random() * count);
+    colors[injectAt] = randomFrom(alternatives);
+    return colors;
+}
+
+function randomColor(source = "shot") {
+    const pools = getColorPools(source);
+    const available = pools.available;
+    const active = pools.active;
+
+    if (available.length === 0) {
+        const boardActive = activeColors();
+        return boardActive.length > 0 ? boardActive[0] : COLORS[0];
+    }
+
+    if (source === "ceiling" && active.length > 0 && active.length <= 2) {
+        return randomFrom(active);
+    }
 
     // Keep color-pool removal influence, but avoid runaway collapse to 1-2 colors.
     // Shots still mostly follow active colors; roof rows use more unlocked colors to keep pressure.
     let preferActiveChance = source === "ceiling" ? 0.55 : 0.8;
     if (active.length <= 2) preferActiveChance = source === "ceiling" ? 0.25 : 0.45;
     if (active.length === 0 || Math.random() > preferActiveChance) {
-        return available[Math.floor(Math.random() * available.length)];
+        return randomFrom(available);
     }
-    return active[Math.floor(Math.random() * active.length)];
+    return randomFrom(active);
 }
+
+function refreshQueuedBubbleColors() {
+    if (currentBubble && clearedColors.has(currentBubble.color)) {
+        currentBubble = createBubble(randomColor("shot"));
+    }
+    if (nextBubble && clearedColors.has(nextBubble.color)) {
+        nextBubble = createBubble(randomColor("shot"));
+    }
+}
+
+function getLinesToDropForActiveColors() {
+    const activeCount = activeColors().length;
+    const clampedActive = Math.max(1, Math.min(5, activeCount));
+    return 6 - clampedActive;
+}
+
 function createBubble(color) { return { x:shooter.x, y:shooter.y, vx:0, vy:0, color:color, moving:false }; }
 
 function initBoard() {
     grid.clear();
     for (let r = 0; r < START_ROWS; r++) {
-        let startQ = -Math.floor((COLS + 4) / 2); 
-        for (let i = 0; i <= COLS + 4; i++) {
-            let q = startQ + i;
-            let p = hexToPixel(q, r);
-            if (p.x >= R && p.x <= canvas.width - R) {
-                if (Math.random() < 0.9) {
-                    const pool = unlockedColors();
-                    grid.set(key(q, r), { color: pool[Math.floor(Math.random() * pool.length)] });
-                }
+        const rowSlots = getPlayableRowSlots(r);
+        for (let i = 0; i < rowSlots.length; i++) {
+            const q = rowSlots[i];
+            if (Math.random() < 0.9) {
+                const pool = unlockedColors();
+                grid.set(key(q, r), { color: randomFrom(pool) });
             }
         }
     }
@@ -605,11 +691,11 @@ function initBoard() {
 function injectUnlockedColor(color) {
     const topKeys = [];
     grid.forEach((v, k) => {
-        let [, r] = k.split(",").map(Number);
+        let [, r] = parseKey(k);
         if (r === 0) topKeys.push(k);
     });
     if (topKeys.length > 0) {
-        const picked = topKeys[Math.floor(Math.random() * topKeys.length)];
+        const picked = randomFrom(topKeys);
         grid.set(picked, { color });
         return;
     }
@@ -622,6 +708,7 @@ function startNewGame() {
     resizeCanvas();
     initBoard();
     score = 0; combo = 0; 
+    clearedColors = new Set();
     shotsFired = 0;
     unlockedColorCount = BASE_COLOR_COUNT;
     maxMissesForCycle = BASE_MISSES_PER_DROP;
@@ -789,7 +876,7 @@ function findSegmentBubbleCollision(startX, startY, endX, endY) {
     const collisionRadiusSq = collisionRadius * collisionRadius;
 
     for (let [k] of grid) {
-        const [q, r] = k.split(",").map(Number);
+        const [q, r] = parseKey(k);
         const center = hexToPixel(q, r);
         const relX = startX - center.x;
         const relY = startY - center.y;
@@ -981,7 +1068,7 @@ function snapBubble() {
 
         currentMissesLeft--;
         if (currentMissesLeft <= 0) {
-            const linesToDrop = level >= 8 ? 2 : 1;
+            const linesToDrop = getLinesToDropForActiveColors();
             for (let i = 0; i < linesToDrop; i++) {
                 dropCeiling();
             }
@@ -1002,7 +1089,8 @@ function findMatches(q, r) {
         if (visited.has(k)) continue; visited.add(k);
         let cell = grid.get(k); if (!cell || cell.color !== color) continue;
         match.push([cq, cr]);
-        neighbors(cq, cr).forEach(n => stack.push(n));
+        const near = neighbors(cq, cr);
+        for (let i = 0; i < near.length; i++) stack.push(near[i]);
     }
     return match;
 }
@@ -1021,11 +1109,16 @@ function explode() {
 
 function removeFloating() {
     let visited = new Set(), stack = [];
-    grid.forEach((v, k) => { let [q, r] = k.split(",").map(Number); if (r === 0) stack.push([q, r]); });
+    grid.forEach((v, k) => { let [q, r] = parseKey(k); if (r === 0) stack.push([q, r]); });
     while (stack.length) {
         let [q, r] = stack.pop(), k = key(q, r);
         if (visited.has(k)) continue; visited.add(k);
-        neighbors(q, r).forEach(([nq, nr]) => { if (grid.has(key(nq, nr))) stack.push([nq, nr]); });
+        const near = neighbors(q, r);
+        for (let i = 0; i < near.length; i++) {
+            const nq = near[i][0];
+            const nr = near[i][1];
+            if (grid.has(key(nq, nr))) stack.push([nq, nr]);
+        }
     }
     let prevColors = activeColors();
     let floatingRemoved = 0;
@@ -1041,21 +1134,13 @@ function removeFloating() {
 }
 
 function checkLevelUp(prevColorsList) {
-
-    const current = activeColors();
-    const currentSet = new Set(current);
-
-    let cleared = [];
-
-    for (let c of prevColorsList) {
-        if (!currentSet.has(c)) {
-            cleared.push(c);
-        }
-    }
+    const currentSet = new Set(activeColors());
+    const cleared = prevColorsList.filter(c => !currentSet.has(c));
 
     if (cleared.length > 0) {
         score += COLOR_CLEAR_BONUS * cleared.length;
         cleared.forEach(c => clearedColors.add(c));
+        refreshQueuedBubbleColors();
     }
 }
 
@@ -1064,18 +1149,19 @@ function dropCeiling() {
     // Axial rows naturally shift right when r increases; alternate with q-1 to shift left on every other drop.
     const qShift = dropShiftLeftNext ? -1 : 0;
     grid.forEach((v, k) => {
-        let [q, r] = k.split(",").map(Number);
+        let [q, r] = parseKey(k);
         const nextQ = q + qShift;
         let p = hexToPixel(nextQ, r + 1);
         if (p.x >= R && p.x <= canvas.width - R) newGrid.set(key(nextQ, r + 1), v);
     });
-    
-    let startQ = -Math.floor((COLS + 4) / 2);
-    for (let i = 0; i <= COLS + 4; i++) {
-        let q = startQ + i;
-        let p = hexToPixel(q, 0);
-        if (p.x >= R && p.x <= canvas.width - R) newGrid.set(key(q, 0), { color: randomColor("ceiling") });
+
+    const openSlots = getPlayableRowSlots(0);
+
+    const rowColors = buildCeilingRowColors(openSlots.length);
+    for (let i = 0; i < openSlots.length; i++) {
+        newGrid.set(key(openSlots[i], 0), { color: rowColors[i] });
     }
+
     grid = newGrid;
     dropShiftLeftNext = !dropShiftLeftNext;
 }
@@ -1088,7 +1174,7 @@ function showOverlay(title) {
 
 function checkGameOver() {
     grid.forEach((v, k) => {
-        let [q, r] = k.split(",").map(Number);
+        let [q, r] = parseKey(k);
         let p = hexToPixel(q, r);
         if (p.y > shooter.y - R * 2) { gameOver = true; showOverlay("Game Over"); }
     });
@@ -1182,7 +1268,7 @@ function drawBubble(x, y, color) {
 
 function drawGrid() {
     grid.forEach((v, k) => {
-        let [q, r] = k.split(",").map(Number);
+        let [q, r] = parseKey(k);
         let p = hexToPixel(q, r);
         drawBubble(p.x, p.y, v.color);
     });

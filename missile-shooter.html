@@ -37,8 +37,10 @@ body {
     height: 100dvh;
     width: 100vw;
     overflow: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     font-family: "Trebuchet MS", "Segoe UI", sans-serif;
     color: white;
+    box-sizing: border-box;
 }
 
 #appShell {
@@ -61,7 +63,7 @@ canvas {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px 14px;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(180deg, rgba(10, 14, 24, 0.98), rgba(7, 10, 18, 0.98));
     border-top: 1px solid rgba(255, 207, 68, 0.35);
     min-height: 78px;
@@ -338,12 +340,12 @@ let COLS = 1;
 let R = 18;
 const START_ROWS = 7;
 const ARMOR_TYPES = [
-    { id: "ceramic", color: "#f5f7ff", accent: "#d2dcff" },
+    { id: "ceramic", color: "#f5f7ee", accent: "#d2dcee" },
     { id: "reactive", color: "#3fd5ff", accent: "#b5f2ff" },
     { id: "titan", color: "#8fa5ff", accent: "#d8e2ff" },
     { id: "carbon", color: "#4de389", accent: "#b6ffd4" },
     { id: "plasma", color: "#ff7a5c", accent: "#ffd5cb" },
-    { id: "obsidian", color: "#9072ff", accent: "#e0d7ff" },
+    { id: "obsidian", color: "#9522ff", accent: "#e597ff" },
     { id: "ember", color: "#ffbe3b", accent: "#ffe5ad" },
     { id: "shadow", color: "#8f9bb3", accent: "#e4e9f2" }
 ];
@@ -389,8 +391,10 @@ let currentMissile;
 let nextMissile;
 
 function getMissileCollisionRadius() {
-    // Missile threading should only happen through openings roughly the size of a drone.
-    return R * 0.95;
+    const missileScale = Math.max(0.95, R / 18);
+    const spriteHalfHeight = 6 * missileScale;
+    // Use the sprite body width, not drone radius, so a shot can pass through any gap at least this wide.
+    return spriteHalfHeight;
 }
 
 function distancePointToSegmentSquared(px, py, x1, y1, x2, y2) {
@@ -578,11 +582,18 @@ function updateRoofHeight() {
     ceilingY = getBaseCeilingY() + roofLowerSteps * getRowHeight() * ROOF_LOWER_STEP_ROWS;
 }
 
+function getViewportHeight() {
+    if (window.visualViewport && Number.isFinite(window.visualViewport.height)) {
+        return Math.floor(window.visualViewport.height);
+    }
+    return window.innerHeight;
+}
+
 function resizeCanvas() {
     const shellWidth = Math.min(window.innerWidth, 1200);
     appShell.style.width = shellWidth + "px";
     const dockHeight = controlDock.offsetHeight || 78;
-    canvas.height = Math.max(320, window.innerHeight - dockHeight);
+    canvas.height = Math.max(320, getViewportHeight() - dockHeight);
     R = Math.floor(canvas.height / 40);
     canvas.width = shellWidth;
     COLS = Math.floor(canvas.width / (R * Math.sqrt(3)));
@@ -593,6 +604,9 @@ function resizeCanvas() {
     mouseY = launcher.y - 100;
 }
 window.addEventListener("resize", resizeCanvas);
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", resizeCanvas);
+}
 resizeCanvas();
 syncSettingsUi();
 
@@ -600,8 +614,30 @@ function key(q, r) {
     return q + "," + r;
 }
 
+function parseKey(k) {
+    const comma = k.indexOf(",");
+    return [Number(k.slice(0, comma)), Number(k.slice(comma + 1))];
+}
+
+function randomFrom(list) {
+    return list[Math.floor(Math.random() * list.length)];
+}
+
 function neighbors(q, r) {
     return [[q + 1, r], [q - 1, r], [q, r + 1], [q, r - 1], [q + 1, r - 1], [q - 1, r + 1]];
+}
+
+function getPlayableRowSlots(row) {
+    const slots = [];
+    const startQ = -Math.floor((COLS + 4) / 2);
+    for (let i = 0; i <= COLS + 4; i++) {
+        const q = startQ + i;
+        const p = hexToPixel(q, row);
+        if (p.x >= R && p.x <= canvas.width - R) {
+            slots.push(q);
+        }
+    }
+    return slots;
 }
 
 function hexToPixel(q, r) {
@@ -646,20 +682,80 @@ function armorFromId(id) {
     return ARMOR_TYPES.find(a => a.id === id) || ARMOR_TYPES[0];
 }
 
-function randomArmor(source = "shot") {
-    const activeIds = activeArmorIds();
+function getArmorPools(source = "shot") {
     const unlocked = unlockedArmorList();
-    const available = unlocked.filter(a => !clearedArmor.has(a.id));
-    if (available.length === 0) return ARMOR_TYPES[0];
-
-    let preferActiveChance = source === "ceiling" ? 0.55 : 0.8;
-    if (activeIds.length <= 2) preferActiveChance = source === "ceiling" ? 0.25 : 0.45;
-    if (activeIds.length === 0 || Math.random() > preferActiveChance) {
-        return available[Math.floor(Math.random() * available.length)];
+    if (unlocked.length === 0) {
+        return { available: [ARMOR_TYPES[0]], active: [] };
     }
 
-    const id = activeIds[Math.floor(Math.random() * activeIds.length)];
-    return armorFromId(id);
+    let available = unlocked.filter(a => !clearedArmor.has(a.id));
+
+    let active = activeArmorIds()
+        .map(id => available.find(a => a.id === id))
+        .filter(Boolean);
+    if (active.length === 0 && available.length > 0) active = [...available];
+
+    return { available, active };
+}
+
+function buildCeilingRowArmor(count) {
+    const rowArmor = [];
+    for (let i = 0; i < count; i++) rowArmor.push(randomArmor("ceiling"));
+
+    if (count < 3) return rowArmor;
+
+    const distinct = new Set(rowArmor.map(a => a.id));
+    if (distinct.size > 1) return rowArmor;
+
+    const pools = getArmorPools("ceiling");
+    const diversityPool = pools.active.length > 0 && pools.active.length <= 2 ? pools.active : pools.available;
+    if (diversityPool.length < 2) return rowArmor;
+
+    const baseId = rowArmor[0].id;
+    const alternatives = diversityPool.filter(a => a.id !== baseId);
+    if (alternatives.length === 0) return rowArmor;
+
+    const injectAt = Math.floor(Math.random() * count);
+    rowArmor[injectAt] = randomFrom(alternatives);
+    return rowArmor;
+}
+
+function randomArmor(source = "shot") {
+    const pools = getArmorPools(source);
+    const available = pools.available;
+    const active = pools.active;
+
+    if (available.length === 0) {
+        const boardActive = activeArmorIds();
+        return boardActive.length > 0 ? armorFromId(boardActive[0]) : ARMOR_TYPES[0];
+    }
+
+    if (source === "ceiling" && active.length > 0 && active.length <= 2) {
+        return randomFrom(active);
+    }
+
+    let preferActiveChance = source === "ceiling" ? 0.55 : 0.8;
+    if (active.length <= 2) preferActiveChance = source === "ceiling" ? 0.25 : 0.45;
+    if (active.length === 0 || Math.random() > preferActiveChance) {
+        return randomFrom(available);
+    }
+
+    return randomFrom(active);
+}
+
+function refreshQueuedMissileArmor() {
+    if (currentMissile && clearedArmor.has(currentMissile.armorId)) {
+        currentMissile = createMissile(randomArmor("shot"));
+    }
+    if (nextMissile && clearedArmor.has(nextMissile.armorId)) {
+        nextMissile = createMissile(randomArmor("shot"));
+    }
+}
+
+function getLinesToDropForActiveArmor() {
+    const activeCount = activeArmorIds().length;
+    const clampedActive = Math.max(1, Math.min(5, activeCount));
+    return 6 - clampedActive;
 }
 
 function createMissile(armor) {
@@ -669,13 +765,12 @@ function createMissile(armor) {
 function initBoard() {
     grid.clear();
     for (let r = 0; r < START_ROWS; r++) {
-        const startQ = -Math.floor((COLS + 4) / 2);
-        for (let i = 0; i <= COLS + 4; i++) {
-            const q = startQ + i;
-            const p = hexToPixel(q, r);
-            if (p.x >= R && p.x <= canvas.width - R && Math.random() < 0.9) {
+        const rowSlots = getPlayableRowSlots(r);
+        for (let i = 0; i < rowSlots.length; i++) {
+            const q = rowSlots[i];
+            if (Math.random() < 0.9) {
                 const armor = unlockedArmorList();
-                const pick = armor[Math.floor(Math.random() * armor.length)];
+                const pick = randomFrom(armor);
                 grid.set(key(q, r), { armorId: pick.id });
             }
         }
@@ -685,12 +780,12 @@ function initBoard() {
 function injectUnlockedArmor(armor) {
     const topKeys = [];
     grid.forEach((v, k) => {
-        const parts = k.split(",").map(Number);
+        const parts = parseKey(k);
         if (parts[1] === 0) topKeys.push(k);
     });
 
     if (topKeys.length > 0) {
-        const picked = topKeys[Math.floor(Math.random() * topKeys.length)];
+        const picked = randomFrom(topKeys);
         grid.set(picked, { armorId: armor.id });
         return;
     }
@@ -703,6 +798,7 @@ function startNewGame() {
     initBoard();
     score = 0;
     combo = 0;
+    clearedArmor = new Set();
     shotsFired = 0;
     unlockedArmorCount = BASE_ARMOR_COUNT;
     maxMissesForCycle = BASE_MISSES_PER_DROP;
@@ -870,15 +966,22 @@ function findSegmentDroneCollision(startX, startY, endX, endY) {
     const segmentLengthSq = dx * dx + dy * dy;
     if (segmentLengthSq === 0) return null;
 
-    const collisionDistance = getMissileCollisionRadius() + R * 0.95 - 1;
+    const collisionDistance = getMissileCollisionRadius() + R * 0.95;
     const collisionDistanceSq = collisionDistance * collisionDistance;
+    const xScale = R * Math.sqrt(3);
+    const yScale = R * 1.5;
+    const centerX = canvas.width / 2;
+    const yOffset = ceilingY + R;
     let earliestHit = null;
 
     for (const [k] of grid) {
-        const [q, r] = k.split(",").map(Number);
-        const center = hexToPixel(q, r);
-        const relX = startX - center.x;
-        const relY = startY - center.y;
+        const comma = k.indexOf(",");
+        const q = Number(k.slice(0, comma));
+        const r = Number(k.slice(comma + 1));
+        const cx = xScale * (q + r / 2) + centerX;
+        const cy = yScale * r + yOffset;
+        const relX = startX - cx;
+        const relY = startY - cy;
         const a = segmentLengthSq;
         const b = 2 * (relX * dx + relY * dy);
         const c = relX * relX + relY * relY - collisionDistanceSq;
@@ -994,9 +1097,8 @@ function advanceShotMissile(frameScale) {
     }
 }
 
-function traceMissilePath(startX, startY, vx, vy, maxTime) {
+function drawTrajectoryPath(startX, startY, vx, vy, maxTime) {
     const missileRadius = getMissileCollisionRadius();
-    const points = [{ x: startX, y: startY }];
     let x = startX;
     let y = startY;
     let currentVx = vx;
@@ -1004,10 +1106,13 @@ function traceMissilePath(startX, startY, vx, vy, maxTime) {
     let remainingTime = maxTime;
     let handledEvents = 0;
 
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+
     while (remainingTime > SHOT_EVENT_EPSILON && handledEvents < MAX_TRAJECTORY_EVENTS) {
         handledEvents++;
         const event = getNextMissileEvent(x, y, currentVx, currentVy, remainingTime);
-        points.push({ x: event.x, y: event.y });
+        ctx.lineTo(event.x, event.y);
 
         if (event.type === "move" || event.type === "drone" || event.type === "ceiling") {
             break;
@@ -1018,8 +1123,6 @@ function traceMissilePath(startX, startY, vx, vy, maxTime) {
         x = Math.min(canvas.width - missileRadius, Math.max(missileRadius, event.x + Math.sign(currentVx) * SHOT_POSITION_EPSILON));
         y = event.y;
     }
-
-    return points;
 }
 
 function updateLevelFromShots() {
@@ -1119,7 +1222,7 @@ function snapMissile() {
         islandTimer = 8;
         currentMissesLeft--;
         if (currentMissesLeft <= 0) {
-            const linesToDrop = level >= 8 ? 2 : 1;
+            const linesToDrop = getLinesToDropForActiveArmor();
             for (let i = 0; i < linesToDrop; i++) {
                 dropCeiling();
             }
@@ -1178,15 +1281,20 @@ function spawnExplosionCloud(x, y, armorId) {
 }
 
 function updateExplosionClouds(frameScale) {
+    const velocityDamping = Math.pow(0.96, frameScale);
+    const radiusGrowth = Math.pow(1.015, frameScale);
+    const gravityStep = 0.02 * frameScale;
+    const radiusLimit = R * 1.2;
+
     for (let i = explosionClouds.length - 1; i >= 0; i--) {
         const p = explosionClouds[i];
         p.x += p.vx * frameScale;
         p.y += p.vy * frameScale;
-        p.vx *= Math.pow(0.96, frameScale);
-        p.vy = p.vy * Math.pow(0.96, frameScale) - 0.02 * frameScale;
-        p.r *= Math.pow(1.015, frameScale);
+        p.vx *= velocityDamping;
+        p.vy = p.vy * velocityDamping - gravityStep;
+        p.r *= radiusGrowth;
         p.life -= frameScale;
-        if (p.life <= 0 || p.r > R * 1.2) {
+        if (p.life <= 0 || p.r > radiusLimit) {
             explosionClouds.splice(i, 1);
         }
     }
@@ -1234,7 +1342,7 @@ function removeFloating() {
     const stack = [];
 
     grid.forEach((v, k) => {
-        const parts = k.split(",").map(Number);
+        const parts = parseKey(k);
         if (parts[1] === 0) stack.push([parts[0], parts[1]]);
     });
 
@@ -1278,6 +1386,7 @@ function checkArmorClears(previousArmorList) {
 
     if (clearedCount > 0) {
         score += ARMOR_CLEAR_BONUS * clearedCount;
+        refreshQueuedMissileArmor();
     }
 }
 
@@ -1286,7 +1395,7 @@ function dropCeiling() {
     const qShift = dropShiftLeftNext ? -1 : 0;
 
     grid.forEach((v, k) => {
-        const parts = k.split(",").map(Number);
+        const parts = parseKey(k);
         const q = parts[0];
         const r = parts[1];
         const nextQ = q + qShift;
@@ -1296,13 +1405,11 @@ function dropCeiling() {
         }
     });
 
-    const startQ = -Math.floor((COLS + 4) / 2);
-    for (let i = 0; i <= COLS + 4; i++) {
-        const q = startQ + i;
-        const p = hexToPixel(q, 0);
-        if (p.x >= R && p.x <= canvas.width - R) {
-            newGrid.set(key(q, 0), { armorId: randomArmor("ceiling").id });
-        }
+    const openSlots = getPlayableRowSlots(0);
+
+    const rowArmor = buildCeilingRowArmor(openSlots.length);
+    for (let i = 0; i < openSlots.length; i++) {
+        newGrid.set(key(openSlots[i], 0), { armorId: rowArmor[i].id });
     }
 
     grid = newGrid;
@@ -1316,14 +1423,19 @@ function showOverlay(title) {
 }
 
 function checkGameOver() {
-    grid.forEach((v, k) => {
-        const parts = k.split(",").map(Number);
-        const p = hexToPixel(parts[0], parts[1]);
-        if (p.y > launcher.y - R * 2) {
+    const yScale = R * 1.5;
+    const yOffset = ceilingY + R;
+    const gameOverLine = launcher.y - R * 2;
+    for (const [k] of grid) {
+        const comma = k.indexOf(",");
+        const r = Number(k.slice(comma + 1));
+        const y = yScale * r + yOffset;
+        if (y > gameOverLine) {
             gameOver = true;
             showOverlay("Mission Failed");
+            break;
         }
-    });
+    }
 }
 
 function checkWin() {
@@ -1396,19 +1508,12 @@ function drawTrajectory() {
     let angle = Math.atan2(dy, dx);
     let vx = Math.cos(angle) * SPEED;
     let vy = Math.sin(angle) * SPEED;
-    const path = traceMissilePath(launcher.x, launcher.y, vx, vy, 60 * 2.5);
-    if (path.length < 2) return;
 
-    ctx.beginPath();
     ctx.setLineDash([8, 12]);
     ctx.strokeStyle = "rgba(255, 225, 140, 0.5)";
     ctx.lineWidth = 3;
     ctx.lineCap = "round";
-    ctx.moveTo(path[0].x, path[0].y);
-
-    for (let i = 1; i < path.length; i++) {
-        ctx.lineTo(path[i].x, path[i].y);
-    }
+    drawTrajectoryPath(launcher.x, launcher.y, vx, vy, 60 * 2.5);
 
     ctx.stroke();
     ctx.setLineDash([]);
@@ -1485,11 +1590,19 @@ function drawMissileSprite(targetCtx, x, y, armorId, scale = 1) {
 }
 
 function drawGrid() {
-    grid.forEach((v, k) => {
-        const parts = k.split(",").map(Number);
-        const p = hexToPixel(parts[0], parts[1]);
-        drawDrone(p.x, p.y, v.armorId);
-    });
+    const xScale = R * Math.sqrt(3);
+    const yScale = R * 1.5;
+    const centerX = canvas.width / 2;
+    const yOffset = ceilingY + R;
+
+    for (const [k, v] of grid) {
+        const comma = k.indexOf(",");
+        const q = Number(k.slice(0, comma));
+        const r = Number(k.slice(comma + 1));
+        const x = xScale * (q + r / 2) + centerX;
+        const y = yScale * r + yOffset;
+        drawDrone(x, y, v.armorId);
+    }
 }
 
 function drawLauncher() {
