@@ -1,7 +1,7 @@
 {
-  "name": "Tamar Games Hub",
-  "short_name": "Tamar Games",
-  "description": "Play all Tamar games from one installable app, including offline play.",
+  "name": "Offline Games Hub",
+  "short_name": "Offline Gems",
+  "description": "Play all Offline games from one installable app, including offline play.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -9,7 +9,7 @@
   "theme_color": "#0f1b2d",
   "icons": [
     {
-      "src": "./tamar-games-icon.svg",
+      "src": "./gem-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

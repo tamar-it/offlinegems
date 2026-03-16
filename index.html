@@ -3,27 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tamar Games Hub</title>
+<title>Offline Gems</title>
 <meta name="description" content="Play Bubble Shooter, Missile Shooter, Missile Defence, Popcorn, and Invaders Crusher from one place.">
 <meta name="theme-color" content="#0f1b2d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Tamar Games">
+<meta name="apple-mobile-web-app-title" content="Offline Gems">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="./tamar-games-icon.svg">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cg%20transform='translate(-2.2%20-2.2)%20scale(1.14)'%3E%3Cpath%20d='M16.1%206.8c1.5-.2%202.9.8%203.3%202.3%201.3-.6%202.9-.1%203.7%201.1%201.1%201.4.9%203.4-.3%204.6%201.5%201%202%203%201.1%204.8-.9%201.8-2.8%202.6-4.6%202.1-.7%201.4-2.2%202.3-3.8%202.1-1.5-.2-2.8-1.4-3.2-2.8-1.7.4-3.4-.3-4.3-1.9-.9-1.6-.7-3.6.6-4.9-1.1-1.2-1.2-3.1-.2-4.4s2.7-1.9%204.3-1.4c.5-1%201.5-1.6%202.6-1.6z'%20fill='%23fff8d9'%20stroke='%2318110a'%20stroke-width='1.7'%20stroke-linejoin='round'/%3E%3Cpath%20d='M10.8%2013.1c1.8-2.5%203.9-3.9%206.8-4.5'%20stroke='%236a4b1b'%20stroke-width='1.1'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="./gem-icon.svg">
+<link rel="icon" type="image/svg+xml" href="./gem-icon.svg">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Tamar Games">
-<meta property="og:title" content="Tamar Games Hub">
+<meta property="og:site_name" content="Offline Gems">
+<meta property="og:title" content="Offline Gems">
 <meta property="og:description" content="Play Bubble Shooter, Missile Shooter, Missile Defence, Popcorn, and Invaders Crusher from one place.">
-<meta property="og:url" content="https://tamar-it.biz/games/index.html">
-<meta property="og:image" content="https://tamar-it.biz/games/popcorn-preview.png">
+<meta property="og:url" content="https://offlinegems.com/">
+<meta property="og:image" content="https://offlinegems.com/popcorn-preview.png">
 <meta property="og:image:alt" content="Popcorn preview">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Tamar Games Hub">
+<meta name="twitter:title" content="Offline Gems">
 <meta name="twitter:description" content="Play Bubble Shooter, Missile Shooter, Missile Defence, Popcorn, and Invaders Crusher from one place.">
-<meta name="twitter:image" content="https://tamar-it.biz/games/popcorn-preview.png">
+<meta name="twitter:image" content="https://offlinegems.com/popcorn-preview.png">
 <style>
 :root {
     --bg-deep: #08111f;
@@ -257,7 +257,7 @@ h1 {
 <body>
 <main>
     <section class="hero" aria-labelledby="hub-title">
-        <span class="eyebrow">Tamar Games</span>
+        <span class="eyebrow">Offline Gems</span>
         <h1 id="hub-title">Game Hub</h1>
         <p>Welcome to the local games collection. Choose one game to play instantly: classic color matching, armor-coded missile chains, full missile defense action, a simple 80s-style Popcorn challenge, or a tactical match-three invader crusher.</p>
         <div class="hub-actions">
@@ -389,7 +389,7 @@ h1 {
     });
 
     window.addEventListener("appinstalled", () => {
-        setStatus("Tamar Games is installed.");
+        setStatus("Offline Gems is installed.");
         installBtn.hidden = true;
     });
 

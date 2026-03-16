@@ -1,9 +1,9 @@
-const CACHE_VERSION = "tamar-games-v5";
+const CACHE_VERSION = "offline-games-v1";
 const CORE_ASSETS = [
     "./",
     "./index.html",
     "./manifest.webmanifest",
-    "./tamar-games-icon.svg",
+    "./gem-icon.svg",
     "./bubble-preview.png",
     "./missile-shooter.png",
     "./missile-defense.png",
