@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Iron Dome Defense</title>
+<meta name="theme-color" content="#1a1a2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" id="manifestLink">
+
+<!-- Favicon: missile shape -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20x='13'%20y='2'%20width='6'%20height='28'%20fill='%23ff6b6b'/%3E%3Cpolygon%20points='16,2%2020,8%2012,8'%20fill='%23ffd93d'/%3E%3C/svg%3E">
+
+<!-- Open Graph / WhatsApp / Social preview -->
+<meta property="og:type"        content="website">
+<meta property="og:site_name"   content="Tamar Games">
+<meta property="og:title"       content="Iron Dome Defense">
+<meta property="og:description" content="Defend against waves of hostile missiles using Iron Dome interceptors. Can you survive?">
+<meta property="og:image"       content="https://tamar-it.biz/games/missile-defense.png">
+<meta property="og:image:width"  content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt"    content="Iron Dome Defense gameplay preview">
+<meta property="og:url"         content="https://tamar-it.biz/games/missile-defense.html">
+<meta name="twitter:card"       content="summary_large_image">
+<meta name="twitter:title"      content="Iron Dome Defense">
+<meta name="twitter:description" content="Defend against waves of hostile missiles using Iron Dome interceptors. Can you survive?">
+<meta name="twitter:image"      content="https://tamar-it.biz/games/missile-defense.png">
+
+<style>
+body {
+    margin: 0;
+    background: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    height: 100dvh;
+    width: 100vw;
+    overflow: hidden;
+    font-family: sans-serif;
+    color: white;
+}
+
+#appShell {
+    width: min(100vw, 1200px);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
+canvas {
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: block;
+    flex: 1 1 auto;
+}
+
+#controlDock {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: linear-gradient(180deg, rgba(26, 26, 46, 0.98), rgba(15, 52, 96, 0.98));
+    border-top: 1px solid rgba(255, 107, 107, 0.35);
+    min-height: 78px;
+    box-sizing: border-box;
+}
+
+#statsPanel {
+    display: flex;
+    gap: 20px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 14px;
+    flex: 1;
+}
+
+#stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#stat-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#stat-value {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ffd93d;
+}
+
+#stat-health {
+    color: #ff6b6b;
+}
+
+#stat-ammo {
+    color: #4ecdc4;
+}
+
+#controlButtons {
+    display: flex;
+    gap: 10px;
+}
+
+.ctrl-btn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid rgba(255, 107, 107, 0.45);
+    border-radius: 8px;
+    background: rgba(255, 107, 107, 0.12);
+    color: #ffd9d9;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+}
+
+.ctrl-btn:active {
+    transform: scale(0.97);
+}
+
+#settingsPanel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(90vw, 320px);
+    background: rgba(26, 26, 46, 0.96);
+    border: 1px solid rgba(255, 107, 107, 0.5);
+    border-radius: 12px;
+    box-shadow: 0 0 28px rgba(255, 107, 107, 0.2);
+    padding: 16px;
+    z-index: 30;
+    display: none;
+}
+
+#settingsPanel h3 {
+    margin: 0 0 14px 0;
+    color: #ff6b6b;
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.setting-row:first-of-type {
+    border-top: none;
+}
+
+#settingsPanel .close-settings {
+    margin-top: 12px;
+    width: 100%;
+    height: 42px;
+    padding: 0 14px;
+}
+
+#guidePanel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(92vw, 420px);
+    background: rgba(18, 24, 42, 0.97);
+    border: 1px solid rgba(125, 190, 255, 0.45);
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(125, 190, 255, 0.18);
+    padding: 16px;
+    z-index: 30;
+    display: none;
+}
+
+#guidePanel h3 {
+    margin: 0 0 12px 0;
+    color: #b8dcff;
+}
+
+#guidePanel p,
+#guidePanel li {
+    color: rgba(240, 245, 255, 0.92);
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+#guidePanel ul {
+    margin: 8px 0 10px 18px;
+    padding: 0;
+}
+
+#guidePanel .close-guide {
+    margin-top: 10px;
+    width: 100%;
+    height: 42px;
+    padding: 0 14px;
+}
+
+.settings-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 25;
+    display: none;
+}
+
+/* UI Overlay Styles */
+#uiOverlay {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(26, 26, 46, 0.95);
+    padding: 40px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(255, 107, 107, 0.3);
+    border: 1px solid #ff6b6b;
+    z-index: 10;
+}
+
+#uiOverlay h1 {
+    margin-top: 0;
+    color: #ff6b6b;
+    text-shadow: 0 0 10px #ff6b6b;
+}
+
+#uiOverlay h2 {
+    margin-bottom: 30px;
+    font-size: 28px;
+}
+
+.btn {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+    margin: 5px;
+    transition: transform 0.1s;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn-icon {
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.share-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+}
+
+.btn-new { background: #ff6b6b; color: #fff; width: 100%; margin: 15px 0 0 0; }
+.btn-x { background: #000000; border: 1px solid #333; }
+.btn-wa { background: #25D366; }
+.btn-tg { background: #0088cc; }
+.btn-copy { background: #666666; }
+
+#installBtn {
+    display: none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="appShell">
+<canvas id="game"></canvas>
+<div id="controlDock">
+    <div id="statsPanel">
+        <div id="stat1" class="stat">
+            <span id="stat-label1" class="stat-label">Kills</span>
+            <span id="stat-value1" class="stat-value">0</span>
+        </div>
+        <div id="stat2" class="stat">
+            <span id="stat-label2" class="stat-label">Wave</span>
+            <span id="stat-value2" class="stat-value">1</span>
+        </div>
+        <div id="stat3" class="stat">
+            <span id="stat-label3" class="stat-label">Health</span>
+            <span id="stat-value3" class="stat-value stat-health">3</span>
+        </div>
+    </div>
+    <div id="controlButtons">
+        <button id="newGameBtn" class="ctrl-btn" type="button" aria-label="New Game" title="New Game">♻️</button>
+        <button id="guideBtn" class="ctrl-btn" type="button" aria-label="Game Guide" title="Game Guide">📖</button>
+        <button id="volumeBtn" class="ctrl-btn" type="button" aria-label="Toggle sound" title="Toggle Sound">🔊</button>
+        <button id="settingsBtn" class="ctrl-btn" type="button" aria-label="Settings" title="Settings">⚙️</button>
+        <button id="installBtn" class="ctrl-btn" type="button" aria-label="Install app" title="Install App">📲</button>
+    </div>
+</div>
+</div>
+
+<div id="settingsBackdrop" class="settings-backdrop"></div>
+<div id="settingsPanel" role="dialog" aria-modal="true" aria-label="Game settings">
+    <h3>Settings</h3>
+    <div class="setting-row">
+        <label for="soundToggle">Sound Effects</label>
+        <input id="soundToggle" type="checkbox">
+    </div>
+    <button id="closeSettingsBtn" class="ctrl-btn close-settings" type="button">Close</button>
+</div>
+
+<div id="guidePanel" role="dialog" aria-modal="true" aria-label="Game guide">
+    <h3>Mission Guide</h3>
+    <p>Each level has a mission target. Destroy enough hostile devices to clear the level.</p>
+    <ul>
+        <li>Protect all city buildings. If buildings are destroyed, you lose.</li>
+        <li>Use your Iron Dome launcher to intercept missiles.</li>
+        <li>Friendly F-35 jets and the carrier can help intercept threats.</li>
+        <li>Complete all level missions to win the game.</li>
+    </ul>
+    <button id="closeGuideBtn" class="ctrl-btn close-guide" type="button">Close Guide</button>
+</div>
+
+<div id="uiOverlay">
+    <h1 id="uiTitle">Game Over</h1>
+    <h2 id="uiScore">Score: 0</h2>
+    
+    <div class="share-row">
+        <button class="btn btn-icon btn-x" onclick="shareScore('x')" aria-label="Share on X" title="Share on X">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 4L19 20"></path>
+                <path d="M19 4L5 20"></path>
+            </svg>
+        </button>
+        <button class="btn btn-icon btn-wa" onclick="shareScore('wa')" aria-label="Share on WhatsApp" title="Share on WhatsApp">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 18L4.5 19.5L5.5 16.5C4.6 15.2 4 13.7 4 12C4 7.6 7.6 4 12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20C10.3 20 8.8 19.4 7.5 18.5"></path>
+                <path d="M9.2 8.8C9.6 8.4 10 8.4 10.3 8.9L11.2 10.3C11.4 10.7 11.4 11 11.1 11.3L10.5 11.9C10.9 12.8 11.6 13.5 12.5 13.9L13.1 13.3C13.4 13 13.7 13 14.1 13.2L15.5 14.1C16 14.4 16 14.8 15.6 15.2C14.9 15.9 14 16.1 13 15.8C10.6 15.1 8.9 13.4 8.2 11C7.9 10 8.1 9.1 8.8 8.4"></path>
+            </svg>
+        </button>
+        <button class="btn btn-icon btn-tg" onclick="shareScore('tg')" aria-label="Share on Telegram" title="Share on Telegram">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 4L3.8 10.6C3.2 10.8 3.2 11.6 3.8 11.8L8.2 13.2L10.2 19.2C10.4 19.8 11.2 19.9 11.5 19.4L14 15.8L18.4 19C18.9 19.4 19.7 19.1 19.8 18.4L21.9 4.9C22 4.3 21.5 3.8 21 4Z"></path>
+                <path d="M8.2 13.2L20.8 4.2"></path>
+            </svg>
+        </button>
+        <button class="btn btn-icon btn-copy" onclick="shareScore('copy')" aria-label="Copy score text" title="Copy to Clipboard">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 5v13c0 1 1 2 2 2h10c1 0 2-1 2-2V5"></path>
+                <path d="M9 3c0-1 1-2 2-2h2c1 0 2 1 2 2"></path>
+                <path d="M9 12h6"></path>
+            </svg>
+        </button>
+    </div>
+    
+    <button class="btn btn-new" onclick="startNewGame()">Play Again</button>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const appShell = document.getElementById("appShell");
+const controlDock = document.getElementById("controlDock");
+const newGameBtn = document.getElementById("newGameBtn");
+const guideBtn = document.getElementById("guideBtn");
+const volumeBtn = document.getElementById("volumeBtn");
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsPanel = document.getElementById("settingsPanel");
+const guidePanel = document.getElementById("guidePanel");
+const settingsBackdrop = document.getElementById("settingsBackdrop");
+const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const closeGuideBtn = document.getElementById("closeGuideBtn");
+const soundToggle = document.getElementById("soundToggle");
+const uiOverlay = document.getElementById("uiOverlay");
+const uiTitle = document.getElementById("uiTitle");
+const uiScore = document.getElementById("uiScore");
+const installBtn = document.getElementById("installBtn");
+const manifestLink = document.getElementById("manifestLink");
+
+const statValue1 = document.getElementById("stat-value1");
+const statValue2 = document.getElementById("stat-value2");
+const statValue3 = document.getElementById("stat-value3");
+const statLabel2 = document.getElementById("stat-label2");
+
+const SETTINGS_KEY = "missileDefenseSettings";
+const defaultSettings = { soundEnabled: false };
+let settings = loadSettings();
+let audioContext = null;
+
+// Game parameters
+const REFERENCE_FPS = 60;
+const SPEED = 15;
+const INTERCEPTOR_SPEED = 10;
+const SPAWN_RATE_BASE = 0.03;
+const INITIAL_HEALTH = 3;
+const BUILDING_HIT_PENALTY = 20;
+
+// Level definitions
+const LEVEL_CONFIGS = [
+    { // Level 1
+        name: "Rocket Barrage",
+        enemyTypes: ["rocket"],
+        spawnRate: 0.01,
+        goalKills: 6,
+        message: "Defend against rockets!"
+    },
+    { // Level 2
+        name: "Missile Threats",
+        enemyTypes: ["rocket", "ballistic"],
+        spawnRate: 0.012,
+        goalKills: 8,
+        message: "Ballistic missiles incoming!"
+    },
+    { // Level 3
+        name: "Full Assault",
+        enemyTypes: ["rocket", "ballistic", "drone"],
+        spawnRate: 0.014,
+        goalKills: 10,
+        message: "All threats detected!"
+    },
+    { // Level 4
+        name: "Coastal Raid",
+        enemyTypes: ["rocket", "ballistic", "drone"],
+        spawnRate: 0.016,
+        goalKills: 12,
+        message: "Drones are flanking from the horizon!"
+    },
+    { // Level 5
+        name: "Saturation Attack",
+        enemyTypes: ["rocket", "ballistic", "drone"],
+        spawnRate: 0.018,
+        goalKills: 14,
+        message: "Sustained hostile pressure!"
+    },
+    { // Level 6
+        name: "Heavy Barrage",
+        enemyTypes: ["rocket", "ballistic", "drone"],
+        spawnRate: 0.02,
+        goalKills: 16,
+        message: "High-density missile waves!"
+    },
+    { // Level 7
+        name: "Airspace Collapse",
+        enemyTypes: ["rocket", "ballistic", "drone"],
+        spawnRate: 0.022,
+        goalKills: 18,
+        message: "Maintain intercept lock at all costs!"
+    },
+    { // Level 8+
+        name: "Extreme Defense",
+        enemyTypes: ["rocket", "ballistic", "drone"],
+        spawnRate: 0.024,
+        goalKills: 20,
+        message: "Maximum intensity!"
+    }
+];
+
+// Emojis for game objects
+const MISSILE_TYPES = {
+    rocket: { emoji: "🚀", speed: 2, health: 1, score: 10 },
+    ballistic: { emoji: "🎯", speed: 3, health: 1, score: 15 },
+    drone: { emoji: "🛩️", speed: 2.5, health: 2, score: 25, horizontal: true }
+};
+const BUILDING_EMOJIS = ["🏭", "🏚️", "🏘️", "🏡", "🏠", "🏩", "🏫", "🏪", "🏨", "🏤", "🏣", "🏬", "🏢"];
+const INTERCEPTOR_EMOJI = "🔥";  // Iron Dome missile
+const EXPLOSION_EMOJI = "💥";
+const CARRIER_EMOJI = "🛳️";
+const COMPACT_LAYOUT_MAX_WIDTH = 768;
+
+function useCompactCoastLayout() {
+    return canvas.width <= COMPACT_LAYOUT_MAX_WIDTH;
+}
+
+function getCarrierMetrics() {
+    if (useCompactCoastLayout()) {
+        return {
+            fontSize: 50,
+            bodyWidth: 78,
+            wakeOffsetX: 10,
+            wakeWidth: 90,
+            wakeHeight: 8,
+            launchOffsetX: 54,
+            launchOffsetY: 22,
+            flagOffsetX: 50,
+            flagOffsetY: 28,
+            flagWidth: 16,
+            flagHeight: 10
+        };
+    }
+
+    return {
+        fontSize: 64,
+        bodyWidth: 96,
+        wakeOffsetX: 12,
+        wakeWidth: 130,
+        wakeHeight: 10,
+        launchOffsetX: 66,
+        launchOffsetY: 26,
+        flagOffsetX: 62,
+        flagOffsetY: 36,
+        flagWidth: 20,
+        flagHeight: 12
+    };
+}
+
+function getSeaCityBoundaryX() {
+    if (useCompactCoastLayout()) {
+        const carrierMetrics = getCarrierMetrics();
+        const maxCompactSeaWidth = canvas.width / 3;
+        const desiredSeaWidth = carrierMetrics.bodyWidth + 18;
+        return Math.min(maxCompactSeaWidth, desiredSeaWidth);
+    }
+
+    return Math.max(220, canvas.width * 0.24);
+}
+
+function smoothStep01(t) {
+    const clamped = Math.max(0, Math.min(1, t));
+    return clamped * clamped * (3 - 2 * clamped);
+}
+
+function getGroundYAt(x) {
+    const seaTop = canvas.height - 56;
+    const boundaryX = getSeaCityBoundaryX();
+    const coastFlatY = seaTop - 24;
+    const peakY = seaTop - 84;
+    const farRightFlatY = seaTop - 30;
+
+    const riseStart = boundaryX + 28;
+    const riseEnd = canvas.width * 0.78;
+    const dropStart = canvas.width * 0.84;
+    const dropEnd = canvas.width * 0.93;
+
+    if (x <= riseStart) return coastFlatY;
+
+    if (x <= riseEnd) {
+        const t = (x - riseStart) / Math.max(1, riseEnd - riseStart);
+        return coastFlatY + (peakY - coastFlatY) * smoothStep01(t);
+    }
+
+    if (x <= dropStart) return peakY;
+
+    if (x <= dropEnd) {
+        const t = (x - dropStart) / Math.max(1, dropEnd - dropStart);
+        return peakY + (farRightFlatY - peakY) * smoothStep01(t);
+    }
+
+    return farRightFlatY;
+}
+
+let gameOver = false;
+let score = 0;
+let kills = 0;
+let health = INITIAL_HEALTH;
+let wave = 1;
+let enemiesKilled = 0;
+let frameCount = 0;
+let levelKills = 0;
+let toastQueue = [];
+let activeToast = null;
+
+let missiles = [];  // Hostile missiles
+let interceptors = []; // Iron Dome interceptors
+let explosions = []; // Explosion particles
+let friendlyJets = []; // Friendly interceptor jets
+let buildings = []; // Ground buildings/camps
+let carrier = null; // US aircraft carrier that launches long-range interceptors
+let launcher = { x: 0, y: 0, angle: 0 };
+
+let mouseX = 0;
+let mouseY = 0;
+let isTouchDevice = false;
+let touchAimActive = false;
+let installPromptEvent = null;
+
+function loadSettings() {
+    try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (!raw) return { ...defaultSettings };
+        const parsed = JSON.parse(raw);
+        return { soundEnabled: parsed.soundEnabled === true };
+    } catch {
+        return { ...defaultSettings };
+    }
+}
+
+function saveSettings() {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function syncSettingsUi() {
+    soundToggle.checked = settings.soundEnabled;
+    volumeBtn.setAttribute("aria-pressed", String(settings.soundEnabled));
+    volumeBtn.setAttribute("title", settings.soundEnabled ? "Sound On" : "Sound Off");
+    volumeBtn.textContent = settings.soundEnabled ? "🔊" : "🔇";
+}
+
+function openSettings() {
+    guidePanel.style.display = "none";
+    syncSettingsUi();
+    settingsBackdrop.style.display = "block";
+    settingsPanel.style.display = "block";
+}
+
+function openGuide() {
+    settingsPanel.style.display = "none";
+    settingsBackdrop.style.display = "block";
+    guidePanel.style.display = "block";
+}
+
+function closeSettings() {
+    settingsBackdrop.style.display = "none";
+    settingsPanel.style.display = "none";
+    guidePanel.style.display = "none";
+}
+
+function getCurrentMissionGoal() {
+    const idx = Math.min(wave - 1, LEVEL_CONFIGS.length - 1);
+    return LEVEL_CONFIGS[idx].goalKills;
+}
+
+function enqueueToast(text, color = "#b8dcff", duration = 140) {
+    toastQueue.push({ text, color, duration, timer: duration });
+}
+
+function processMissionToasts() {
+    if (!activeToast && toastQueue.length > 0) {
+        activeToast = toastQueue.shift();
+    }
+    if (!activeToast) return;
+
+    activeToast.timer--;
+    if (activeToast.timer <= 0) {
+        activeToast = null;
+    }
+}
+
+function drawMissionToast() {
+    if (!activeToast) return;
+
+    const fadeFrames = 18;
+    const elapsed = activeToast.duration - activeToast.timer;
+    let alpha = 1;
+    if (elapsed < fadeFrames) {
+        alpha = elapsed / fadeFrames;
+    } else if (activeToast.timer < fadeFrames) {
+        alpha = activeToast.timer / fadeFrames;
+    }
+
+    const x = canvas.width / 2;
+    const y = 58;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+    ctx.font = "bold 18px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const textWidth = ctx.measureText(activeToast.text).width;
+    const padX = 18;
+    const boxW = textWidth + padX * 2;
+    const boxH = 34;
+
+    ctx.fillStyle = "rgba(8, 14, 28, 0.78)";
+    ctx.fillRect(x - boxW / 2, y - boxH / 2, boxW, boxH);
+    ctx.strokeStyle = "rgba(125, 190, 255, 0.35)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x - boxW / 2, y - boxH / 2, boxW, boxH);
+
+    ctx.fillStyle = activeToast.color;
+    ctx.fillText(activeToast.text, x, y + 1);
+    ctx.restore();
+}
+
+function handleMissionProgress(pointsAwarded) {
+    score += pointsAwarded;
+    kills++;
+    enemiesKilled++;
+    levelKills++;
+
+    if (levelKills < getCurrentMissionGoal()) return;
+
+    enqueueToast(`Mission ${wave} complete`, "#8cffc1", 110);
+
+    if (wave >= LEVEL_CONFIGS.length) {
+        gameOver = true;
+        showOverlay("MISSION COMPLETE!", `Final Score: ${score}\nAll ${LEVEL_CONFIGS.length} missions cleared\nTotal Kills: ${kills}`);
+        return;
+    }
+
+    wave++;
+    levelKills = 0;
+    enqueueToast(`Mission ${wave} started: ${getCurrentMissionGoal()} intercepts`, "#b8dcff", 150);
+}
+
+function ensureAudioContext() {
+    if (!audioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return null;
+        audioContext = new AudioCtx();
+    }
+    if (audioContext.state === "suspended") {
+        audioContext.resume();
+    }
+    return audioContext;
+}
+
+function playTone(type, options) {
+    if (!settings.soundEnabled) return;
+    const ctxAudio = ensureAudioContext();
+    if (!ctxAudio) return;
+
+    const now = ctxAudio.currentTime;
+    const osc = ctxAudio.createOscillator();
+    const gain = ctxAudio.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(options.startFreq, now);
+    if (options.endFreq !== undefined) {
+        osc.frequency.exponentialRampToValueAtTime(Math.max(1, options.endFreq), now + options.duration);
+    }
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(options.peak, now + options.attack);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + options.duration);
+    osc.connect(gain);
+    gain.connect(ctxAudio.destination);
+    osc.start(now);
+    osc.stop(now + options.duration + 0.02);
+}
+
+function playHitSound() {
+    // Short, deep impact boom.
+    playTone("triangle", { startFreq: 120, endFreq: 48, attack: 0.01, duration: 0.26, peak: 0.22 });
+}
+
+function playShootSound() {
+    // Lower launch thump.
+    playTone("sine", { startFreq: 95, endFreq: 58, attack: 0.008, duration: 0.2, peak: 0.18 });
+}
+
+function buildWebAppManifest() {
+    const iconSvg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='#1a1a2e'/><rect x='72' y='24' width='48' height='140' fill='#ff6b6b' rx='4'/><polygon points='96,20 108,32 84,32' fill='#ffd93d'/></svg>";
+    const iconUrl = "data:image/svg+xml," + encodeURIComponent(iconSvg);
+    const startUrl = new URL(location.pathname.split("/").pop() || "missile-defense.html", location.href).toString();
+    const scopeUrl = new URL(".", location.href).toString();
+    const manifest = {
+        name: "Iron Dome Defense",
+        short_name: "Missiles",
+        start_url: startUrl,
+        scope: scopeUrl,
+        display: "standalone",
+        background_color: "#111111",
+        theme_color: "#1a1a2e",
+        description: "Defend against waves of hostile missiles using Iron Dome interceptors.",
+        icons: [
+            { src: iconUrl, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+            { src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+        ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+    manifestLink.href = URL.createObjectURL(blob);
+}
+
+function updateInstallButton() {
+    if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true) {
+        installBtn.style.display = "none";
+        return;
+    }
+    if (installPromptEvent) {
+        installBtn.textContent = "📲";
+        installBtn.title = "Install App";
+        installBtn.style.display = "inline-flex";
+        return;
+    }
+    if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+        installBtn.textContent = "🏠";
+        installBtn.title = "Add to Home Screen";
+        installBtn.style.display = "inline-flex";
+        return;
+    }
+    installBtn.style.display = "none";
+}
+
+async function registerWebAppSupport() {
+    buildWebAppManifest();
+    if (!("serviceWorker" in navigator) || location.protocol === "file:") {
+        updateInstallButton();
+        return;
+    }
+    try {
+        await navigator.serviceWorker.register("./service-worker.js");
+    } catch (error) {
+        console.warn("Service worker registration failed", error);
+    }
+    updateInstallButton();
+}
+
+function resizeCanvas() {
+    const shellWidth = Math.min(window.innerWidth, 1200);
+    appShell.style.width = shellWidth + "px";
+    const dockHeight = controlDock.offsetHeight || 78;
+    canvas.height = Math.max(320, window.innerHeight - dockHeight);
+    canvas.width = shellWidth;
+    launcher.x = canvas.width / 2;
+    launcher.y = canvas.height - 40;
+    mouseX = launcher.x;
+    mouseY = launcher.y - 100;
+    
+    // Initialize buildings
+    initializeBuildings();
+    initializeCarrier();
+}
+
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+syncSettingsUi();
+
+function initializeBuildings() {
+    buildings = [];
+    const buildingWidth = 50;
+    const buildingHeight = 40;
+    const clusterGap = 74;    // Keep clusters tighter
+    const buildingGap = 9;    // Buildings in each cluster are close together
+    const rowOffsetX = 12;    // Slight stagger for denser city look
+    const cityStartX = getSeaCityBoundaryX() + 18;
+    let x = cityStartX;
+    
+    while (x < canvas.width - 72) {
+        // Create a cluster with 2 lines (back row + front row)
+        const frontCount = 3 + Math.floor(Math.random() * 2);
+        const backCount = Math.max(2, frontCount - (Math.random() < 0.5 ? 0 : 1));
+
+        for (let i = 0; i < backCount; i++) {
+            const bx = x + rowOffsetX + i * (buildingWidth + buildingGap);
+            const centerX = bx + buildingWidth / 2;
+            const frontGroundY = getGroundYAt(centerX);
+            buildings.push({
+                x: bx,
+                y: Math.max(64, frontGroundY - buildingHeight - 6),
+                width: buildingWidth,
+                height: buildingHeight,
+                health: 1,
+                emoji: BUILDING_EMOJIS[Math.floor(Math.random() * BUILDING_EMOJIS.length)]
+            });
+        }
+
+        for (let i = 0; i < frontCount; i++) {
+            const bx = x + i * (buildingWidth + buildingGap);
+            const centerX = bx + buildingWidth / 2;
+            const frontGroundY = getGroundYAt(centerX);
+            buildings.push({
+                x: bx,
+                y: Math.max(72, frontGroundY - buildingHeight + 14),
+                width: buildingWidth,
+                height: buildingHeight,
+                health: 1,
+                emoji: BUILDING_EMOJIS[Math.floor(Math.random() * BUILDING_EMOJIS.length)]
+            });
+        }
+        
+        // Move to next cluster location with large gap
+        const widestRow = Math.max(frontCount, backCount);
+        x += widestRow * (buildingWidth + buildingGap) + clusterGap;
+    }
+}
+
+function isHitOnBuilding(x, y) {
+    for (let b of buildings) {
+        if (x >= b.x && x <= b.x + b.width && 
+            y >= b.y && y <= b.y + b.height) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function damageBuilding(x, y) {
+    for (let b of buildings) {
+        if (x >= b.x && x <= b.x + b.width && 
+            y >= b.y && y <= b.y + b.height) {
+            b.health--;
+            return true;
+        }
+    }
+    return false;
+}
+
+function spawnFriendlyJet() {
+    const jetSpeed = 5;
+    const shotRange = 200;
+    const skyTop = 40;
+    const skyBottom = Math.max(120, canvas.height * 0.28);
+    friendlyJets.push({
+        x: Math.random() > 0.5 ? -20 : canvas.width + 20,
+        y: skyTop + Math.random() * (skyBottom - skyTop),
+        vx: Math.random() > 0.5 ? jetSpeed : -jetSpeed,
+        age: 0,
+        maxAge: 400,
+        target: null,
+        shotRange: shotRange,
+        shotCooldown: 0,
+        maxCooldown: 15
+    });
+}
+
+function initializeCarrier() {
+    const seaY = canvas.height - 44;
+    const carrierMetrics = getCarrierMetrics();
+    const seaWidth = getSeaCityBoundaryX();
+    const carrierX = Math.max(8, seaWidth - carrierMetrics.bodyWidth - 10);
+    carrier = {
+        x: carrierX,
+        y: seaY,
+        vx: 0,
+        deckX: 0,
+        targetX: carrierX,
+        shotCooldown: 45,
+        maxCooldown: 45,
+        shotRange: 320
+    };
+}
+
+function updateCarrier(frameScale) {
+    if (!carrier) return;
+    const carrierMetrics = getCarrierMetrics();
+
+    if (carrier.x < carrier.targetX) {
+        carrier.x += carrier.vx * frameScale;
+    }
+
+    carrier.shotCooldown -= frameScale;
+    if (carrier.shotCooldown > 0) return;
+
+    let target = null;
+    let bestDist = carrier.shotRange;
+    const launchX = carrier.x + carrierMetrics.launchOffsetX;
+    const launchY = carrier.y - carrierMetrics.launchOffsetY;
+
+    for (const m of missiles) {
+        const dist = Math.hypot(m.x - launchX, m.y - launchY);
+        if (dist < bestDist) {
+            bestDist = dist;
+            target = m;
+        }
+    }
+
+    if (!target) return;
+
+    const dx = target.x - launchX;
+    const dy = target.y - launchY;
+    const len = Math.max(1, Math.hypot(dx, dy));
+    interceptors.push({
+        x: launchX,
+        y: launchY,
+        vx: (dx / len) * (INTERCEPTOR_SPEED + 1.5),
+        vy: (dy / len) * (INTERCEPTOR_SPEED + 1.5),
+        age: 0,
+        fromCarrier: true
+    });
+    carrier.shotCooldown = carrier.maxCooldown;
+}
+
+function drawF35(x, y, scale, headingRight) {
+    const dir = headingRight ? 1 : -1;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(dir, 1);
+
+    // Main body
+    ctx.fillStyle = "#a8afb9";
+    ctx.beginPath();
+    ctx.moveTo(22 * scale, 0);
+    ctx.lineTo(5 * scale, -6 * scale);
+    ctx.lineTo(-14 * scale, -4 * scale);
+    ctx.lineTo(-20 * scale, 0);
+    ctx.lineTo(-14 * scale, 4 * scale);
+    ctx.lineTo(5 * scale, 6 * scale);
+    ctx.closePath();
+    ctx.fill();
+
+    // Wing block
+    ctx.fillStyle = "#8f98a3";
+    ctx.beginPath();
+    ctx.moveTo(0, -12 * scale);
+    ctx.lineTo(-10 * scale, -3 * scale);
+    ctx.lineTo(-10 * scale, 3 * scale);
+    ctx.lineTo(0, 12 * scale);
+    ctx.lineTo(8 * scale, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Canopy
+    ctx.fillStyle = "#5f85a6";
+    ctx.beginPath();
+    ctx.ellipse(7 * scale, 0, 4 * scale, 2.5 * scale, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Engine glow
+    ctx.fillStyle = "rgba(255, 155, 66, 0.8)";
+    ctx.beginPath();
+    ctx.arc(-20 * scale, 0, 2.2 * scale, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawCarrier() {
+    if (!carrier) return;
+    const x = carrier.x;
+    const y = carrier.y;
+    const carrierMetrics = getCarrierMetrics();
+
+    // Hull shadow and sea wake
+    ctx.fillStyle = "rgba(20, 40, 70, 0.35)";
+    ctx.fillRect(x + carrierMetrics.wakeOffsetX, y + 10, carrierMetrics.wakeWidth, carrierMetrics.wakeHeight);
+
+    // Carrier emoji body
+    ctx.font = `${carrierMetrics.fontSize}px Arial`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(CARRIER_EMOJI, x, y);
+
+    // Small US flag to make the carrier identity explicit
+    ctx.fillStyle = "#0b3b8f";
+    ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY, carrierMetrics.flagWidth, carrierMetrics.flagHeight);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 4, carrierMetrics.flagWidth, 2);
+    ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 8, carrierMetrics.flagWidth, 2);
+    ctx.fillStyle = "#d42027";
+    ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 2, carrierMetrics.flagWidth, 2);
+    ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 6, carrierMetrics.flagWidth, 2);
+    ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 10, carrierMetrics.flagWidth, 2);
+}
+
+function startNewGame() {
+    resizeCanvas();
+    missiles = [];
+    interceptors = [];
+    explosions = [];
+    friendlyJets = [];
+    carrier = null;
+    score = 0;
+    kills = 0;
+    health = INITIAL_HEALTH;
+    wave = 1;
+    enemiesKilled = 0;
+    levelKills = 0;
+    frameCount = 0;
+    toastQueue = [];
+    activeToast = null;
+    gameOver = false;
+    initializeCarrier();
+    enqueueToast(`Mission 1 started: ${getCurrentMissionGoal()} intercepts`, "#b8dcff", 170);
+    uiOverlay.style.display = "none";
+    updateUI();
+}
+
+startNewGame();
+registerWebAppSupport();
+
+window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    installPromptEvent = event;
+    updateInstallButton();
+});
+
+window.addEventListener("appinstalled", () => {
+    installPromptEvent = null;
+    updateInstallButton();
+});
+
+installBtn.addEventListener("click", async () => {
+    if (installPromptEvent) {
+        installPromptEvent.prompt();
+        await installPromptEvent.userChoice;
+        installPromptEvent = null;
+        updateInstallButton();
+        return;
+    }
+    if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+        alert("To save this game as a web app on iPhone or iPad, open the browser share menu and choose Add to Home Screen.");
+    }
+});
+
+newGameBtn.addEventListener("click", () => {
+    startNewGame();
+});
+
+volumeBtn.addEventListener("click", () => {
+    settings.soundEnabled = !settings.soundEnabled;
+    saveSettings();
+    syncSettingsUi();
+    if (settings.soundEnabled) {
+        ensureAudioContext();
+        playShootSound();
+    }
+});
+
+guideBtn.addEventListener("click", () => {
+    openGuide();
+});
+
+settingsBtn.addEventListener("click", () => {
+    openSettings();
+});
+
+closeSettingsBtn.addEventListener("click", () => {
+    closeSettings();
+});
+
+closeGuideBtn.addEventListener("click", () => {
+    closeSettings();
+});
+
+settingsBackdrop.addEventListener("click", () => {
+    closeSettings();
+});
+
+soundToggle.addEventListener("change", () => {
+    settings.soundEnabled = soundToggle.checked;
+    saveSettings();
+    syncSettingsUi();
+    if (settings.soundEnabled) {
+        ensureAudioContext();
+        playShootSound();
+    }
+});
+
+canvas.addEventListener("mousemove", e => {
+    isTouchDevice = false;
+    let rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+    launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+});
+
+canvas.addEventListener("click", () => {
+    ensureAudioContext();
+    if (!isTouchDevice) shoot();
+});
+
+canvas.addEventListener("touchmove", e => {
+    isTouchDevice = true;
+    touchAimActive = true;
+    e.preventDefault();
+    let rect = canvas.getBoundingClientRect();
+    mouseX = e.touches[0].clientX - rect.left;
+    mouseY = e.touches[0].clientY - rect.top;
+    launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+}, { passive: false });
+
+canvas.addEventListener("touchstart", e => {
+    ensureAudioContext();
+    isTouchDevice = true;
+    touchAimActive = true;
+    e.preventDefault();
+    let rect = canvas.getBoundingClientRect();
+    mouseX = e.touches[0].clientX - rect.left;
+    mouseY = e.touches[0].clientY - rect.top;
+}, { passive: false });
+
+canvas.addEventListener("touchend", e => {
+    if (!touchAimActive) return;
+    e.preventDefault();
+    if (e.changedTouches.length > 0) {
+        let rect = canvas.getBoundingClientRect();
+        mouseX = e.changedTouches[0].clientX - rect.left;
+        mouseY = e.changedTouches[0].clientY - rect.top;
+        launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+    }
+    touchAimActive = false;
+    shoot();
+}, { passive: false });
+
+function shoot() {
+    if (gameOver) return;
+    let dx = mouseX - launcher.x;
+    let dy = mouseY - launcher.y;
+    let l = Math.hypot(dx, dy);
+    if (l < 1) return;
+    dx /= l;
+    dy /= l;
+    
+    interceptors.push({
+        x: launcher.x,
+        y: launcher.y,
+        vx: dx * INTERCEPTOR_SPEED,
+        vy: dy * INTERCEPTOR_SPEED,
+        age: 0
+    });
+    
+    playShootSound();
+}
+
+function spawnMissile() {
+    const levelIndex = Math.min(wave - 1, LEVEL_CONFIGS.length - 1);
+    const levelConfig = LEVEL_CONFIGS[levelIndex];
+    const typeKey = levelConfig.enemyTypes[Math.floor(Math.random() * levelConfig.enemyTypes.length)];
+    const type = MISSILE_TYPES[typeKey];
+    
+    let x, y, vx, vy;
+    
+    if (type.horizontal) {
+        // Drone - moves horizontally
+        x = Math.random() > 0.5 ? -30 : canvas.width + 30;
+        y = Math.random() * (canvas.height * 0.6);
+        vx = x < canvas.width / 2 ? type.speed : -type.speed;
+        vy = (Math.random() - 0.5) * 0.5;
+    } else {
+        // Missiles - move downward
+        x = Math.random() * (canvas.width - 60) + 30;
+        y = -30;
+        vx = (Math.random() - 0.5) * 1;
+        vy = type.speed;
+    }
+    
+    missiles.push({
+        x: x,
+        y: y,
+        vx: vx,
+        vy: vy,
+        type: typeKey,
+        typeData: type,
+        health: type.health,
+        age: 0
+    });
+}
+
+function createExplosion(x, y) {
+    explosions.push({
+        x: x,
+        y: y,
+        age: 0,
+        maxAge: 20
+    });
+}
+
+function updateUI() {
+    statValue1.textContent = kills;
+    statLabel2.textContent = "Mission";
+    statValue2.textContent = `${wave}: ${levelKills}/${getCurrentMissionGoal()}`;
+    statValue3.textContent = health;
+}
+
+function update(deltaSeconds) {
+    if (gameOver) return;
+
+    const frameScale = deltaSeconds * REFERENCE_FPS;
+    
+    frameCount += frameScale;
+    processMissionToasts();
+    
+    // Get current level config
+    const levelIndex = Math.min(wave - 1, LEVEL_CONFIGS.length - 1);
+    const levelConfig = LEVEL_CONFIGS[levelIndex];
+    
+    // Spawn missiles
+    const spawnChance = 1 - Math.pow(1 - levelConfig.spawnRate, frameScale);
+    if (Math.random() < spawnChance) {
+        spawnMissile();
+    }
+    
+    // Spawn friendly jets occasionally (bonus feature)
+    const previousBucket = Math.floor((frameCount - frameScale) / 180);
+    const currentBucket = Math.floor(frameCount / 180);
+    if (currentBucket > previousBucket && Math.random() < 0.6) {
+        spawnFriendlyJet();
+    }
+
+    // Carrier lands on sea and contributes long-range interceptions.
+    updateCarrier(frameScale);
+    
+    // Update missiles
+    for (let i = missiles.length - 1; i >= 0; i--) {
+        const m = missiles[i];
+        m.x += m.vx * frameScale;
+        m.y += m.vy * frameScale;
+        m.age += frameScale;
+        
+        // Check if missile left the screen (for horizontal drones)
+        if ((m.vx > 0 && m.x > canvas.width + 50) || (m.vx < 0 && m.x < -50)) {
+            missiles.splice(i, 1);
+            continue;
+        }
+        
+        // Check if missile reached ground
+        if (m.y > canvas.height - 85) {
+            // Check if it hits a building
+            if (isHitOnBuilding(m.x, m.y)) {
+                damageBuilding(m.x, m.y);
+                createExplosion(m.x, m.y);
+                score = Math.max(0, score - BUILDING_HIT_PENALTY);
+                missiles.splice(i, 1);
+            }
+            continue;
+        }
+        
+        // Check collision with interceptors
+        for (let j = interceptors.length - 1; j >= 0; j--) {
+            const inter = interceptors[j];
+            const dist = Math.hypot(m.x - inter.x, m.y - inter.y);
+            
+            if (dist < 30) {
+                createExplosion((m.x + inter.x) / 2, (m.y + inter.y) / 2);
+                playHitSound();
+                
+                m.health--;
+                if (m.health <= 0) {
+                    missiles.splice(i, 1);
+                    handleMissionProgress(m.typeData.score);
+                }
+                
+                interceptors.splice(j, 1);
+                break;
+            }
+        }
+        
+        // Check collision with friendly jets
+        for (let j = friendlyJets.length - 1; j >= 0; j--) {
+            const jet = friendlyJets[j];
+            const dist = Math.hypot(m.x - jet.x, m.y - jet.y);
+            
+            if (dist < 35) {
+                createExplosion((m.x + jet.x) / 2, (m.y + jet.y) / 2);
+                playHitSound();
+                
+                m.health--;
+                if (m.health <= 0) {
+                    missiles.splice(i, 1);
+                    handleMissionProgress(Math.floor(m.typeData.score * 0.5));
+                }
+                break;
+            }
+        }
+    }
+    
+    // Update interceptors
+    for (let i = interceptors.length - 1; i >= 0; i--) {
+        const inter = interceptors[i];
+        inter.x += inter.vx * frameScale;
+        inter.y += inter.vy * frameScale;
+        inter.age += frameScale;
+        
+        // Remove if out of bounds or too old
+        if (inter.x < 0 || inter.x > canvas.width || inter.y < 0 || inter.y > canvas.height || inter.age > 300) {
+            interceptors.splice(i, 1);
+        }
+    }
+    
+    // Update friendly jets
+    for (let i = friendlyJets.length - 1; i >= 0; i--) {
+        const jet = friendlyJets[i];
+        const skyTop = 36;
+        const skyBottom = Math.max(120, canvas.height * 0.3);
+        jet.x += jet.vx * frameScale;
+        jet.age += frameScale;
+        jet.shotCooldown -= frameScale;
+        
+        // Find nearest missile to target (long range)
+        let nearestMissile = null;
+        let nearestDist = jet.shotRange;
+        
+        for (let m of missiles) {
+            const dist = Math.hypot(m.x - jet.x, m.y - jet.y);
+            if (dist < nearestDist) {
+                nearestDist = dist;
+                nearestMissile = m;
+            }
+        }
+        
+        // If target in range and cooldown ready, fire interceptor
+        if (nearestMissile && jet.shotCooldown <= 0) {
+            const dx = nearestMissile.x - jet.x;
+            const dy = nearestMissile.y - jet.y;
+            const len = Math.hypot(dx, dy);
+            
+            interceptors.push({
+                x: jet.x,
+                y: jet.y,
+                vx: (dx / len) * INTERCEPTOR_SPEED,
+                vy: (dy / len) * INTERCEPTOR_SPEED,
+                age: 0,
+                fromJet: true
+            });
+            
+            jet.shotCooldown = jet.maxCooldown;
+        }
+        
+        // Move towards target for better positioning
+        if (nearestMissile) {
+            const dx = nearestMissile.x - jet.x;
+            const dy = nearestMissile.y - jet.y;
+            const len = Math.max(1, Math.hypot(dx, dy));
+            jet.x += (dx / len) * 1.5 * frameScale;
+            jet.y += (dy / len) * 0.9 * frameScale;
+        }
+
+        // Keep jet patrol strictly in the top sky band.
+        jet.y = Math.max(skyTop, Math.min(skyBottom, jet.y));
+        
+        // Remove if out of bounds or too old
+        if (jet.x < -50 || jet.x > canvas.width + 50 || jet.age > jet.maxAge) {
+            friendlyJets.splice(i, 1);
+        }
+    }
+    
+    // Update explosions
+    for (let i = explosions.length - 1; i >= 0; i--) {
+        explosions[i].age += frameScale;
+        if (explosions[i].age > explosions[i].maxAge) {
+            explosions.splice(i, 1);
+        }
+    }
+    
+    // Remove destroyed buildings
+    buildings = buildings.filter(b => b.health > 0);
+    
+    // Check game over condition - all buildings destroyed
+    if (buildings.length === 0) {
+        gameOver = true;
+        showOverlay("DEFENSES DOWN!", `Final Score: ${score}\nWave: ${wave}\nKills: ${kills}`);
+    }
+    
+    updateUI();
+}
+
+function drawMissile(x, y, emoji) {
+    ctx.font = "32px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(emoji, x, y);
+}
+
+function drawLauncher() {
+    // Draw aim line
+    if (!gameOver && (isTouchDevice ? touchAimActive : true)) {
+        const len = 100;
+        const endX = launcher.x + Math.cos(launcher.angle) * len;
+        const endY = launcher.y + Math.sin(launcher.angle) * len;
+        ctx.strokeStyle = "rgba(255, 107, 107, 0.3)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 4]);
+        ctx.beginPath();
+        ctx.moveTo(launcher.x, launcher.y);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // Iron Dome launcher platform
+    ctx.save();
+    ctx.translate(launcher.x, launcher.y);
+
+    // Ground mount base
+    ctx.fillStyle = "#4f5966";
+    ctx.fillRect(-30, 10, 60, 14);
+    ctx.fillStyle = "#3d4652";
+    ctx.fillRect(-24, 4, 48, 10);
+
+    // Dome radar
+    ctx.fillStyle = "#6f7e90";
+    ctx.beginPath();
+    ctx.arc(0, 2, 10, Math.PI, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Missile canister bank (tilted toward aim angle)
+    const turretAngle = Math.max(-Math.PI + 0.2, Math.min(-0.2, launcher.angle));
+    ctx.rotate(turretAngle + Math.PI / 2);
+    ctx.fillStyle = "#8f9bad";
+    ctx.fillRect(-18, -28, 12, 28);
+    ctx.fillRect(-2, -30, 12, 30);
+    ctx.fillRect(14, -26, 12, 26);
+
+    // Canister caps
+    ctx.fillStyle = "#d7dee7";
+    ctx.fillRect(-18, -30, 12, 3);
+    ctx.fillRect(-2, -32, 12, 3);
+    ctx.fillRect(14, -28, 12, 3);
+
+    ctx.restore();
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Sea strip where the carrier lands and operates.
+    const seaTop = canvas.height - 56;
+    const seaCityBoundaryX = getSeaCityBoundaryX();
+    const seaGradient = ctx.createLinearGradient(0, seaTop, 0, canvas.height);
+    seaGradient.addColorStop(0, "rgba(27, 86, 140, 0.45)");
+    seaGradient.addColorStop(1, "rgba(15, 58, 102, 0.85)");
+    ctx.fillStyle = seaGradient;
+    ctx.fillRect(0, seaTop, canvas.width, canvas.height - seaTop);
+
+    // Keep sea color clean to avoid a boxed blue patch near the ground.
+
+    // Curved land mass: flat near coast, climbs to the right, then drops to far-right flat.
+    ctx.beginPath();
+    ctx.moveTo(seaCityBoundaryX, canvas.height);
+    ctx.lineTo(seaCityBoundaryX, getGroundYAt(seaCityBoundaryX));
+    for (let x = seaCityBoundaryX; x <= canvas.width; x += 6) {
+        ctx.lineTo(x, getGroundYAt(x));
+    }
+    ctx.lineTo(canvas.width, canvas.height);
+    ctx.closePath();
+    const landGradient = ctx.createLinearGradient(seaCityBoundaryX, seaTop - 120, canvas.width, canvas.height);
+    landGradient.addColorStop(0, "#b8a77a");
+    landGradient.addColorStop(0.42, "#9d8d68");
+    landGradient.addColorStop(0.76, "#7f7c70");
+    landGradient.addColorStop(1, "#9d916f");
+    ctx.fillStyle = landGradient;
+    ctx.fill();
+
+    const sandStart = seaCityBoundaryX;
+    const sandEnd = Math.min(canvas.width * 0.5, sandStart + 230);
+    const rockyStart = canvas.width * 0.64;
+    const rockyEnd = canvas.width * 0.9;
+
+    // Sandy coastal cap following the same curve.
+    ctx.beginPath();
+    ctx.moveTo(sandStart, getGroundYAt(sandStart));
+    for (let x = sandStart; x <= sandEnd; x += 6) {
+        ctx.lineTo(x, getGroundYAt(x));
+    }
+    for (let x = sandEnd; x >= sandStart; x -= 6) {
+        ctx.lineTo(x, getGroundYAt(x) + 16);
+    }
+    ctx.closePath();
+    const sandGradient = ctx.createLinearGradient(sandStart, seaTop - 40, sandEnd, seaTop + 20);
+    sandGradient.addColorStop(0, "rgba(221, 199, 143, 0.95)");
+    sandGradient.addColorStop(1, "rgba(194, 165, 106, 0.85)");
+    ctx.fillStyle = sandGradient;
+    ctx.fill();
+
+    // Rocky mountain cap on the right highlands.
+    ctx.beginPath();
+    ctx.moveTo(rockyStart, getGroundYAt(rockyStart));
+    for (let x = rockyStart; x <= rockyEnd; x += 6) {
+        const jag = 7 + Math.sin(x * 0.12) * 5;
+        ctx.lineTo(x, getGroundYAt(x) - jag);
+    }
+    for (let x = rockyEnd; x >= rockyStart; x -= 6) {
+        ctx.lineTo(x, getGroundYAt(x) + 18);
+    }
+    ctx.closePath();
+    const rockGradient = ctx.createLinearGradient(rockyStart, seaTop - 120, rockyEnd, seaTop + 10);
+    rockGradient.addColorStop(0, "rgba(110, 108, 103, 0.84)");
+    rockGradient.addColorStop(0.5, "rgba(86, 84, 80, 0.9)");
+    rockGradient.addColorStop(1, "rgba(125, 119, 108, 0.78)");
+    ctx.fillStyle = rockGradient;
+    ctx.fill();
+
+    // Curved atmospheric blend so no rectangular patch appears over ground/buildings.
+    const haze = ctx.createLinearGradient(seaCityBoundaryX, seaTop - 130, canvas.width, seaTop + 18);
+    haze.addColorStop(0, "rgba(255, 236, 196, 0.08)");
+    haze.addColorStop(0.5, "rgba(255, 221, 168, 0.05)");
+    haze.addColorStop(1, "rgba(220, 216, 205, 0.04)");
+    ctx.fillStyle = haze;
+    ctx.beginPath();
+    for (let x = seaCityBoundaryX; x <= canvas.width; x += 6) {
+        ctx.lineTo(x, getGroundYAt(x) - 64);
+    }
+    for (let x = canvas.width; x >= seaCityBoundaryX; x -= 6) {
+        ctx.lineTo(x, getGroundYAt(x) + 10);
+    }
+    ctx.closePath();
+    ctx.fill();
+    
+    // Draw buildings
+    buildings.forEach(b => {
+        ctx.font = "32px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(b.emoji, b.x + b.width / 2, b.y + b.height / 2);
+        
+        // Draw health indicator
+        if (b.health < 1) {
+            ctx.fillStyle = "rgba(255, 100, 100, 0.5)";
+            ctx.globalAlpha = 0.5;
+            ctx.fillRect(b.x, b.y, b.width, b.height);
+            ctx.globalAlpha = 1;
+        }
+    });
+    
+    // Draw game objects
+    missiles.forEach(m => {
+        drawMissile(m.x, m.y, m.typeData.emoji);
+    });
+    
+    interceptors.forEach(inter => {
+        drawMissile(inter.x, inter.y, INTERCEPTOR_EMOJI);
+    });
+
+    drawCarrier();
+    
+    friendlyJets.forEach(jet => {
+        ctx.globalAlpha = 0.95;
+        drawF35(jet.x, jet.y, 1.05, jet.vx >= 0);
+        ctx.globalAlpha = 1;
+        
+        // Draw targeting range circle when in combat
+        if (missiles.length > 0) {
+            ctx.strokeStyle = "rgba(76, 175, 80, 0.1)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(jet.x, jet.y, jet.shotRange, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    });
+    
+    explosions.forEach(exp => {
+        const opacity = 1 - (exp.age / exp.maxAge);
+        ctx.globalAlpha = opacity;
+        drawMissile(exp.x, exp.y, EXPLOSION_EMOJI);
+        ctx.globalAlpha = 1;
+    });
+    
+    drawLauncher();
+    drawMissionToast();
+    
+    // Draw score
+    ctx.save();
+    ctx.font = "bold 28px sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillStyle = "#ffd93d";
+    ctx.shadowColor = "rgba(255, 217, 61, 0.5)";
+    ctx.shadowBlur = 10;
+    ctx.fillText("Score: " + score, 20, 20);
+    ctx.restore();
+}
+
+let lastFrameTime = performance.now();
+
+function loop(timestamp) {
+    const deltaSeconds = Math.min((timestamp - lastFrameTime) / 1000, 0.05);
+    lastFrameTime = timestamp;
+    update(deltaSeconds);
+    draw();
+    requestAnimationFrame(loop);
+}
+
+function showOverlay(title, message) {
+    uiTitle.innerText = title;
+    uiScore.innerText = message;
+    uiOverlay.style.display = "block";
+}
+
+function shareScore(platform) {
+    let text = `Iron Dome Defense score: ${score} points, Wave ${wave}, ${kills} kills. Can you survive longer? 🚀💥`;
+    let url = encodeURIComponent(location.href);
+    let shareUrl = "";
+    
+    if (platform === 'copy') {
+        const copyText = `${text}\n${location.href}`;
+        navigator.clipboard.writeText(copyText).then(() => {
+            alert("Score copied to clipboard!");
+        }).catch(err => {
+            console.error("Failed to copy:", err);
+            alert("Failed to copy to clipboard");
+        });
+        return;
+    }
+    if (platform === 'x') shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
+    if (platform === 'wa') {
+        const waText = `${location.href}\n${text}`;
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(waText)}`;
+    }
+    if (platform === 'tg') shareUrl = `https://t.me/share/url?url=${url}&text=${encodeURIComponent(text)}`;
+    
+    window.open(shareUrl, '_blank');
+}
+
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>

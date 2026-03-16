@@ -1,0 +1,3352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Invaders Crusher</title>
+<meta name="description" content="Match Emad MRBMs, F-4 Phantoms, rockets, UAVs, MIRVs, and more in a tactical chain-reaction defense puzzle.">
+<meta name="theme-color" content="#05091f">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='14'%20fill='%23eaf4ff'/%3E%3Crect%20x='5'%20y='5'%20width='54'%20height='54'%20rx='12'%20fill='%23f8fcff'/%3E%3Crect%20x='9'%20y='9'%20width='22'%20height='22'%20rx='5'%20fill='%234e9bd3'/%3E%3Crect%20x='33'%20y='9'%20width='22'%20height='22'%20rx='5'%20fill='%234f92d8'/%3E%3Crect%20x='9'%20y='33'%20width='22'%20height='22'%20rx='5'%20fill='%239d7a4b'/%3E%3Crect%20x='33'%20y='33'%20width='22'%20height='22'%20rx='5'%20fill='%234a120d'/%3E%3Cpath%20d='M32%2016l3.5%206.5%207.2%201-5.2%205.1%201.2%207.2L32%2033l-6.7%202.8%201.2-7.2-5.2-5.1%207.2-1z'%20fill='%23ffffff'/%3E%3C/svg%3E">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tamar Games">
+<meta property="og:title" content="Invaders Crusher">
+<meta property="og:description" content="Match Emad MRBMs, F-4 Phantoms, rockets, UAVs, MIRVs, and more in a tactical chain-reaction defense puzzle.">
+<meta property="og:url" content="https://tamar-it.biz/games/invaders-crusher.html">
+<meta property="og:image" content="https://tamar-it.biz/games/invaders-crusher-preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Invaders Crusher gameplay preview">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Invaders Crusher">
+<meta name="twitter:description" content="Match Emad MRBMs, F-4 Phantoms, rockets, UAVs, MIRVs, and more in a tactical chain-reaction defense puzzle.">
+<meta name="twitter:image" content="https://tamar-it.biz/games/invaders-crusher-preview.png">
+<style>
+:root {
+    --c0: #05091a;
+    --c1: #0f1f4a;
+    --c2: #e8fbff;
+    --c3: #00f6ff;
+    --text: var(--c2);
+    --soft: #8ab6ff;
+    --panel: rgba(7, 18, 48, 0.86);
+    --line: rgba(0, 246, 255, 0.4);
+    --glow: rgba(255, 0, 221, 0.45);
+    --ui-panel-bg: linear-gradient(180deg, rgba(4, 40, 74, 0.85), rgba(8, 16, 42, 0.9));
+    --ui-panel-shadow: 0 14px 30px rgba(0, 0, 0, 0.34), inset 0 0 0 1px rgba(0, 246, 255, 0.14);
+    --ui-blur: blur(8px);
+    --ui-round-md: 14px;
+    --ui-round-sm: 10px;
+    --ui-press-transform: translateY(1px) scale(0.98);
+    --cta-bg: linear-gradient(180deg, #8fe6ff, #4cb8de 50%, #a3c87f);
+    --cta-shadow: 0 14px 30px rgba(39, 130, 168, 0.34);
+    --fx-fade-fast: 130ms ease;
+    --space-2xs: 4px;
+    --space-xs: 8px;
+    --space-sm: 10px;
+    --space-md: 14px;
+    --space-lg: 18px;
+    --space-xl: 22px;
+    --space-2xl: 24px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    overscroll-behavior: none;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    font-family: "Trebuchet MS", "Verdana", sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(980px 560px at 8% -8%, rgba(0, 246, 255, 0.25), transparent 55%),
+        radial-gradient(820px 460px at 98% -6%, rgba(255, 43, 214, 0.2), transparent 56%),
+        radial-gradient(880px 520px at 50% 110%, rgba(102, 255, 79, 0.13), transparent 58%),
+        linear-gradient(162deg, #040711, #0a1331 52%, #070b1b 100%);
+    display: grid;
+    place-items: center;
+    padding: 10px 10px;
+}
+
+#app {
+    width: min(980px, 100%);
+    display: grid;
+    gap: var(--space-xs);
+}
+
+header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-xs);
+    align-items: end;
+}
+
+h1 {
+    margin: 0;
+    font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
+    font-size: clamp(22px, 3.8vw, 38px);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 0.92;
+    text-shadow: 0 5px 18px rgba(0, 0, 0, 0.38);
+}
+
+#titleWrap p {
+    margin: 3px 0 0;
+    color: var(--soft);
+    font-size: clamp(12px, 1.5vw, 14px);
+    max-width: 48ch;
+}
+
+#hud {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 7px;
+    flex-wrap: wrap;
+}
+
+.hud-item,
+.hud-tool-btn {
+    border: 1px solid var(--line);
+    border-radius: var(--ui-round-md);
+    background: var(--ui-panel-bg);
+    box-shadow: var(--ui-panel-shadow);
+    backdrop-filter: var(--ui-blur);
+}
+
+.hud-item {
+    min-width: 88px;
+    padding: 7px 10px;
+}
+
+#scoreBoostBadge {
+    margin-left: 6px;
+    padding: 0 4px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 226, 128, 0.9);
+    background: rgba(255, 226, 128, 0.18);
+    color: #ffe280;
+    font: inherit;
+    line-height: 1.2;
+    display: none;
+}
+
+#scoreBoostBadge.show {
+    display: inline-block;
+}
+
+.hud-label {
+    display: block;
+    color: var(--soft);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.hud-value {
+    display: block;
+    margin-top: 1px;
+    font-size: clamp(15px, 1.8vw, 19px);
+    font-weight: 700;
+}
+
+.hud-tool-btn {
+    width: 40px;
+    height: 40px;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.hud-tool-btn:active,
+#startBtn:active,
+#closeSettingsBtn:active,
+.share-btn:active {
+    transform: var(--ui-press-transform);
+}
+
+#gameWrap {
+    position: relative;
+    border: 3px solid rgba(0, 246, 255, 0.36);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.5), 0 0 32px rgba(0, 246, 255, 0.22), inset 0 0 0 1px rgba(255, 43, 214, 0.18);
+}
+
+#gameWrap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 45%, transparent 40%, rgba(0, 0, 0, 0.33) 100%);
+}
+
+#gameWrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 248, 232, 0.045) 0,
+        rgba(255, 248, 232, 0.045) 1px,
+        transparent 2px,
+        transparent 4px
+    );
+    opacity: 0.22;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #040713, #091530);
+}
+
+#bonusLabel,
+#levelUpLabel {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    pointer-events: none;
+}
+
+#bonusLabel {
+    z-index: 18;
+    width: min(76%, 440px);
+    padding: 10px 16px;
+    border-radius: var(--ui-round-md);
+    border: 2px solid var(--bonus-accent, rgba(180, 220, 255, 0.80));
+    background: var(--bonus-bg, rgba(255, 255, 255, 0.93));
+    color: #0c1726;
+    text-align: center;
+    font: 700 clamp(16px, 2.4vw, 24px) / 1.05 "Trebuchet MS", "Segoe UI", sans-serif;
+    letter-spacing: 0.01em;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    max-height: 2.2em;
+    overflow: hidden;
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(35deg) scale(0.96);
+    transform-origin: center;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24), 0 0 18px rgba(255, 255, 255, 0.48) inset;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+    transition: opacity var(--fx-fade-fast), transform var(--fx-fade-fast);
+}
+
+#bonusLabel.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(35deg) scale(1);
+}
+
+#levelUpLabel {
+    z-index: 19;
+    transform: translate(-50%, -50%);
+    padding: var(--space-md) 26px;
+    border-radius: var(--ui-round-md);
+    border: 2px solid rgba(255, 255, 255, 0.95);
+    background: rgba(245, 253, 255, 0.9);
+    color: #08223a;
+    font: 800 clamp(28px, 7.2vw, 52px) / 1 "Trebuchet MS", "Verdana", sans-serif;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.28), 0 0 22px rgba(180, 245, 255, 0.85);
+    opacity: 0;
+    transition: opacity var(--fx-fade-fast);
+}
+
+#levelUpLabel.show {
+    opacity: 1;
+}
+
+#overlay {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(760px 420px at 22% 18%, rgba(23, 80, 106, 0.4), transparent 58%),
+        radial-gradient(680px 380px at 84% 14%, rgba(108, 117, 82, 0.34), transparent 60%),
+        radial-gradient(720px 420px at 50% 92%, rgba(63, 43, 18, 0.4), transparent 62%),
+        rgba(8, 12, 22, 0.88);
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: var(--space-xl);
+    overflow: auto;
+}
+
+#overlay.hidden,
+#settingsPanel.hidden,
+.hidden {
+    display: none;
+}
+
+#overlayCard {
+    width: min(100%, 520px);
+    max-height: calc(100% - 10px);
+    overflow: auto;
+    padding: 28px var(--space-2xl) var(--space-2xl);
+    border-radius: 22px;
+    background:
+        linear-gradient(146deg, rgba(20, 66, 96, 0.95) 0%, rgba(10, 34, 57, 0.95) 34%, rgba(19, 35, 28, 0.94) 62%, rgba(24, 20, 33, 0.94) 100%);
+    border: 1px solid rgba(182, 212, 167, 0.35);
+    box-shadow:
+        0 34px 64px rgba(0, 0, 0, 0.46),
+        0 0 0 1px rgba(170, 214, 242, 0.12) inset,
+        0 0 30px rgba(102, 224, 255, 0.16);
+}
+
+#overlayTitle {
+    margin: 0 0 10px;
+    font-family: Impact, Haettenschweiler, "Arial Black", sans-serif;
+    font-size: clamp(28px, 4vw, 42px);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #e6f6ff;
+    text-shadow: 0 6px 16px rgba(0, 0, 0, 0.46), 0 0 14px rgba(102, 224, 255, 0.24);
+}
+
+#overlayText {
+    margin: 0 auto;
+    max-width: 34ch;
+    color: #cde8f5;
+    line-height: 1.55;
+    font-size: clamp(15px, 2.5vw, 18px);
+}
+
+#startBtn,
+#closeSettingsBtn {
+    border: none;
+    border-radius: 999px;
+    padding: 13px 26px;
+    cursor: pointer;
+    color: #04111c;
+    font-size: 16px;
+    font-weight: 700;
+    background: var(--cta-bg);
+    box-shadow: var(--cta-shadow);
+}
+
+#startBtn {
+    margin-top: var(--space-lg);
+    min-width: 170px;
+}
+
+.share-row {
+    margin-top: var(--space-lg);
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.share-btn {
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: var(--ui-round-md);
+    color: white;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    padding: 0;
+}
+
+.share-btn img {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+.share-x { background: #111111; }
+.share-wa { background: #25d366; }
+.share-tg { background: #179cde; }
+.share-copy { background: #69748c; }
+
+#hint {
+    margin: 0;
+    text-align: center;
+    color: var(--soft);
+    font-size: clamp(12px, 1.5vw, 14px);
+}
+
+#hint strong {
+    color: var(--text);
+}
+
+#backLink {
+    color: #5dff7f;
+}
+
+#settingsPanel {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.58);
+    display: grid;
+    place-items: center;
+    z-index: 30;
+    padding: var(--space-lg);
+}
+
+#settingsCard {
+    width: min(100%, 360px);
+    background: linear-gradient(180deg, rgba(8, 34, 67, 0.97), rgba(8, 14, 35, 0.96));
+    border: 1px solid rgba(0, 246, 255, 0.22);
+    border-radius: 20px;
+    padding: var(--space-xl);
+    box-shadow: 0 24px 46px rgba(0, 0, 0, 0.42);
+}
+
+#settingsCard h3 {
+    margin: 0 0 16px;
+    font-size: 22px;
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.setting-row:first-of-type {
+    border-top: none;
+    padding-top: 0;
+}
+
+.setting-row label {
+    font-weight: 600;
+}
+
+#settingsActions {
+    margin-top: var(--space-lg);
+    display: flex;
+    justify-content: flex-end;
+}
+
+input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+}
+
+@media (max-width: 820px) and (orientation: portrait) {
+    body {
+        padding: 0;
+    }
+
+    #app {
+        position: relative;
+        width: 100vw;
+        max-width: none;
+        height: 100dvh;
+        gap: 0;
+        grid-template-rows: 1fr;
+        padding: 0;
+    }
+
+    header {
+        position: absolute;
+        top: max(var(--space-2xs), env(safe-area-inset-top));
+        left: var(--space-2xs);
+        right: var(--space-2xs);
+        z-index: 16;
+        grid-template-columns: 1fr;
+        align-items: start;
+        gap: var(--space-2xs);
+        pointer-events: none;
+    }
+
+    h1 {
+        font-size: clamp(16px, 4.8vw, 20px);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.52);
+    }
+
+    #titleWrap p {
+        display: none;
+    }
+
+    #hud {
+        justify-content: flex-start;
+        gap: var(--space-2xs);
+        pointer-events: auto;
+    }
+
+    .hud-item {
+        min-width: 62px;
+        padding: 3px 5px;
+        border-radius: var(--ui-round-sm);
+        background: linear-gradient(180deg, rgba(4, 32, 62, 0.88), rgba(8, 14, 34, 0.92));
+    }
+
+    .hud-label {
+        font-size: 8px;
+    }
+
+    .hud-value {
+        font-size: clamp(11px, 3vw, 13px);
+    }
+
+    .hud-tool-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+        border-radius: var(--ui-round-sm);
+        pointer-events: auto;
+    }
+
+    #gameWrap {
+        width: 100vw !important;
+        height: 100dvh !important;
+        border-radius: 0;
+        border-width: 0;
+        box-shadow: none;
+    }
+
+    #hint {
+        display: none;
+    }
+
+    #overlay {
+        z-index: 20;
+        place-items: center;
+        padding: max(var(--space-md), env(safe-area-inset-top)) var(--space-md) max(var(--space-md), env(safe-area-inset-bottom));
+    }
+
+    #overlayCard {
+        width: min(92vw, 420px);
+        padding: var(--space-lg) var(--space-md) var(--space-md);
+    }
+
+    #app.showing-overlay header {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+    body {
+        padding: 6px 8px;
+    }
+
+    #app {
+        gap: 6px;
+    }
+
+    h1 {
+        font-size: clamp(20px, 4vw, 28px);
+    }
+
+    #titleWrap p,
+    #hint {
+        font-size: 11px;
+    }
+
+    .hud-item {
+        min-width: 78px;
+        padding: 6px 8px;
+    }
+}
+
+@media (max-width: 920px) and (orientation: landscape) {
+    body {
+        padding: 0;
+    }
+
+    #app {
+        width: 100vw;
+        max-width: none;
+        gap: var(--space-2xs);
+        padding: 0 var(--space-2xs) var(--space-2xs);
+    }
+
+    #hint,
+    #titleWrap p {
+        display: none;
+    }
+
+    #overlayCard {
+        width: min(88vw, 700px);
+    }
+}
+</style>
+</head>
+<body>
+<div id="app" class="showing-overlay">
+    <header>
+        <div id="titleWrap">
+            <h1>Invaders Crusher</h1>
+            <p>Swap threat icons to trigger chain reactions and hit the target score before command runs out of moves.</p>
+        </div>
+        <div id="hud" aria-live="polite">
+            <span id="scoreItem" class="hud-item"><span class="hud-label">Score<span id="scoreBoostBadge">X2</span></span><span id="scoreValue" class="hud-value">0</span></span>
+            <span class="hud-item"><span class="hud-label">Level</span><span id="levelValue" class="hud-value">1</span></span>
+            <span class="hud-item"><span class="hud-label">Moves</span><span id="movesValue" class="hud-value">24</span></span>
+            <span class="hud-item"><span class="hud-label">Shuffles</span><span id="shufflesValue" class="hud-value">3</span></span>
+            <button id="muteBtn" class="hud-tool-btn" type="button" aria-label="Muted" title="Muted">🔇</button>
+            <button id="settingsBtn" class="hud-tool-btn" type="button" aria-label="Settings" title="Settings">⚙️</button>
+        </div>
+    </header>
+
+    <section id="gameWrap" aria-label="Invaders Crusher game area">
+        <canvas id="game" width="800" height="520"></canvas>
+        <div id="bonusLabel" aria-live="polite"></div>
+        <div id="levelUpLabel" aria-live="polite"></div>
+
+        <div id="overlay">
+            <div id="overlayCard">
+                <h2 id="overlayTitle">Crush The Invasion</h2>
+                <p id="overlayText">Match Emad MRBMs, F-4 Phantoms, rockets, UAVs, and MIRVs in groups of three or more. New threats unlock as levels climb. Tap two neighboring tiles to swap, or use the keyboard cursor and Space.</p>
+                <div id="shareRow" class="share-row hidden" aria-label="Share score">
+                    <button class="share-btn share-x" type="button" onclick="shareScore('x')" aria-label="Share on X" title="Share on X"><img alt="" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M4%204h4.2l3.5%204.8L16%204h4l-6.2%207.2L20.5%2020h-4.2l-4.2-5.7L7.1%2020H3.1l6.8-7.9z'/%3E%3C/svg%3E"></button>
+                    <button class="share-btn share-wa" type="button" onclick="shareScore('wa')" aria-label="Share on WhatsApp" title="Share on WhatsApp"><img alt="" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M12%203a9%209%200%200%200-7.8%2013.4L3%2021l4.8-1.2A9%209%200%201%200%2012%203zm4.8%2012.5c-.2.5-1%20.9-1.5%201-.4.1-.9.2-1.4.1-.9-.1-2-.6-3.2-1.6-1.5-1.2-2.5-2.7-2.9-3.4-.4-.7%200-1.5.3-1.9.3-.3.6-.5.9-.5h.7c.2%200%20.4.1.5.4l.6%201.6c.1.3.1.4%200%20.6l-.3.5c-.1.1-.2.2%200%20.5.2.3.8%201.3%201.9%202%20.9.6%201.2.7%201.4.5l.6-.7c.2-.2.3-.2.6-.1l1.6.8c.3.1.4.2.4.4.1.2%200%20.6-.2%201.1z'/%3E%3C/svg%3E"></button>
+                    <button class="share-btn share-tg" type="button" onclick="shareScore('tg')" aria-label="Share on Telegram" title="Share on Telegram"><img alt="" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M21.2%205.1c.3-.1.6.1.5.5l-2.8%2013.2c-.1.4-.6.6-.9.4l-4.3-3.1-2.1%202.1c-.2.2-.6.1-.7-.2l-.3-4.1L18.2%208%206.1%2012.5l-3.8-1.4c-.4-.1-.4-.7%200-.9z'/%3E%3C/svg%3E"></button>
+                    <button class="share-btn share-copy" type="button" onclick="shareScore('copy')" aria-label="Copy score" title="Copy score"><img alt="" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M8%203h10a2%202%200%200%201%202%202v11h-2V5H8z'/%3E%3Cpath%20fill='white'%20d='M4%207h11a2%202%200%200%201%202%202v10a2%202%200%200%201-2%202H4a2%202%200%200%201-2-2V9a2%202%200%200%201%202-2zm0%202v10h11V9z'/%3E%3C/svg%3E"></button>
+                </div>
+                <button id="startBtn" type="button">Start Mission</button>
+            </div>
+        </div>
+    </section>
+
+    <p id="hint">Controls: click or tap two adjacent tiles to swap. Keyboard: <strong>Arrow keys</strong> move, <strong>Space</strong> select or swap, <strong>R</strong> restart. <a id="backLink" href="index.html">Back to hub</a>.</p>
+</div>
+
+<section id="settingsPanel" class="hidden" aria-label="Game settings">
+    <div id="settingsCard">
+        <h3>Settings</h3>
+        <div class="setting-row">
+            <label for="soundToggle">Sound</label>
+            <input id="soundToggle" type="checkbox">
+        </div>
+        <div class="setting-row">
+            <label for="hintToggle">Hint Glow</label>
+            <input id="hintToggle" type="checkbox">
+        </div>
+        <div class="setting-row">
+            <label for="glossToggle">Element Gloss</label>
+            <input id="glossToggle" type="checkbox">
+        </div>
+        <div class="setting-row">
+            <label for="glowToggle">Element Glow</label>
+            <input id="glowToggle" type="checkbox">
+        </div>
+        <div id="settingsActions">
+            <button id="closeSettingsBtn" type="button">Close</button>
+        </div>
+    </div>
+</section>
+
+<script>
+(function () {
+    const BASE_WORLD_WIDTH = 800;
+    const BASE_WORLD_HEIGHT = 520;
+    const ROWS = 8;
+    const COLS = 8;
+    const BASE_CELL_SIZE = 50;
+    const SETTINGS_KEY = "invadersCrusherSettings";
+    const MAX_LEVEL = 10;
+    const SHUFFLES_PER_LEVEL = 3;
+    const MIRV_INDEX = 4;
+    const QUADCOPTER_INDEX = 5;
+    const MIRV_MIN_LEVEL = 3;
+    const NUCLEAR_WARHEAD_INDEX = 9;
+    const NUCLEAR_WARHEAD_MIN_LEVEL = 6;
+    const INVADER_UNLOCK_LEVELS = [1, 1, 1, 1, 3, 3, 5, 7, 8, 5];
+    const BASE_TYPE_ORDER = INVADER_UNLOCK_LEVELS.map((_, index) => index);
+    const SWAP_DIRECTIONS = Object.freeze([
+        { dr: 0, dc: 1 },
+        { dr: 1, dc: 0 }
+    ]);
+
+    function targetForLevel(level) {
+        const levelTargets = [6800, 9600, 11200, 11200, 14400, 18100, 22300, 27000, 32200, 38000];
+        const index = clamp(level, 1, MAX_LEVEL) - 1;
+        return levelTargets[index];
+    }
+
+    function movesForLevel(level) {
+        const levelMoves = [32, 31, 30, 27, 25, 23, 21, 19, 18, 17];
+        const index = clamp(level, 1, MAX_LEVEL) - 1;
+        return levelMoves[index];
+    }
+
+    function activeInvaderCount(level) {
+        let count = 0;
+        for (let i = 0; i < INVADER_UNLOCK_LEVELS.length; i += 1) {
+            if (isInvaderUnlocked(i, level)) count += 1;
+        }
+        return Math.max(3, count);
+    }
+
+    function isInvaderUnlocked(index, level) {
+        if (index === MIRV_INDEX) {
+            return level >= MIRV_MIN_LEVEL;
+        }
+        if (index === NUCLEAR_WARHEAD_INDEX) {
+            return level >= NUCLEAR_WARHEAD_MIN_LEVEL;
+        }
+        return level >= INVADER_UNLOCK_LEVELS[index];
+    }
+
+    function nextUnlockForLevel(level) {
+        let bestIndex = -1;
+        let bestLevel = Number.POSITIVE_INFINITY;
+        for (let i = 0; i < invaders.length; i += 1) {
+            let unlockAt = INVADER_UNLOCK_LEVELS[i];
+            if (i === MIRV_INDEX) {
+                unlockAt = level < MIRV_MIN_LEVEL ? MIRV_MIN_LEVEL : Number.POSITIVE_INFINITY;
+            }
+            if (i === NUCLEAR_WARHEAD_INDEX) {
+                unlockAt = level < NUCLEAR_WARHEAD_MIN_LEVEL ? NUCLEAR_WARHEAD_MIN_LEVEL : Number.POSITIVE_INFINITY;
+            }
+            if (unlockAt > level && unlockAt < bestLevel) {
+                bestLevel = unlockAt;
+                bestIndex = i;
+            }
+        }
+        return { index: bestIndex, level: bestLevel };
+    }
+
+    const BEST_KEY = "invadersCrusherBestScore";
+
+    const app = document.getElementById("app");
+    const gameWrap = document.getElementById("gameWrap");
+    const canvas = document.getElementById("game");
+    const bonusLabel = document.getElementById("bonusLabel");
+    const levelUpLabel = document.getElementById("levelUpLabel");
+    const ctx = canvas.getContext("2d");
+    const overlay = document.getElementById("overlay");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlayText = document.getElementById("overlayText");
+    const shareRow = document.getElementById("shareRow");
+    const startBtn = document.getElementById("startBtn");
+    const scoreValue = document.getElementById("scoreValue");
+    const scoreBoostBadge = document.getElementById("scoreBoostBadge");
+    const levelValue = document.getElementById("levelValue");
+    const movesValue = document.getElementById("movesValue");
+    const shufflesValue = document.getElementById("shufflesValue");
+    const muteBtn = document.getElementById("muteBtn");
+    const settingsBtn = document.getElementById("settingsBtn");
+    const settingsPanel = document.getElementById("settingsPanel");
+    const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+    const soundToggle = document.getElementById("soundToggle");
+    const hintToggle = document.getElementById("hintToggle");
+    const glossToggle = document.getElementById("glossToggle");
+    const glowToggle = document.getElementById("glowToggle");
+
+    const settings = {
+        soundEnabled: false,
+        showHints: true,
+        glossEnabled: true,
+        glowEnabled: true
+    };
+
+    const invaders = [
+        { label: "Emad MRBM", color: "#cfd5c6", glow: "rgba(207, 213, 198, 0.8)", accent: "#f2f4ee", bg0: "#e7dbc2", bg1: "#bfa57a" },
+        { label: "F-4 Phantom", color: "#13ddff", glow: "rgba(19, 221, 255, 0.82)", accent: "#ddfbff", bg0: "#2a6a9a", bg1: "#14406a" },
+        { label: "Rocket", color: "#ffe126", glow: "rgba(255, 225, 38, 0.78)", accent: "#fff9ca", bg0: "#90d2ff", bg1: "#4e9bd3" },
+        { label: "UAV", color: "#e8e8e8", glow: "rgba(220, 220, 255, 0.78)", accent: "#ffffff", bg0: "#2a6a9a", bg1: "#14406a" },
+        { label: "MIRV", color: "#d0ccc4", glow: "rgba(255, 120, 40, 0.85)", accent: "#ffe0b0", bg0: "#060610", bg1: "#020208" },
+        { label: "Tactical Quadcopter", color: "#d5dfc9", glow: "rgba(182, 212, 167, 0.82)", accent: "#f1f7e9", bg0: "#4f92d8", bg1: "#c96743" },
+        { label: "S-300P Battery", color: "#cfd9ea", glow: "rgba(124, 170, 230, 0.85)", accent: "#edf4ff", bg0: "#415469", bg1: "#243444" },
+        { label: "Hoot Torpedo", color: "#66e0ff", glow: "rgba(102, 224, 255, 0.82)", accent: "#dff7ff", bg0: "#17506a", bg1: "#0a2f45" },
+        { label: "3rd Khordad SAM", color: "#d7e4d2", glow: "rgba(180, 210, 170, 0.85)", accent: "#f3f8f0", bg0: "#9d7a4b", bg1: "#5a3f24" },
+        { label: "Nuclear Warhead", color: "#ffd447", glow: "rgba(120, 255, 80, 0.96)", accent: "#ffb56b", bg0: "#4a120d", bg1: "#1a0503" }
+    ];
+
+    const world = {
+        width: BASE_WORLD_WIDTH,
+        height: BASE_WORLD_HEIGHT,
+        running: false,
+        board: [],
+        score: 0,
+        bestScore: 0,
+        level: 1,
+        levelBaseScore: 0,
+        targetScore: 3600,
+        movesLeft: 24,
+        shufflesLeft: SHUFFLES_PER_LEVEL,
+        chainDepth: 0,
+        selected: null,
+        cursor: { row: 0, col: 0 },
+        pendingSwap: null,
+        phase: "idle",
+        phaseTimer: 0,
+        hintMove: null,
+        idleSeconds: 0,
+        doublePointsThisTurn: false,
+        doublePointsMovesPending: 0,
+        particles: [],
+        flashes: [],
+        mushroomClouds: [],
+        mirvStrikes: [],
+        bonusBanner: null,
+        lastClearCount: 0,
+        win: false,
+        typeOrder: BASE_TYPE_ORDER.slice()
+    };
+
+    const layout = {
+        isPhone: false,
+        cellSize: BASE_CELL_SIZE,
+        boardX: 48,
+        boardY: 72,
+        boardSize: BASE_CELL_SIZE * COLS,
+        panelX: 484,
+        panelY: 72,
+        panelW: 272,
+        panelH: 400
+    };
+
+    let audioCtx = null;
+    let lastFrameTime = 0;
+    let runtimeFailed = false;
+    let levelUpLabelTimer = null;
+
+    function loadSettings() {
+        try {
+            const raw = localStorage.getItem(SETTINGS_KEY);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            if (typeof parsed.soundEnabled === "boolean") settings.soundEnabled = parsed.soundEnabled;
+            if (typeof parsed.showHints === "boolean") settings.showHints = parsed.showHints;
+            if (typeof parsed.glossEnabled === "boolean") settings.glossEnabled = parsed.glossEnabled;
+            if (typeof parsed.glowEnabled === "boolean") settings.glowEnabled = parsed.glowEnabled;
+        } catch (_error) {
+        }
+    }
+
+    function saveSettings() {
+        try {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        } catch (_error) {
+        }
+    }
+
+    function loadBestScore() {
+        try {
+            const raw = Number(localStorage.getItem(BEST_KEY));
+            if (Number.isFinite(raw) && raw > 0) world.bestScore = raw;
+        } catch (_error) {
+        }
+    }
+
+    function saveBestScore() {
+        try {
+            localStorage.setItem(BEST_KEY, String(world.bestScore));
+        } catch (_error) {
+        }
+    }
+
+    function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    function mapType(type) {
+        return world.typeOrder[type] ?? type;
+    }
+
+    function typeIndexForMappedType(mappedType) {
+        for (let i = 0; i < world.typeOrder.length; i += 1) {
+            if (world.typeOrder[i] === mappedType) return i;
+        }
+        return mappedType;
+    }
+
+    function randomizeTypeOrder() {
+        const order = BASE_TYPE_ORDER.slice();
+        const fixedIndices = new Set([MIRV_INDEX, NUCLEAR_WARHEAD_INDEX]);
+        const pool = order.filter((value) => !fixedIndices.has(value));
+        for (let index = pool.length - 1; index > 0; index -= 1) {
+            const swapIndex = Math.floor(Math.random() * (index + 1));
+            const temp = pool[index];
+            pool[index] = pool[swapIndex];
+            pool[swapIndex] = temp;
+        }
+
+        let pointer = 0;
+        for (let i = 0; i < order.length; i += 1) {
+            if (fixedIndices.has(i)) continue;
+            order[i] = pool[pointer];
+            pointer += 1;
+        }
+
+        order[MIRV_INDEX] = MIRV_INDEX;
+        order[NUCLEAR_WARHEAD_INDEX] = NUCLEAR_WARHEAD_INDEX;
+        world.typeOrder = order;
+    }
+
+    function ensureAudioContext() {
+        if (!audioCtx) {
+            const AudioCtor = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtor) return null;
+            audioCtx = new AudioCtor();
+        }
+        if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+        return audioCtx;
+    }
+
+    function playTone({ freq = 440, duration = 0.08, type = "square", gain = 0.03, endFreq = null } = {}) {
+        if (!settings.soundEnabled) return;
+        const ac = ensureAudioContext();
+        if (!ac) return;
+        const t0 = ac.currentTime;
+        const t1 = t0 + duration;
+        const osc = ac.createOscillator();
+        const amp = ac.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, t0);
+        if (typeof endFreq === "number") {
+            osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), t1);
+        }
+        amp.gain.setValueAtTime(0.0001, t0);
+        amp.gain.linearRampToValueAtTime(gain, t0 + 0.01);
+        amp.gain.exponentialRampToValueAtTime(0.0001, t1);
+        osc.connect(amp);
+        amp.connect(ac.destination);
+        osc.start(t0);
+        osc.stop(t1 + 0.01);
+    }
+
+    function syncSoundUI() {
+        const on = settings.soundEnabled;
+        muteBtn.textContent = on ? "🔊" : "🔇";
+        muteBtn.setAttribute("aria-label", on ? "Sound On" : "Muted");
+        muteBtn.title = on ? "Sound On" : "Muted";
+        syncSettingsUI();
+    }
+
+    function syncSettingsUI() {
+        soundToggle.checked = settings.soundEnabled;
+        hintToggle.checked = settings.showHints;
+        glossToggle.checked = settings.glossEnabled;
+        glowToggle.checked = settings.glowEnabled;
+    }
+
+    function updateHUD() {
+        scoreValue.textContent = String(world.score);
+        levelValue.textContent = String(world.level);
+        movesValue.textContent = String(world.movesLeft);
+        shufflesValue.textContent = String(world.shufflesLeft);
+        if (scoreBoostBadge) {
+            const showX2 = world.doublePointsThisTurn || world.doublePointsMovesPending > 0;
+            scoreBoostBadge.classList.toggle("show", showX2);
+        }
+    }
+
+    function updateGameplayLayout(viewWidth, viewHeight, phonePortrait, landscapePhone) {
+        layout.isPhone = phonePortrait || !!landscapePhone;
+        if (phonePortrait) {
+            const sidePadding = 8;
+            const topOffset = clamp(Math.floor(viewHeight * 0.075), 54, 70);
+            const maxBoardWidth = Math.max(240, Math.floor(viewWidth - sidePadding * 2));
+            const cellSize = clamp(Math.floor(maxBoardWidth / COLS), 34, 72);
+            const boardSize = cellSize * COLS;
+            const boardX = Math.floor((viewWidth - boardSize) / 2);
+            const boardY = topOffset;
+            const panelMargin = 8;
+
+            layout.cellSize = cellSize;
+            layout.boardSize = boardSize;
+            layout.boardX = boardX;
+            layout.boardY = boardY;
+            layout.panelX = panelMargin;
+            layout.panelY = boardY + boardSize + 8;
+            layout.panelW = Math.max(220, Math.floor(viewWidth - panelMargin * 2));
+            layout.panelH = Math.max(130, Math.floor(viewHeight - layout.panelY - panelMargin));
+            return;
+        }
+
+        if (landscapePhone) {
+            const margin = 6;
+            const cellSize = clamp(Math.floor((viewHeight - margin * 2) / ROWS), 24, 70);
+            const boardSize = cellSize * COLS;
+            const boardX = margin;
+            const boardY = Math.max(margin, Math.floor((viewHeight - boardSize) / 2));
+            const gap = 10;
+            const panelX = boardX + boardSize + gap;
+            const panelW = Math.max(80, viewWidth - panelX - margin);
+            layout.cellSize = cellSize;
+            layout.boardSize = boardSize;
+            layout.boardX = boardX;
+            layout.boardY = boardY;
+            layout.panelX = panelX;
+            layout.panelY = margin;
+            layout.panelW = panelW;
+            layout.panelH = viewHeight - margin * 2;
+            return;
+        }
+
+        layout.cellSize = BASE_CELL_SIZE;
+        layout.boardX = 48;
+        layout.boardY = 72;
+        layout.boardSize = BASE_CELL_SIZE * COLS;
+        layout.panelX = 484;
+        layout.panelY = 72;
+        layout.panelW = 272;
+        layout.panelH = 400;
+    }
+
+    function syncPiecesToCurrentLayout() {
+        for (let row = 0; row < ROWS; row += 1) {
+            for (let col = 0; col < COLS; col += 1) {
+                const piece = world.board[row] && world.board[row][col];
+                if (!piece) continue;
+                const center = cellCenter(row, col);
+                piece.x = center.x;
+                piece.y = center.y;
+            }
+        }
+    }
+
+    function cellCenter(row, col) {
+        const cellSize = layout.cellSize;
+        return {
+            x: layout.boardX + col * cellSize + cellSize / 2,
+            y: layout.boardY + row * cellSize + cellSize / 2
+        };
+    }
+
+    function createPiece(type, row, col, spawnRows) {
+        const center = cellCenter(row, col);
+        return {
+            type,
+            row,
+            col,
+            x: center.x,
+            y: center.y - spawnRows * layout.cellSize,
+            scale: 1,
+            alpha: 1,
+            removing: false,
+            removeProgress: 0,
+            wobbleSeed: Math.random() * Math.PI * 2
+        };
+    }
+
+    function randomType(excluded) {
+        const available = [];
+        for (let i = 0; i < invaders.length; i += 1) {
+            if (isInvaderUnlocked(i, world.level) && !excluded.includes(i)) {
+                available.push(i);
+            }
+        }
+
+        if (!available.length) {
+            for (let i = 0; i < invaders.length; i += 1) {
+                if (isInvaderUnlocked(i, world.level)) {
+                    available.push(i);
+                }
+            }
+        }
+
+        return available[Math.floor(Math.random() * available.length)];
+    }
+
+    function createBoard() {
+        const board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+        for (let row = 0; row < ROWS; row += 1) {
+            for (let col = 0; col < COLS; col += 1) {
+                const excluded = [];
+                if (col >= 2 && board[row][col - 1].type === board[row][col - 2].type) {
+                    excluded.push(board[row][col - 1].type);
+                }
+                if (row >= 2 && board[row - 1][col].type === board[row - 2][col].type && !excluded.includes(board[row - 1][col].type)) {
+                    excluded.push(board[row - 1][col].type);
+                }
+                board[row][col] = createPiece(randomType(excluded), row, col, 0);
+            }
+        }
+        if (!hasPossibleMoves(board)) {
+            return createBoard();
+        }
+        return board;
+    }
+
+    function swapCells(first, second, boardRef) {
+        const board = boardRef || world.board;
+        const temp = board[first.row][first.col];
+        board[first.row][first.col] = board[second.row][second.col];
+        board[second.row][second.col] = temp;
+        if (board[first.row][first.col]) {
+            board[first.row][first.col].row = first.row;
+            board[first.row][first.col].col = first.col;
+        }
+        if (board[second.row][second.col]) {
+            board[second.row][second.col].row = second.row;
+            board[second.row][second.col].col = second.col;
+        }
+    }
+
+    function findMatches(boardRef) {
+        const board = boardRef || world.board;
+        const found = [];
+        const marked = new Set();
+
+        for (let row = 0; row < ROWS; row += 1) {
+            let count = 1;
+            for (let col = 1; col <= COLS; col += 1) {
+                const current = col < COLS ? board[row][col] : null;
+                const previous = board[row][col - 1];
+                if (current && previous && current.type === previous.type) {
+                    count += 1;
+                } else {
+                    if (count >= 3) {
+                        for (let offset = 0; offset < count; offset += 1) {
+                            const key = row + ":" + (col - 1 - offset);
+                            if (!marked.has(key)) {
+                                marked.add(key);
+                                found.push({ row, col: col - 1 - offset });
+                            }
+                        }
+                    }
+                    count = 1;
+                }
+            }
+        }
+
+        for (let col = 0; col < COLS; col += 1) {
+            let count = 1;
+            for (let row = 1; row <= ROWS; row += 1) {
+                const current = row < ROWS ? board[row][col] : null;
+                const previous = board[row - 1][col];
+                if (current && previous && current.type === previous.type) {
+                    count += 1;
+                } else {
+                    if (count >= 3) {
+                        for (let offset = 0; offset < count; offset += 1) {
+                            const key = (row - 1 - offset) + ":" + col;
+                            if (!marked.has(key)) {
+                                marked.add(key);
+                                found.push({ row: row - 1 - offset, col });
+                            }
+                        }
+                    }
+                    count = 1;
+                }
+            }
+        }
+
+        return found;
+    }
+
+    function hasPossibleMoves(boardRef) {
+        const board = boardRef || world.board;
+
+        for (let row = 0; row < ROWS; row += 1) {
+            for (let col = 0; col < COLS; col += 1) {
+                for (const direction of SWAP_DIRECTIONS) {
+                    const nextRow = row + direction.dr;
+                    const nextCol = col + direction.dc;
+                    if (nextRow >= ROWS || nextCol >= COLS) continue;
+                    swapCells({ row, col }, { row: nextRow, col: nextCol }, board);
+                    const matches = findMatches(board);
+                    swapCells({ row, col }, { row: nextRow, col: nextCol }, board);
+                    if (matches.length) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function computeHintMove() {
+        for (let row = 0; row < ROWS; row += 1) {
+            for (let col = 0; col < COLS; col += 1) {
+                for (const direction of SWAP_DIRECTIONS) {
+                    const nextRow = row + direction.dr;
+                    const nextCol = col + direction.dc;
+                    if (nextRow >= ROWS || nextCol >= COLS) continue;
+                    swapCells({ row, col }, { row: nextRow, col: nextCol });
+                    const matches = findMatches();
+                    swapCells({ row, col }, { row: nextRow, col: nextCol });
+                    if (matches.length) {
+                        return {
+                            first: { row, col },
+                            second: { row: nextRow, col: nextCol }
+                        };
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    function isHintMoveValid(hintMove) {
+        if (!hintMove || !hintMove.first || !hintMove.second) return false;
+        const first = hintMove.first;
+        const second = hintMove.second;
+        if (!isAdjacent(first, second)) return false;
+        if (first.row < 0 || first.row >= ROWS || first.col < 0 || first.col >= COLS) return false;
+        if (second.row < 0 || second.row >= ROWS || second.col < 0 || second.col >= COLS) return false;
+
+        swapCells(first, second);
+        const matches = findMatches();
+        swapCells(first, second);
+        return matches.length > 0;
+    }
+
+    function isAdjacent(first, second) {
+        return Math.abs(first.row - second.row) + Math.abs(first.col - second.col) === 1;
+    }
+
+    function setSelected(cell) {
+        world.selected = cell ? { row: cell.row, col: cell.col } : null;
+        if (cell) {
+            world.cursor.row = cell.row;
+            world.cursor.col = cell.col;
+        }
+    }
+
+    function addFlash(cell, color, options) {
+        const center = cellCenter(cell.row, cell.col);
+        const life = options && typeof options.life === "number" ? options.life : 0.28;
+        const baseRadius = options && typeof options.radius === "number" ? options.radius : 14;
+        const spread = options && typeof options.spread === "number" ? options.spread : 30;
+        world.flashes.push({
+            x: center.x,
+            y: center.y,
+            life,
+            maxLife: life,
+            color,
+            baseRadius,
+            spread
+        });
+    }
+
+    function addMushroomCloud(cell, options) {
+        const center = cellCenter(cell.row, cell.col);
+        const life = options && typeof options.life === "number" ? options.life : 0.8;
+        const size = options && typeof options.size === "number" ? options.size : 1;
+        world.mushroomClouds.push({
+            x: center.x,
+            y: center.y,
+            life,
+            maxLife: life,
+            size
+        });
+    }
+
+    function showBonusBanner(text, color) {
+        world.bonusBanner = {
+            text,
+            color,
+            life: 1.15,
+            maxLife: 1.15
+        };
+
+        if (bonusLabel) {
+            bonusLabel.classList.remove("show");
+            bonusLabel.textContent = text;
+            bonusLabel.style.setProperty("--bonus-accent", color || "rgba(180, 220, 255, 0.95)");
+            const quadBg = text && text.startsWith("Quad Bonus:");
+            bonusLabel.style.setProperty("--bonus-bg", quadBg ? "rgba(255, 255, 255, 0.5)" : "rgba(255, 255, 255, 0.93)");
+            // Restart CSS transition for back-to-back bonus events.
+            void bonusLabel.offsetWidth;
+            bonusLabel.classList.add("show");
+        }
+    }
+
+    function hideBonusBanner() {
+        if (!bonusLabel) return;
+        bonusLabel.classList.remove("show");
+    }
+
+    function showLevelUpLabel(levelNumber) {
+        if (!levelUpLabel) return;
+        if (levelUpLabelTimer) {
+            clearTimeout(levelUpLabelTimer);
+            levelUpLabelTimer = null;
+        }
+        levelUpLabel.textContent = "Level " + levelNumber;
+        levelUpLabel.classList.add("show");
+        levelUpLabelTimer = setTimeout(() => {
+            levelUpLabel.classList.remove("show");
+            levelUpLabelTimer = null;
+        }, 1000);
+    }
+
+    function spawnBurst(cell, type, options) {
+        const center = cellCenter(cell.row, cell.col);
+        const mappedType = mapType(type);
+        const spec = invaders[mappedType];
+        const burstScale = options && typeof options.burstScale === "number" ? options.burstScale : 1;
+        const color = options && options.color ? options.color : spec.color;
+        const count = Math.max(6, Math.floor(10 * burstScale));
+        for (let index = 0; index < count; index += 1) {
+            const angle = (Math.PI * 2 * index) / count + Math.random() * 0.25;
+            const speed = (48 + Math.random() * 90) * burstScale;
+            world.particles.push({
+                x: center.x,
+                y: center.y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 12,
+                life: 0.45 + Math.random() * 0.22 * burstScale,
+                maxLife: 0.55 + 0.08 * burstScale,
+                size: 4 + Math.random() * (5 * burstScale),
+                color
+            });
+        }
+
+        if (mappedType === NUCLEAR_WARHEAD_INDEX) {
+            world.particles.push({
+                x: center.x,
+                y: center.y,
+                vx: 0,
+                vy: 0,
+                life: 0.34,
+                maxLife: 0.34,
+                size: 14,
+                color: "#92ff4f"
+            });
+        }
+    }
+
+    function addMirvStrike(fromCell, toCell) {
+        const from = cellCenter(fromCell.row, fromCell.col);
+        const to = cellCenter(toCell.row, toCell.col);
+        const duration = 0.26 + Math.random() * 0.08;
+        world.mirvStrikes.push({
+            x0: from.x,
+            y0: from.y,
+            x1: to.x,
+            y1: to.y,
+            life: duration,
+            maxLife: duration,
+            color: "rgba(255, 125, 36, 0.96)",
+            ember: "rgba(255, 225, 120, 0.95)"
+        });
+
+        // Add impact embers so each struck MIRV tile feels hit by fire.
+        spawnBurst(toCell, MIRV_INDEX, { burstScale: 1.35, color: "#ff8f2e" });
+        addFlash(toCell, "rgba(255, 128, 42, 0.82)", { life: 0.34, radius: 16, spread: 30 });
+    }
+
+    function collectNuclearBlastCells(matches) {
+        const collected = [];
+        const seen = new Set();
+        const nuclearCenters = [];
+        const mirvCenters = [];
+        const chainReactionEnabled = matches.length >= 4;
+        const pendingNuclear = [];
+        const addedNuclearCenters = new Set();
+        for (const cell of matches) {
+            const key = cell.row + ":" + cell.col;
+            if (!seen.has(key)) {
+                seen.add(key);
+                collected.push({ row: cell.row, col: cell.col });
+            }
+            const piece = world.board[cell.row] && world.board[cell.row][cell.col];
+            if (piece && mapType(piece.type) === NUCLEAR_WARHEAD_INDEX) {
+                nuclearCenters.push({ row: cell.row, col: cell.col });
+                pendingNuclear.push({ row: cell.row, col: cell.col });
+                addedNuclearCenters.add(key);
+            }
+            if (piece && mapType(piece.type) === MIRV_INDEX) {
+                mirvCenters.push({ row: cell.row, col: cell.col });
+            }
+        }
+
+        const expandedNuclear = new Set();
+        while (pendingNuclear.length) {
+            const center = pendingNuclear.pop();
+            const centerKey = center.row + ":" + center.col;
+            if (expandedNuclear.has(centerKey)) continue;
+            expandedNuclear.add(centerKey);
+
+            for (let dr = -2; dr <= 2; dr += 1) {
+                for (let dc = -2; dc <= 2; dc += 1) {
+                    if (Math.abs(dr) + Math.abs(dc) > 2) continue;
+                    const row = center.row + dr;
+                    const col = center.col + dc;
+                    if (row < 0 || row >= ROWS || col < 0 || col >= COLS) continue;
+                    const key = row + ":" + col;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        collected.push({ row, col });
+                    }
+
+                    if (!chainReactionEnabled) continue;
+                    const piece = world.board[row] && world.board[row][col];
+                    if (!piece || mapType(piece.type) !== NUCLEAR_WARHEAD_INDEX) continue;
+                    if (!addedNuclearCenters.has(key)) {
+                        nuclearCenters.push({ row, col });
+                        addedNuclearCenters.add(key);
+                    }
+                    if (!expandedNuclear.has(key)) {
+                        pendingNuclear.push({ row, col });
+                    }
+                }
+            }
+        }
+
+        const mirvTargets = [];
+        if (mirvCenters.length) {
+            for (let row = 0; row < ROWS; row += 1) {
+                for (let col = 0; col < COLS; col += 1) {
+                    const piece = world.board[row] && world.board[row][col];
+                    if (!piece || mapType(piece.type) !== MIRV_INDEX) continue;
+                    mirvTargets.push({ row, col });
+                    const key = row + ":" + col;
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+                    collected.push({ row, col });
+                }
+            }
+        }
+
+        return { cells: collected, nuclearCenters, mirvCenters, mirvTargets };
+    }
+
+    function getSwapPartnerMappedTypeForQuadBonus() {
+        if (!world.pendingSwap) return null;
+        const first = world.pendingSwap.first;
+        const second = world.pendingSwap.second;
+        const firstPiece = world.board[first.row] && world.board[first.row][first.col];
+        const secondPiece = world.board[second.row] && world.board[second.row][second.col];
+        if (!firstPiece || !secondPiece) return null;
+        const t1 = mapType(firstPiece.type);
+        const t2 = mapType(secondPiece.type);
+        if (t1 === QUADCOPTER_INDEX && t2 !== QUADCOPTER_INDEX) return t2;
+        if (t2 === QUADCOPTER_INDEX && t1 !== QUADCOPTER_INDEX) return t1;
+        return null;
+    }
+
+    function chooseQuadcopterSpecialInjectionTarget() {
+        const oneBeforeMirv = MIRV_MIN_LEVEL - 1;
+        const oneBeforeNuclear = NUCLEAR_WARHEAD_MIN_LEVEL - 1;
+        const mirvLocked = !isInvaderUnlocked(MIRV_INDEX, world.level);
+        const nuclearLocked = !isInvaderUnlocked(NUCLEAR_WARHEAD_INDEX, world.level);
+
+        if (nuclearLocked && world.level >= oneBeforeNuclear) return NUCLEAR_WARHEAD_INDEX;
+        if (mirvLocked && world.level >= oneBeforeMirv) return MIRV_INDEX;
+        return null;
+    }
+
+    function applyQuadcopterBonus(quadcopterMatches, clearCells) {
+        if (quadcopterMatches.length < 4) {
+            return { triggered: false, extraCells: [] };
+        }
+
+        const clearKeys = new Set();
+        for (const cell of clearCells) {
+            clearKeys.add(cell.row + ":" + cell.col);
+        }
+
+        const partnerMappedType = getSwapPartnerMappedTypeForQuadBonus();
+        const injectionTarget = chooseQuadcopterSpecialInjectionTarget();
+        const options = ["moves", "shuffle", "doubleNow", "doubleNext4"];
+        if (injectionTarget !== null) options.push("injectSpecial");
+        if (partnerMappedType !== null) options.push("clearSwapPartnerType");
+        let selected = options[Math.floor(Math.random() * options.length)];
+        const injectAllowed = injectionTarget !== null && !isInvaderUnlocked(injectionTarget, world.level);
+        if (selected === "injectSpecial" && !injectAllowed) {
+            const fallbackOptions = options.filter((option) => option !== "injectSpecial");
+            selected = fallbackOptions[Math.floor(Math.random() * fallbackOptions.length)];
+        }
+
+        if (selected === "moves") {
+            world.movesLeft += 2;
+            showBonusBanner("Quad Bonus: +2 Moves", "rgba(160, 255, 127, 0.85)");
+            for (const cell of quadcopterMatches) {
+                addFlash(cell, "rgba(160, 255, 127, 0.9)", { life: 0.38, radius: 18, spread: 34 });
+            }
+            return { triggered: true, extraCells: [] };
+        }
+
+        if (selected === "shuffle") {
+            world.shufflesLeft += 1;
+            showBonusBanner("Quad Bonus: +1 Shuffle", "rgba(108, 241, 255, 0.85)");
+            for (const cell of quadcopterMatches) {
+                addFlash(cell, "rgba(108, 241, 255, 0.9)", { life: 0.38, radius: 18, spread: 34 });
+            }
+            return { triggered: true, extraCells: [] };
+        }
+
+        if (selected === "doubleNow") {
+            world.doublePointsThisTurn = true;
+            for (const cell of quadcopterMatches) {
+                addFlash(cell, "rgba(255, 232, 124, 0.9)", { life: 0.4, radius: 18, spread: 36 });
+            }
+            return { triggered: true, extraCells: [] };
+        }
+
+        if (selected === "doubleNext4") {
+            world.doublePointsMovesPending = Math.min(12, world.doublePointsMovesPending + 4);
+            for (const cell of quadcopterMatches) {
+                addFlash(cell, "rgba(255, 216, 108, 0.9)", { life: 0.4, radius: 18, spread: 36 });
+            }
+            return { triggered: true, extraCells: [] };
+        }
+
+        if (selected === "injectSpecial" && injectAllowed) {
+            const candidates = [];
+            for (let row = 0; row < ROWS; row += 1) {
+                for (let col = 0; col < COLS; col += 1) {
+                    const key = row + ":" + col;
+                    if (clearKeys.has(key)) continue;
+                    const piece = world.board[row] && world.board[row][col];
+                    if (!piece || piece.removing) continue;
+                    candidates.push({ row, col });
+                }
+            }
+            if (candidates.length) {
+                const picked = candidates[Math.floor(Math.random() * candidates.length)];
+                const piece = world.board[picked.row][picked.col];
+                piece.type = typeIndexForMappedType(injectionTarget);
+                piece.removing = false;
+                piece.removeProgress = 0;
+                spawnBurst(picked, injectionTarget, { burstScale: 1.8, color: injectionTarget === NUCLEAR_WARHEAD_INDEX ? "#92ff4f" : "#ff8f2e" });
+                addFlash(picked, injectionTarget === NUCLEAR_WARHEAD_INDEX ? "rgba(120, 255, 80, 0.92)" : "rgba(255, 128, 42, 0.9)", { life: 0.42, radius: 20, spread: 40 });
+                const injectedName = injectionTarget === NUCLEAR_WARHEAD_INDEX ? "Nuclear" : "MIRV";
+                const injectedColor = injectionTarget === NUCLEAR_WARHEAD_INDEX ? "rgba(120, 255, 80, 0.95)" : "rgba(255, 128, 42, 0.95)";
+                showBonusBanner("Quad Bonus: " + injectedName + " Drop", injectedColor);
+            } else {
+                showBonusBanner("Quad Bonus: Special Ready", "rgba(180, 220, 255, 0.9)");
+            }
+            return { triggered: true, extraCells: [] };
+        }
+
+        if (selected === "clearSwapPartnerType" && partnerMappedType !== null) {
+            const extraCells = [];
+            const seen = new Set(clearKeys);
+            for (let row = 0; row < ROWS; row += 1) {
+                for (let col = 0; col < COLS; col += 1) {
+                    const piece = world.board[row] && world.board[row][col];
+                    if (!piece) continue;
+                    if (mapType(piece.type) !== partnerMappedType) continue;
+                    const key = row + ":" + col;
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+                    extraCells.push({ row, col });
+                }
+            }
+            const label = invaders[partnerMappedType] ? invaders[partnerMappedType].label : "Type";
+            showBonusBanner("Quad Bonus: Clear " + label, "rgba(255, 203, 122, 0.95)");
+            return { triggered: true, extraCells };
+        }
+
+        return { triggered: false, extraCells: [] };
+    }
+
+    function resolveMatches(matches) {
+        if (!matches.length) return;
+        const blast = collectNuclearBlastCells(matches);
+        const clearCells = blast.cells.slice();
+        const nuclearTriggered = blast.nuclearCenters.length > 0;
+        const mirvTriggered = blast.mirvCenters.length > 0;
+        const quadcopterMatches = [];
+        for (const cell of matches) {
+            const piece = world.board[cell.row] && world.board[cell.row][cell.col];
+            if (!piece) continue;
+            if (mapType(piece.type) === QUADCOPTER_INDEX) quadcopterMatches.push(cell);
+        }
+        const quadcopterBonus = applyQuadcopterBonus(quadcopterMatches, clearCells);
+        if (quadcopterBonus.extraCells.length) {
+            for (const cell of quadcopterBonus.extraCells) {
+                clearCells.push(cell);
+            }
+        }
+        const quadcopterBonusTriggered = quadcopterBonus.triggered;
+        world.phase = "removing";
+        world.phaseTimer = 0.24;
+        world.chainDepth += 1;
+        world.lastClearCount = clearCells.length;
+
+        let points = clearCells.length * 110;
+        if (world.chainDepth > 1) {
+            points = Math.round(points * (1 + (world.chainDepth - 1) * 0.35));
+        }
+        if (clearCells.length >= 4) points += 90;
+        if (clearCells.length >= 5) points += 140;
+        if (nuclearTriggered) points += 240 * blast.nuclearCenters.length;
+        if (mirvTriggered) points += 220 * blast.mirvTargets.length;
+        if (world.doublePointsThisTurn) {
+            points *= 2;
+        }
+
+        world.score += points;
+        if (world.score > world.bestScore) {
+            world.bestScore = world.score;
+            saveBestScore();
+        }
+
+        for (const cell of clearCells) {
+            const piece = world.board[cell.row][cell.col];
+            if (!piece) continue;
+            const mappedType = mapType(piece.type);
+            piece.removing = true;
+            piece.removeProgress = 0;
+            spawnBurst(cell, piece.type);
+
+            if (mappedType === NUCLEAR_WARHEAD_INDEX) {
+                // Any nuclear tile caught in an explosion should visibly detonate.
+                addMushroomCloud(cell, { life: 0.85, size: 1 });
+                addFlash(cell, "rgba(120, 255, 80, 0.95)", { life: 0.52, radius: 28, spread: 56 });
+                addFlash(cell, "rgba(255, 166, 42, 0.86)", { life: 0.42, radius: 20, spread: 40 });
+            } else {
+                addFlash(cell, invaders[mappedType].glow);
+            }
+        }
+
+        if (nuclearTriggered) {
+            for (const center of blast.nuclearCenters) {
+                spawnBurst(center, NUCLEAR_WARHEAD_INDEX, { burstScale: 3, color: "#92ff4f" });
+            }
+        }
+
+        if (mirvTriggered) {
+            // Fire from each matched MIRV toward every MIRV tile on the board.
+            for (const target of blast.mirvTargets) {
+                let source = blast.mirvCenters[0];
+                let bestDist = Number.POSITIVE_INFINITY;
+                for (const center of blast.mirvCenters) {
+                    const dr = center.row - target.row;
+                    const dc = center.col - target.col;
+                    const dist = dr * dr + dc * dc;
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        source = center;
+                    }
+                }
+                addMirvStrike(source, target);
+            }
+            for (const center of blast.mirvCenters) {
+                addFlash(center, "rgba(255, 96, 28, 0.92)", { life: 0.46, radius: 23, spread: 42 });
+            }
+        }
+
+        updateHUD();
+        playTone({
+            freq: nuclearTriggered ? 220 : (mirvTriggered ? 180 : (quadcopterBonusTriggered ? 360 : (280 + world.chainDepth * 60))),
+            duration: nuclearTriggered ? 0.18 : (mirvTriggered ? 0.2 : (quadcopterBonusTriggered ? 0.14 : 0.12)),
+            type: nuclearTriggered ? "sawtooth" : (mirvTriggered ? "square" : (quadcopterBonusTriggered ? "triangle" : "triangle")),
+            gain: nuclearTriggered ? 0.06 : (mirvTriggered ? 0.058 : (quadcopterBonusTriggered ? 0.052 : 0.045)),
+            endFreq: nuclearTriggered ? 920 : (mirvTriggered ? 740 : (quadcopterBonusTriggered ? 760 : (640 + world.chainDepth * 50)))
+        });
+    }
+
+    function collapseBoard() {
+        for (let col = 0; col < COLS; col += 1) {
+            const survivors = [];
+            for (let row = ROWS - 1; row >= 0; row -= 1) {
+                const piece = world.board[row][col];
+                if (piece && !piece.removing) survivors.push(piece);
+            }
+
+            const newColumn = Array(ROWS).fill(null);
+            let writeRow = ROWS - 1;
+            for (const piece of survivors) {
+                newColumn[writeRow] = piece;
+                piece.row = writeRow;
+                piece.col = col;
+                piece.removing = false;
+                piece.removeProgress = 0;
+                writeRow -= 1;
+            }
+
+            let spawnOffset = 1;
+            for (let row = writeRow; row >= 0; row -= 1) {
+                newColumn[row] = createPiece(randomType([]), row, col, spawnOffset + writeRow - row + 1);
+                spawnOffset += 1;
+            }
+
+            for (let row = 0; row < ROWS; row += 1) {
+                world.board[row][col] = newColumn[row];
+            }
+        }
+        world.phase = "falling";
+        world.phaseTimer = 0;
+    }
+
+    function reshuffleBoard() {
+        if (world.shufflesLeft <= 0) {
+            finishGame(false, "No shuffle lives remaining — the board was deadlocked. You reached Level " + world.level + " with " + world.score + " pts.");
+            return false;
+        }
+        world.shufflesLeft -= 1;
+        updateHUD();
+        playTone({ freq: 200, duration: 0.14, type: "triangle", gain: 0.04, endFreq: 280 });
+
+        const allTypes = [];
+        for (let row = 0; row < ROWS; row += 1) {
+            for (let col = 0; col < COLS; col += 1) {
+                allTypes.push(world.board[row][col].type);
+            }
+        }
+
+        for (let attempt = 0; attempt < 50; attempt += 1) {
+            for (let index = allTypes.length - 1; index > 0; index -= 1) {
+                const swapIndex = Math.floor(Math.random() * (index + 1));
+                const temp = allTypes[index];
+                allTypes[index] = allTypes[swapIndex];
+                allTypes[swapIndex] = temp;
+            }
+
+            let pointer = 0;
+            for (let row = 0; row < ROWS; row += 1) {
+                for (let col = 0; col < COLS; col += 1) {
+                    const type = allTypes[pointer];
+                    pointer += 1;
+                    const piece = world.board[row][col];
+                    piece.type = type;
+                    piece.row = row;
+                    piece.col = col;
+                    piece.x = cellCenter(row, col).x;
+                    piece.y = cellCenter(row, col).y;
+                }
+            }
+            if (!findMatches().length && hasPossibleMoves()) {
+                world.hintMove = computeHintMove();
+                return true;
+            }
+        }
+
+        world.board = createBoard();
+        world.hintMove = computeHintMove();
+        return true;
+    }
+
+    function piecesSettled() {
+        for (let row = 0; row < ROWS; row += 1) {
+            for (let col = 0; col < COLS; col += 1) {
+                const piece = world.board[row][col];
+                if (!piece) continue;
+                const target = cellCenter(piece.row, piece.col);
+                if (Math.abs(piece.x - target.x) > 0.6 || Math.abs(piece.y - target.y) > 0.6) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function finishGame(win, reason) {
+        world.running = false;
+        world.win = win;
+        world.phase = "over";
+        setSelected(null);
+        const bestText = world.bestScore ? " Best: " + world.bestScore + "." : "";
+        const defaultMsg = win
+            ? "You crushed all " + MAX_LEVEL + " invasion waves! Campaign complete!" + bestText
+            : (reason || ("The invasion pressure held. You scored " + world.score + " on Level " + world.level + "." + bestText));
+        showOverlay(
+            win ? "Campaign Complete!" : "Command Lost",
+            defaultMsg,
+            "Play Again",
+            true
+        );
+        playTone({ freq: win ? 540 : 180, duration: win ? 0.22 : 0.16, type: win ? "triangle" : "sawtooth", gain: 0.05, endFreq: win ? 760 : 110 });
+    }
+
+    function advanceLevel() {
+        if (world.level >= MAX_LEVEL) {
+            finishGame(true);
+            return;
+        }
+        world.level += 1;
+        world.levelBaseScore = world.score;
+        world.targetScore = targetForLevel(world.level);
+        world.movesLeft = movesForLevel(world.level);
+        world.chainDepth = 0;
+        world.selected = null;
+        world.pendingSwap = null;
+        world.phase = "idle";
+        world.phaseTimer = 0;
+        world.hintMove = computeHintMove();
+        world.idleSeconds = 0;
+        world.lastClearCount = 0;
+        world.running = true;
+        updateHUD();
+        showLevelUpLabel(world.level);
+        playTone({ freq: 540, duration: 0.22, type: "triangle", gain: 0.05, endFreq: 760 });
+    }
+
+    function finalizeTurn() {
+        const levelProgress = world.score - world.levelBaseScore;
+        if (levelProgress >= world.targetScore) {
+            advanceLevel();
+            return;
+        }
+        if (world.movesLeft <= 0) {
+            finishGame(false);
+            return;
+        }
+        if (!hasPossibleMoves()) {
+            const ok = reshuffleBoard();
+            if (!ok) return;
+        }
+        world.doublePointsThisTurn = false;
+        world.phase = "idle";
+        world.hintMove = computeHintMove();
+        world.idleSeconds = 0;
+        updateHUD();
+    }
+
+    function trySwap(first, second) {
+        if (!world.running || world.phase !== "idle" || !isAdjacent(first, second)) return;
+        world.pendingSwap = {
+            first: { row: first.row, col: first.col },
+            second: { row: second.row, col: second.col },
+            reversed: false
+        };
+        swapCells(first, second);
+        world.phase = "swapping";
+        world.idleSeconds = 0;
+        setSelected(null);
+        playTone({ freq: 190, duration: 0.06, type: "square", gain: 0.028, endFreq: 220 });
+    }
+
+    function handleCellSelection(cell) {
+        if (!world.running || world.phase !== "idle") return;
+        if (!world.selected) {
+            setSelected(cell);
+            return;
+        }
+        if (world.selected.row === cell.row && world.selected.col === cell.col) {
+            setSelected(null);
+            return;
+        }
+        if (isAdjacent(world.selected, cell)) {
+            trySwap(world.selected, cell);
+            return;
+        }
+        setSelected(cell);
+    }
+
+    function updatePieces(seconds) {
+        const easing = Math.min(1, seconds * 14);
+        for (let row = 0; row < ROWS; row += 1) {
+            for (let col = 0; col < COLS; col += 1) {
+                const piece = world.board[row][col];
+                if (!piece) continue;
+                const target = cellCenter(piece.row, piece.col);
+                piece.x += (target.x - piece.x) * easing;
+                piece.y += (target.y - piece.y) * easing;
+                if (piece.removing) {
+                    piece.removeProgress = Math.min(1, piece.removeProgress + seconds * 5.5);
+                    piece.scale = 1 - piece.removeProgress * 0.7;
+                    piece.alpha = 1 - piece.removeProgress;
+                } else {
+                    piece.scale += (1 - piece.scale) * Math.min(1, seconds * 12);
+                    piece.alpha += (1 - piece.alpha) * Math.min(1, seconds * 12);
+                }
+            }
+        }
+    }
+
+    function updateEffects(seconds) {
+        for (let index = world.particles.length - 1; index >= 0; index -= 1) {
+            const particle = world.particles[index];
+            particle.life -= seconds;
+            particle.x += particle.vx * seconds;
+            particle.y += particle.vy * seconds;
+            particle.vy += 120 * seconds;
+            if (particle.life <= 0) world.particles.splice(index, 1);
+        }
+
+        for (let index = world.flashes.length - 1; index >= 0; index -= 1) {
+            const flash = world.flashes[index];
+            flash.life -= seconds;
+            if (flash.life <= 0) world.flashes.splice(index, 1);
+        }
+
+        for (let index = world.mushroomClouds.length - 1; index >= 0; index -= 1) {
+            const cloud = world.mushroomClouds[index];
+            cloud.life -= seconds;
+            if (cloud.life <= 0) world.mushroomClouds.splice(index, 1);
+        }
+
+        for (let index = world.mirvStrikes.length - 1; index >= 0; index -= 1) {
+            const strike = world.mirvStrikes[index];
+            strike.life -= seconds;
+            if (strike.life <= 0) world.mirvStrikes.splice(index, 1);
+        }
+
+        if (world.bonusBanner) {
+            world.bonusBanner.life -= seconds;
+            if (world.bonusBanner.life <= 0) {
+                world.bonusBanner = null;
+                hideBonusBanner();
+            }
+        }
+    }
+
+    function update(seconds) {
+        updatePieces(seconds);
+        updateEffects(seconds);
+
+        if (!world.running) return;
+
+        if (world.phase === "idle") {
+            world.idleSeconds += seconds;
+            if (!isHintMoveValid(world.hintMove)) {
+                world.hintMove = computeHintMove();
+            }
+        }
+
+        if (world.phase === "swapping" && piecesSettled()) {
+            const matches = findMatches();
+            if (matches.length) {
+                world.movesLeft -= 1;
+                if (!world.doublePointsThisTurn && world.doublePointsMovesPending > 0) {
+                    world.doublePointsThisTurn = true;
+                    world.doublePointsMovesPending -= 1;
+                }
+                world.chainDepth = 0;
+                resolveMatches(matches);
+                world.pendingSwap = null;
+            } else if (world.pendingSwap && !world.pendingSwap.reversed) {
+                swapCells(world.pendingSwap.first, world.pendingSwap.second);
+                world.pendingSwap.reversed = true;
+                playTone({ freq: 145, duration: 0.09, type: "sawtooth", gain: 0.024, endFreq: 110 });
+            } else {
+                world.pendingSwap = null;
+                world.phase = "idle";
+                world.hintMove = computeHintMove();
+            }
+            updateHUD();
+        }
+
+        if (world.phase === "removing") {
+            world.phaseTimer -= seconds;
+            if (world.phaseTimer <= 0) {
+                collapseBoard();
+            }
+        }
+
+        if (world.phase === "falling" && piecesSettled()) {
+            const matches = findMatches();
+            if (matches.length) {
+                resolveMatches(matches);
+            } else {
+                finalizeTurn();
+            }
+        }
+    }
+
+    function drawRoundedRect(x, y, width, height, radius) {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + width, y, x + width, y + height, radius);
+        ctx.arcTo(x + width, y + height, x, y + height, radius);
+        ctx.arcTo(x, y + height, x, y, radius);
+        ctx.arcTo(x, y, x + width, y, radius);
+        ctx.closePath();
+    }
+
+    function drawBoardFrame(time) {
+        const boardX = layout.boardX;
+        const boardY = layout.boardY;
+        const boardSize = layout.boardSize;
+        const cellSize = layout.cellSize;
+        const boardInset = layout.isPhone ? Math.max(8, Math.floor(cellSize * 0.24)) : 18;
+        // Keep inter-tile gap nearly constant so larger viewports enlarge bricks, not spacing.
+        const cellPad = layout.isPhone ? clamp(Math.round(cellSize * 0.03), 2, 3) : 3;
+        ctx.save();
+        const boardPulse = 0.5 + Math.sin(time * 0.0014) * 0.5;
+        ctx.fillStyle = "rgba(6, 18, 44, 0.92)";
+        drawRoundedRect(boardX - boardInset, boardY - boardInset, boardSize + boardInset * 2, boardSize + boardInset * 2, 26);
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(0, 246, 255, 0.3)";
+        ctx.lineWidth = 2;
+        drawRoundedRect(boardX - boardInset, boardY - boardInset, boardSize + boardInset * 2, boardSize + boardInset * 2, 26);
+        ctx.stroke();
+
+        const gridGradient = ctx.createLinearGradient(boardX, boardY, boardX, boardY + boardSize);
+        gridGradient.addColorStop(0, "rgba(16, 40, 89, 0.95)");
+        gridGradient.addColorStop(1, "rgba(6, 13, 33, 0.95)");
+        ctx.fillStyle = gridGradient;
+        drawRoundedRect(boardX, boardY, boardSize, boardSize, 20);
+        ctx.fill();
+
+        for (let row = 0; row < ROWS; row += 1) {
+            for (let col = 0; col < COLS; col += 1) {
+                const x = boardX + col * cellSize;
+                const y = boardY + row * cellSize;
+                ctx.fillStyle = (row + col) % 2 === 0 ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.015)";
+                drawRoundedRect(x + cellPad, y + cellPad, cellSize - cellPad * 2, cellSize - cellPad * 2, 12);
+                ctx.fill();
+            }
+        }
+
+        if (settings.showHints && isHintMoveValid(world.hintMove) && world.idleSeconds > 2.5 && world.phase === "idle") {
+            const alpha = 0.18 + boardPulse * 0.18;
+            for (const cell of [world.hintMove.first, world.hintMove.second]) {
+                const x = boardX + cell.col * cellSize;
+                const y = boardY + cell.row * cellSize;
+                ctx.strokeStyle = "rgba(0, 246, 255, " + alpha.toFixed(3) + ")";
+                ctx.lineWidth = 3;
+                drawRoundedRect(x + 4, y + 4, cellSize - 8, cellSize - 8, 12);
+                ctx.stroke();
+            }
+        }
+
+        if (world.selected) {
+            const x = boardX + world.selected.col * cellSize;
+            const y = boardY + world.selected.row * cellSize;
+            const pulse = 0.5 + Math.sin(time * 0.008) * 0.5;
+            const glowAlpha = 0.24 + pulse * 0.46;
+
+            // Outer bloom
+            ctx.fillStyle = "rgba(255, 43, 214, " + glowAlpha.toFixed(3) + ")";
+            drawRoundedRect(x - 2, y - 2, cellSize + 4, cellSize + 4, 15);
+            ctx.fill();
+
+            // Animated dual-tone ring
+            ctx.strokeStyle = "rgba(255, 43, 214, " + (0.62 + pulse * 0.3).toFixed(3) + ")";
+            ctx.lineWidth = 4.2;
+            drawRoundedRect(x + 3, y + 3, cellSize - 6, cellSize - 6, 13);
+            ctx.stroke();
+
+            ctx.strokeStyle = "rgba(0, 246, 255, " + (0.35 + pulse * 0.35).toFixed(3) + ")";
+            ctx.lineWidth = 2;
+            drawRoundedRect(x + 7, y + 7, cellSize - 14, cellSize - 14, 10);
+            ctx.stroke();
+        }
+
+        if (world.running && world.phase === "idle") {
+            const x = boardX + world.cursor.col * cellSize;
+            const y = boardY + world.cursor.row * cellSize;
+            const cursorPulse = 0.45 + Math.sin(time * 0.004 + 1.2) * 0.25;
+            ctx.strokeStyle = "rgba(93, 255, 127, " + cursorPulse.toFixed(3) + ")";
+            ctx.lineWidth = 2;
+            drawRoundedRect(x + 7, y + 7, cellSize - 14, cellSize - 14, 11);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    // Shared state so shape functions can react to which pass is running.
+    let _iconTime = 0;
+    let _iconMainPass = false;
+
+    const invaderShapeDrawers = [
+        drawMissile,
+        drawAircraft,
+        drawRocket,
+        drawRock,
+        drawSword,
+        drawDrone,
+        drawTurret,
+        drawMine,
+        drawAirDefenseBattery,
+        drawDangerWeapon
+    ];
+
+    function drawMissile() {
+        // Emad-inspired upright missile profile with triconic RV and rear control section.
+        function traceBody() {
+            ctx.beginPath();
+            ctx.moveTo(0, -17);
+            ctx.lineTo(3, -12);
+            ctx.lineTo(3, 10);
+            ctx.lineTo(5, 13);
+            ctx.lineTo(2, 13);
+            ctx.lineTo(0, 16);
+            ctx.lineTo(-2, 13);
+            ctx.lineTo(-5, 13);
+            ctx.lineTo(-3, 10);
+            ctx.lineTo(-3, -12);
+            ctx.closePath();
+        }
+
+        function traceNoseCap() {
+            ctx.beginPath();
+            ctx.moveTo(0, -17);
+            ctx.lineTo(2.2, -13.5);
+            ctx.lineTo(-2.2, -13.5);
+            ctx.closePath();
+        }
+
+        function traceLeftFin() {
+            ctx.beginPath();
+            ctx.moveTo(-5, 12);
+            ctx.lineTo(-8, 14);
+            ctx.lineTo(-5, 14);
+            ctx.closePath();
+        }
+
+        function traceRightFin() {
+            ctx.beginPath();
+            ctx.moveTo(5, 12);
+            ctx.lineTo(8, 14);
+            ctx.lineTo(5, 14);
+            ctx.closePath();
+        }
+
+        if (_iconMainPass) {
+            ctx.save();
+            ctx.translate(0.9, 1.1);
+            ctx.fillStyle = "rgba(66, 46, 24, 0.38)";
+            traceBody();
+            ctx.fill();
+            traceNoseCap();
+            ctx.fill();
+            traceLeftFin();
+            ctx.fill();
+            traceRightFin();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        traceBody();
+        ctx.fill();
+
+        // Triconic reentry vehicle nose cap.
+        traceNoseCap();
+        ctx.fill();
+
+        // Mid-body guidance band makes the icon distinct from other pieces.
+        ctx.save();
+        ctx.globalAlpha *= 0.7;
+        ctx.fillRect(-2.4, -1.5, 4.8, 1.8);
+        ctx.restore();
+
+        // Small rear control fins.
+        traceLeftFin();
+        ctx.fill();
+
+        traceRightFin();
+        ctx.fill();
+
+        if (_iconMainPass) {
+            ctx.save();
+            ctx.strokeStyle = "rgba(78, 56, 30, 0.9)";
+            ctx.lineWidth = 1.15;
+            ctx.lineJoin = "round";
+            traceBody();
+            ctx.stroke();
+            traceNoseCap();
+            ctx.stroke();
+            traceLeftFin();
+            ctx.stroke();
+            traceRightFin();
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
+    function drawAircraft() {
+        // F-4 Phantom style: chunky fuselage, mid-swept wings, slab tailplane, twin exhaust rear.
+        ctx.beginPath();
+        ctx.moveTo(17, -1);
+        ctx.lineTo(12, -4);
+        ctx.lineTo(6, -5);
+        ctx.lineTo(0, -6);
+        ctx.lineTo(-6, -6);
+        ctx.lineTo(-12, -3);
+        ctx.lineTo(-17, 0);
+        ctx.lineTo(-13, 3);
+        ctx.lineTo(-7, 6);
+        ctx.lineTo(0, 7);
+        ctx.lineTo(7, 5);
+        ctx.lineTo(13, 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Main wing (near side): straighter trailing edge, moderate sweep.
+        ctx.beginPath();
+        ctx.moveTo(2, -2);
+        ctx.lineTo(-2, -12);
+        ctx.lineTo(-15, -11);
+        ctx.lineTo(-8, -3);
+        ctx.closePath();
+        ctx.fill();
+
+        // Main wing (far side): compressed by perspective.
+        ctx.beginPath();
+        ctx.moveTo(2, 2);
+        ctx.lineTo(-1, 7);
+        ctx.lineTo(-11, 9);
+        ctx.lineTo(-6, 4);
+        ctx.closePath();
+        ctx.fill();
+
+        // Horizontal tailplanes.
+        ctx.beginPath();
+        ctx.moveTo(-8, -2);
+        ctx.lineTo(-14, -6);
+        ctx.lineTo(-13, -3);
+        ctx.lineTo(-8, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(-8, 2);
+        ctx.lineTo(-14, 6);
+        ctx.lineTo(-13, 3);
+        ctx.lineTo(-8, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        // Single tall fin with slight rake (F-4 characteristic).
+        ctx.beginPath();
+        ctx.moveTo(-9, -3);
+        ctx.lineTo(-12, -12);
+        ctx.lineTo(-8, -11);
+        ctx.lineTo(-6, -3);
+        ctx.closePath();
+        ctx.fill();
+
+        // Twin exhaust blocks at rear.
+        ctx.beginPath();
+        ctx.moveTo(-17, -2.4);
+        ctx.lineTo(-13.4, -2.4);
+        ctx.lineTo(-13.4, -0.3);
+        ctx.lineTo(-17, -0.3);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(-17, 0.3);
+        ctx.lineTo(-13.4, 0.3);
+        ctx.lineTo(-13.4, 2.4);
+        ctx.lineTo(-17, 2.4);
+        ctx.closePath();
+        ctx.fill();
+
+        // Cockpit canopy hump.
+        ctx.beginPath();
+        ctx.moveTo(7, -3);
+        ctx.lineTo(0, -3);
+        ctx.lineTo(-2, -1);
+        ctx.lineTo(5, -1);
+        ctx.closePath();
+        ctx.fill();
+
+    }
+
+    function drawRocket() {
+        ctx.save();
+        ctx.rotate(Math.PI / 4); // 45-degree ballistic launch angle
+        // Slim ballistic body with compact rear fins.
+        ctx.beginPath();
+        ctx.moveTo(0, -17);
+        ctx.lineTo(4, -11);
+        ctx.lineTo(4, 10);
+        ctx.lineTo(7, 14);
+        ctx.lineTo(3, 14);
+        ctx.lineTo(0, 17);
+        ctx.lineTo(-3, 14);
+        ctx.lineTo(-7, 14);
+        ctx.lineTo(-4, 10);
+        ctx.lineTo(-4, -11);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function drawRock() {
+        // UAV: slim fuselage, long thin straight wings, V-tail.
+        // Fuselage (thin cigar body)
+        ctx.beginPath();
+        ctx.moveTo(17, 0);
+        ctx.lineTo(14, -2);
+        ctx.lineTo(-10, -2);
+        ctx.lineTo(-17, 0);
+        ctx.lineTo(-10, 2);
+        ctx.lineTo(14, 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Long straight main wing (horizontal bar)
+        ctx.beginPath();
+        ctx.moveTo(3, -2);
+        ctx.lineTo(6, -14);
+        ctx.lineTo(-1, -14);
+        ctx.lineTo(-4, -2);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(3, 2);
+        ctx.lineTo(6, 14);
+        ctx.lineTo(-1, 14);
+        ctx.lineTo(-4, 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // V-tail at rear
+        ctx.beginPath();
+        ctx.moveTo(-10, -1);
+        ctx.lineTo(-16, -8);
+        ctx.lineTo(-13, -8);
+        ctx.lineTo(-8, -1);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(-10, 1);
+        ctx.lineTo(-16, 8);
+        ctx.lineTo(-13, 8);
+        ctx.lineTo(-8, 1);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    function drawSword() {
+        // MIRV reentry: 45° tilt, tail (fire) upper-left, warhead heads down-right.
+        ctx.save();
+        ctx.rotate(Math.PI / 4);
+        const baseFill = ctx.fillStyle;
+
+        // Main MIRV bus body: thin cylinder + pointed nose cone (nose at +y = down).
+        ctx.beginPath();
+        ctx.moveTo(-3, -10);
+        ctx.lineTo(3, -10);
+        ctx.lineTo(3, 7);
+        ctx.lineTo(-3, 7);
+        ctx.closePath();
+        ctx.fill();
+        // Nose cone.
+        ctx.beginPath();
+        ctx.moveTo(-3, 7);
+        ctx.lineTo(3, 7);
+        ctx.lineTo(0, 15);
+        ctx.closePath();
+        if (_iconMainPass) {
+            const noseHeat = ctx.createLinearGradient(0, 7, 0, 15);
+            noseHeat.addColorStop(0, "#ffcf63");
+            noseHeat.addColorStop(0.55, "#ff7b2a");
+            noseHeat.addColorStop(1, "#c12715");
+            ctx.fillStyle = noseHeat;
+        }
+        ctx.fill();
+        ctx.fillStyle = baseFill;
+
+        // Sub-warhead 1: dispersed reentry vehicle.
+        ctx.save();
+        ctx.translate(11, 4);
+        ctx.beginPath();
+        ctx.moveTo(-2, -5);
+        ctx.lineTo(2, -5);
+        ctx.lineTo(0, 5);
+        ctx.closePath();
+        if (_iconMainPass) {
+            const rvHeat1 = ctx.createLinearGradient(0, -5, 0, 5);
+            rvHeat1.addColorStop(0, "#ffd87c");
+            rvHeat1.addColorStop(0.5, "#ff8a30");
+            rvHeat1.addColorStop(1, "#c52a12");
+            ctx.fillStyle = rvHeat1;
+        }
+        ctx.fill();
+        ctx.fillStyle = baseFill;
+        ctx.restore();
+
+        // Sub-warhead 2.
+        ctx.save();
+        ctx.translate(-9, 8);
+        ctx.beginPath();
+        ctx.moveTo(-2, -5);
+        ctx.lineTo(2, -5);
+        ctx.lineTo(0, 5);
+        ctx.closePath();
+        if (_iconMainPass) {
+            const rvHeat2 = ctx.createLinearGradient(0, -5, 0, 5);
+            rvHeat2.addColorStop(0, "#ffd87c");
+            rvHeat2.addColorStop(0.5, "#ff8a30");
+            rvHeat2.addColorStop(1, "#c52a12");
+            ctx.fillStyle = rvHeat2;
+        }
+        ctx.fill();
+        ctx.fillStyle = baseFill;
+        ctx.restore();
+
+        // Sub-warhead 3 (smallest, leading edge).
+        ctx.save();
+        ctx.translate(16, -1);
+        ctx.scale(0.65, 0.65);
+        ctx.beginPath();
+        ctx.moveTo(-2, -5);
+        ctx.lineTo(2, -5);
+        ctx.lineTo(0, 5);
+        ctx.closePath();
+        if (_iconMainPass) {
+            const rvHeat3 = ctx.createLinearGradient(0, -5, 0, 5);
+            rvHeat3.addColorStop(0, "#ffd87c");
+            rvHeat3.addColorStop(0.5, "#ff8a30");
+            rvHeat3.addColorStop(1, "#c52a12");
+            ctx.fillStyle = rvHeat3;
+        }
+        ctx.fill();
+        ctx.fillStyle = baseFill;
+        ctx.restore();
+
+        ctx.restore();
+    }
+
+    function drawDrone() {
+        // Military quadcopter: compact body, 4 arms, 4 rotor discs, and EO pod.
+        drawRoundedRect(-6, -4, 12, 8, 2.2);
+        ctx.fill();
+
+        // Arms
+        ctx.fillRect(-16, -1.1, 10, 2.2);
+        ctx.fillRect(6, -1.1, 10, 2.2);
+        ctx.save();
+        ctx.rotate(0.72);
+        ctx.fillRect(-16, -1.1, 10, 2.2);
+        ctx.fillRect(6, -1.1, 10, 2.2);
+        ctx.restore();
+
+        // Rotor housings/discs
+        const rotorR = 3.7;
+        ctx.beginPath();
+        ctx.arc(-17.5, 0, rotorR, 0, Math.PI * 2);
+        ctx.arc(17.5, 0, rotorR, 0, Math.PI * 2);
+        ctx.arc(-13, -11.8, rotorR, 0, Math.PI * 2);
+        ctx.arc(13, 11.8, rotorR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Sensor/EO pod under the center body.
+        ctx.beginPath();
+        ctx.arc(0, 6, 2.6, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function drawTurret() {
+        // S-300P battery silhouette: TEL base + vertical canisters + engagement radar.
+        drawRoundedRect(-15, 5, 30, 8, 2.2);
+        ctx.fill();
+
+        // Launcher support deck.
+        drawRoundedRect(-11, 0, 22, 5, 1.6);
+        ctx.fill();
+
+        // Four vertical missile canisters.
+        drawRoundedRect(-12.5, -13, 4.5, 13, 1.2);
+        ctx.fill();
+        drawRoundedRect(-6.5, -13.5, 4.5, 13.5, 1.2);
+        ctx.fill();
+        drawRoundedRect(-0.5, -14, 4.5, 14, 1.2);
+        ctx.fill();
+        drawRoundedRect(5.5, -14.5, 4.5, 14.5, 1.2);
+        ctx.fill();
+
+        // Radar mast and panel.
+        drawRoundedRect(10.5, -10, 2.2, 10, 1);
+        ctx.fill();
+        drawRoundedRect(8, -14, 7.2, 4, 1.1);
+        ctx.fill();
+
+        // Vehicle wheels.
+        ctx.beginPath();
+        ctx.arc(-9, 14, 2.2, 0, Math.PI * 2);
+        ctx.arc(-2, 14, 2.2, 0, Math.PI * 2);
+        ctx.arc(5, 14, 2.2, 0, Math.PI * 2);
+        ctx.arc(12, 14, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function drawMine() {
+        // Hoot torpedo silhouette: pointed nose, cylindrical body, and cruciform tail fins.
+        ctx.save();
+        ctx.rotate(-Math.PI / 14);
+
+        // Main body and nose cone.
+        ctx.beginPath();
+        ctx.moveTo(16, 0);
+        ctx.lineTo(11, -3.6);
+        ctx.lineTo(-10, -3.6);
+        ctx.lineTo(-15, 0);
+        ctx.lineTo(-10, 3.6);
+        ctx.lineTo(11, 3.6);
+        ctx.closePath();
+        ctx.fill();
+
+        // Mid guidance ring.
+        ctx.save();
+        ctx.globalAlpha *= 0.75;
+        ctx.fillRect(-1.8, -3.1, 3.6, 6.2);
+        ctx.restore();
+
+        // Rear section.
+        drawRoundedRect(11, -2.5, 4.5, 5, 1.3);
+        ctx.fill();
+
+        // Tail fins.
+        ctx.beginPath();
+        ctx.moveTo(14.2, -2.4);
+        ctx.lineTo(18.2, -5.4);
+        ctx.lineTo(15.2, -2.4);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(14.2, 2.4);
+        ctx.lineTo(18.2, 5.4);
+        ctx.lineTo(15.2, 2.4);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(13.4, -3.1);
+        ctx.lineTo(13.4, -7.2);
+        ctx.lineTo(15.2, -3.8);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(13.4, 3.1);
+        ctx.lineTo(13.4, 7.2);
+        ctx.lineTo(15.2, 3.8);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    function drawAirDefenseBattery() {
+        // 3rd Khordad in an angled side perspective to avoid S-300 silhouette overlap.
+        ctx.save();
+        ctx.rotate(-0.26);
+
+        // Slanted TEL chassis.
+        ctx.beginPath();
+        ctx.moveTo(-15, 8);
+        ctx.lineTo(13, 8);
+        ctx.lineTo(16, 2);
+        ctx.lineTo(-12, 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Equipment cabin block.
+        drawRoundedRect(-13, -2, 9, 5.5, 1.5);
+        ctx.fill();
+
+        // Two inclined launcher canisters (not vertical like S-300).
+        ctx.save();
+        ctx.rotate(-0.34);
+        drawRoundedRect(-4, -13.5, 4.6, 15, 1.4);
+        ctx.fill();
+        drawRoundedRect(2.4, -14.5, 4.6, 16, 1.4);
+        ctx.fill();
+        ctx.restore();
+
+        // Radar mast and circular search dish.
+        drawRoundedRect(6.8, -8.6, 2, 8.6, 1);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(7.8, -11.4, 3.7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Wheels in perspective.
+        ctx.beginPath();
+        ctx.ellipse(-8.5, 12.5, 2.4, 1.8, -0.1, 0, Math.PI * 2);
+        ctx.ellipse(0.5, 11.8, 2.4, 1.8, -0.1, 0, Math.PI * 2);
+        ctx.ellipse(9.5, 11.1, 2.4, 1.8, -0.1, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function drawDangerWeapon() {
+        // Atom-orbital emblem: hot nucleus + crossing orbit lanes with nuclear-green charge points.
+        const pulse = 0.58 + Math.sin(_iconTime * 0.008 + 0.9) * 0.42;
+
+        // Keep extrusion/shadow passes simple so the top pass carries the detailed colors.
+        if (!_iconMainPass) {
+            ctx.beginPath();
+            ctx.arc(0, 0, 8.5, 0, Math.PI * 2);
+            ctx.fill();
+            for (let i = 0; i < 3; i += 1) {
+                ctx.save();
+                ctx.rotate((Math.PI * i) / 3);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 13, 4.3, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = ctx.fillStyle;
+                ctx.lineWidth = 2.8;
+                ctx.stroke();
+                ctx.restore();
+            }
+            return;
+        }
+
+        // Nucleus (red -> orange -> yellow)
+        ctx.save();
+        const nucleus = ctx.createRadialGradient(-1.2, -1.3, 0.8, 0, 0, 9.5);
+        nucleus.addColorStop(0, "#fff799");
+        nucleus.addColorStop(0.33, "#ffd447");
+        nucleus.addColorStop(0.68, "#ff7f2a");
+        nucleus.addColorStop(1, "#c7221c");
+        ctx.fillStyle = nucleus;
+        ctx.beginPath();
+        ctx.arc(0, 0, 8.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Ring around nucleus to make the orbital symbol read clearly on small icons.
+        ctx.save();
+        ctx.lineWidth = 1.9;
+        ctx.strokeStyle = "rgba(255, 186, 74, 0.92)";
+        ctx.beginPath();
+        ctx.arc(0, 0, 9.7, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+
+        // Three orbit lanes in warm tones.
+        const orbitColors = ["#ff3a2a", "#ff8e2b", "#ffe15b"];
+        for (let i = 0; i < 3; i += 1) {
+            ctx.save();
+            ctx.rotate((Math.PI * i) / 3);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 13, 4.3, 0, 0, Math.PI * 2);
+            const orbitStroke = ctx.createLinearGradient(-13, 0, 13, 0);
+            orbitStroke.addColorStop(0, orbitColors[i]);
+            orbitStroke.addColorStop(0.52, "#ffd447");
+            orbitStroke.addColorStop(1, orbitColors[(i + 1) % orbitColors.length]);
+            ctx.strokeStyle = orbitStroke;
+            ctx.lineWidth = 2.2;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Three bright electron nodes with glowy green energy.
+        const electrons = [
+            { angle: 0.45, radiusX: 13, radiusY: 4.3, tilt: 0 },
+            { angle: 2.45, radiusX: 13, radiusY: 4.3, tilt: Math.PI / 3 },
+            { angle: 4.35, radiusX: 13, radiusY: 4.3, tilt: (Math.PI * 2) / 3 }
+        ];
+        electrons.forEach((electron) => {
+            const x = Math.cos(electron.angle) * electron.radiusX;
+            const y = Math.sin(electron.angle) * electron.radiusY;
+            const cosT = Math.cos(electron.tilt);
+            const sinT = Math.sin(electron.tilt);
+            const ex = x * cosT - y * sinT;
+            const ey = x * sinT + y * cosT;
+
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
+            ctx.shadowColor = "rgba(120, 255, 80, 0.98)";
+            ctx.shadowBlur = 8 + pulse * 6;
+            ctx.fillStyle = "#92ff4f";
+            ctx.beginPath();
+            ctx.arc(ex, ey, 1.7 + pulse * 0.65, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+    }
+
+    function drawInvaderShape(type) {
+        const mappedType = mapType(type);
+        const drawShape = invaderShapeDrawers[mappedType];
+        if (typeof drawShape === "function") drawShape();
+    }
+
+    function drawInvaderIcon(type, x, y, scale, alpha, time) {
+        const mappedType = mapType(type);
+        const spec = invaders[mappedType];
+        const nuclearPulse = mappedType === 9 ? (0.55 + Math.sin(time * 0.006) * 0.45) : 0;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(scale, scale);
+        ctx.globalAlpha = alpha;
+        ctx.rotate(Math.sin(time * 0.0012 + mappedType) * 0.03);
+
+        // Flat base coat (darkest bg gives shadow depth around plate)
+        ctx.fillStyle = spec.bg1;
+        drawRoundedRect(-22, -22, 44, 44, 11);
+        ctx.fill();
+
+        // Plate: top-lit gradient simulates overhead light source
+        const plateInner = ctx.createLinearGradient(-18, -18, -18, 18);
+        plateInner.addColorStop(0, spec.bg0);
+        plateInner.addColorStop(1, spec.bg1);
+        ctx.fillStyle = plateInner;
+        drawRoundedRect(-18, -18, 36, 36, 9);
+        ctx.fill();
+
+        // Bevel overlay: brighten top-left / darken bottom-right
+        const bevel = ctx.createLinearGradient(-16, -16, 16, 16);
+        bevel.addColorStop(0, "rgba(255,255,255,0.14)");
+        bevel.addColorStop(0.45, "rgba(255,255,255,0)");
+        bevel.addColorStop(1, "rgba(0,0,0,0.3)");
+        ctx.fillStyle = bevel;
+        drawRoundedRect(-18, -18, 36, 36, 9);
+        ctx.fill();
+
+        if (settings.glossEnabled) {
+            const gloss = ctx.createLinearGradient(-16, -18, 6, 8);
+            gloss.addColorStop(0, "rgba(255,255,255,0.36)");
+            gloss.addColorStop(0.32, "rgba(255,255,255,0.16)");
+            gloss.addColorStop(1, "rgba(255,255,255,0)");
+            ctx.fillStyle = gloss;
+            drawRoundedRect(-18, -18, 36, 20, 9);
+            ctx.fill();
+
+            ctx.save();
+            ctx.globalAlpha *= 0.42;
+            ctx.strokeStyle = "rgba(255,255,255,0.38)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(-12, -10);
+            ctx.quadraticCurveTo(-3, -14, 8, -8);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        if (settings.glowEnabled) {
+            ctx.save();
+            ctx.globalAlpha *= mappedType === 9 ? (0.52 + nuclearPulse * 0.28) : 0.55;
+            ctx.shadowColor = spec.glow;
+            ctx.shadowBlur = mappedType === 9 ? (18 + nuclearPulse * 12) : 16;
+            ctx.strokeStyle = spec.glow;
+            ctx.lineWidth = mappedType === 9 ? (2.2 + nuclearPulse * 0.9) : 2;
+            drawRoundedRect(-19, -19, 38, 38, 10);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        ctx.lineWidth = 1.2;
+        drawRoundedRect(-18, -18, 36, 36, 9);
+        ctx.stroke();
+
+        // Feed shared state to shape functions (fire, etc.)
+        _iconTime = time;
+
+        // 3D extrusion pass 1: deepest black shadow
+        _iconMainPass = false;
+        ctx.save();
+        ctx.translate(3.5, 3.5);
+        ctx.fillStyle = "rgba(0,0,0,0.62)";
+        drawInvaderShape(type);
+        ctx.restore();
+
+        // 3D extrusion pass 2: mid shadow in themed dark color
+        ctx.save();
+        ctx.translate(1.8, 1.8);
+        ctx.fillStyle = spec.bg1;
+        drawInvaderShape(type);
+        ctx.restore();
+
+        // Main lit top face
+        _iconMainPass = true;
+        const iconGradient = ctx.createLinearGradient(-13, -16, 8, 13);
+        iconGradient.addColorStop(0, spec.color);
+        iconGradient.addColorStop(0.75, spec.color);
+        iconGradient.addColorStop(1, "rgba(0,0,0,0.55)");
+        ctx.fillStyle = iconGradient;
+        drawInvaderShape(type);
+
+        if (settings.glowEnabled) {
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
+            ctx.globalAlpha = alpha * (mappedType === 9 ? (0.18 + nuclearPulse * 0.16) : 0.16);
+            ctx.fillStyle = spec.glow;
+            drawInvaderShape(type);
+            ctx.restore();
+        }
+
+        if (mappedType === 9) {
+            ctx.save();
+            ctx.globalCompositeOperation = "lighter";
+            ctx.globalAlpha = alpha * (0.08 + nuclearPulse * 0.14);
+            ctx.fillStyle = "rgba(244, 255, 136, 0.9)";
+            ctx.beginPath();
+            ctx.arc(0, -1, 9.5 + nuclearPulse * 2.4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // Rim light: faint bright shift simulating top-left light edge
+        _iconMainPass = false;
+        ctx.save();
+        ctx.translate(-1, -1);
+        ctx.globalAlpha = alpha * 0.18;
+        ctx.fillStyle = "rgba(255,255,255,1)";
+        drawInvaderShape(type);
+        ctx.restore();
+
+        ctx.restore();
+    }
+
+    function drawSidebar(time) {
+        const panelX = layout.panelX;
+        const panelY = layout.panelY;
+        const panelW = layout.panelW;
+        const panelH = layout.panelH;
+        const compact = layout.isPhone;
+        const pad = compact ? 12 : 22;
+        const titleY = panelY + (compact ? 24 : 34);
+        const lineY = panelY + (compact ? 42 : 58);
+        const progressY = panelY + (compact ? 50 : 94);
+        const totalsY = panelY + (compact ? 82 : 132);
+        const clearY = panelY + (compact ? 98 : 152);
+        const activeY = panelY + (compact ? 118 : 196);
+        const listStartY = panelY + (compact ? 136 : 220);
+        const rowStep = compact ? 18 : 24;
+        const rowHeight = compact ? 17 : 22;
+
+        ctx.save();
+        const panelGradient = ctx.createLinearGradient(panelX, panelY, panelX, panelY + panelH);
+        panelGradient.addColorStop(0, "rgba(8, 32, 67, 0.95)");
+        panelGradient.addColorStop(1, "rgba(6, 11, 30, 0.94)");
+        ctx.fillStyle = panelGradient;
+        drawRoundedRect(panelX, panelY, panelW, panelH, 24);
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(0, 246, 255, 0.24)";
+        ctx.lineWidth = 2;
+        drawRoundedRect(panelX, panelY, panelW, panelH, 24);
+        ctx.stroke();
+
+        ctx.fillStyle = "#dff9ff";
+        ctx.font = compact ? "bold 16px Trebuchet MS" : "bold 22px Trebuchet MS";
+        ctx.fillText(compact ? "L" + world.level + "/" + MAX_LEVEL + " Threat Grid" : ("Level " + world.level + " / " + MAX_LEVEL + "  -  Threat Grid"), panelX + pad, titleY);
+
+        ctx.fillStyle = "rgba(188, 228, 255, 0.84)";
+        ctx.font = compact ? "12px Trebuchet MS" : "14px Trebuchet MS";
+        ctx.fillText("Target: " + world.targetScore + "  |  Shuffles: " + world.shufflesLeft, panelX + pad, lineY);
+        if (!compact) {
+            ctx.fillText("Match 3+ invaders before moves run out.", panelX + pad, lineY + 18);
+        }
+
+        const levelProgress = clamp((world.score - world.levelBaseScore) / world.targetScore, 0, 1);
+        ctx.fillStyle = "rgba(255,255,255,0.08)";
+        drawRoundedRect(panelX + pad, progressY, panelW - pad * 2, 18, 9);
+        ctx.fill();
+        const progressGradient = ctx.createLinearGradient(panelX + pad, panelY, panelX + panelW - pad, panelY);
+        progressGradient.addColorStop(0, "#00f6ff");
+        progressGradient.addColorStop(1, "#ff2bd6");
+        ctx.fillStyle = progressGradient;
+        drawRoundedRect(panelX + pad, progressY, (panelW - pad * 2) * levelProgress, 18, 9);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(218, 245, 255, 0.86)";
+        ctx.font = compact ? "bold 12px Trebuchet MS" : "bold 14px Trebuchet MS";
+        ctx.fillText("Score: " + world.score + "  |  Best: " + world.bestScore, panelX + pad, totalsY);
+        ctx.fillText(world.lastClearCount ? ("Last clear: " + world.lastClearCount) : "Last clear: waiting", panelX + pad, clearY);
+
+        ctx.font = compact ? "bold 13px Trebuchet MS" : "bold 16px Trebuchet MS";
+        const unlockedCount = activeInvaderCount(world.level);
+        ctx.fillText("Active Classes: " + unlockedCount + " / " + invaders.length, panelX + pad, activeY);
+
+        const unlockedTypes = [];
+        for (let i = 0; i < invaders.length; i += 1) {
+            if (isInvaderUnlocked(i, world.level)) unlockedTypes.push(i);
+        }
+        const footerY = panelY + panelH - 10;
+        const compactColumns = compact ? 2 : 1;
+        const columnGap = compact ? 8 : 0;
+        const entryWidth = compact ? Math.floor((panelW - pad * 2 - columnGap) / 2) : panelW - (pad - 4) * 2;
+        const maxRows = Math.max(0, Math.floor((footerY - listStartY - 20) / rowStep));
+        const visibleCount = compact ? maxRows * compactColumns : maxRows;
+        const visibleTypes = unlockedTypes.slice(0, visibleCount);
+        visibleTypes.forEach((type, index) => {
+            const spec = invaders[mapType(type)];
+            const columnIndex = compact ? index % compactColumns : 0;
+            const rowIndex = compact ? Math.floor(index / compactColumns) : index;
+            const entryX = compact ? panelX + pad + columnIndex * (entryWidth + columnGap) : panelX + pad - 4;
+            const entryY = listStartY + rowIndex * rowStep;
+            ctx.fillStyle = "rgba(0, 246, 255, 0.09)";
+            drawRoundedRect(entryX, entryY - 11, entryWidth, rowHeight, 10);
+            ctx.fill();
+            drawInvaderIcon(type, entryX + 14, entryY - 2, compact ? 0.28 : 0.39, 1, time);
+            ctx.fillStyle = spec.accent;
+            ctx.font = compact ? "bold 11px Trebuchet MS" : "bold 12px Trebuchet MS";
+            ctx.fillText(spec.label, entryX + 28, entryY + 1);
+        });
+
+        if (visibleTypes.length < unlockedTypes.length) {
+            ctx.fillStyle = "rgba(199, 236, 255, 0.72)";
+            ctx.font = "11px Trebuchet MS";
+            ctx.fillText("+" + (unlockedTypes.length - visibleTypes.length) + " more classes", panelX + pad, footerY - 20);
+        }
+
+        const nextUnlock = nextUnlockForLevel(world.level);
+        ctx.fillStyle = "rgba(199, 236, 255, 0.8)";
+        ctx.font = compact ? "11px Trebuchet MS" : "13px Trebuchet MS";
+        if (nextUnlock.index >= 0) {
+            ctx.fillText("Next unlock: L" + nextUnlock.level + " " + invaders[mapType(nextUnlock.index)].label, panelX + pad, footerY);
+        } else {
+            const hintText = settings.showHints ? "All classes unlocked. Hint glow wakes after 2.5s." : "All classes unlocked. Hint glow disabled.";
+            ctx.fillText(compact ? "All classes unlocked." : hintText, panelX + pad, footerY);
+        }
+        ctx.restore();
+    }
+
+    function drawEffects() {
+        for (const cloud of world.mushroomClouds) {
+            const alpha = clamp(cloud.life / cloud.maxLife, 0, 1);
+            const growth = 1 + (1 - alpha) * 0.65;
+            const capR = 13 * cloud.size * growth;
+            const stemW = 9 * cloud.size * (0.85 + (1 - alpha) * 0.3);
+            const stemH = 18 * cloud.size * growth;
+
+            ctx.save();
+            ctx.globalAlpha = alpha * 0.88;
+            ctx.globalCompositeOperation = "lighter";
+
+            // Mushroom cap
+            const capGradient = ctx.createRadialGradient(cloud.x, cloud.y - stemH * 0.58, 2, cloud.x, cloud.y - stemH * 0.58, capR);
+            capGradient.addColorStop(0, "rgba(255, 246, 176, 0.98)");
+            capGradient.addColorStop(0.45, "rgba(255, 176, 82, 0.92)");
+            capGradient.addColorStop(1, "rgba(120, 255, 80, 0)");
+            ctx.fillStyle = capGradient;
+            ctx.beginPath();
+            ctx.arc(cloud.x, cloud.y - stemH * 0.58, capR, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Upper lobe to shape the mushroom top.
+            ctx.beginPath();
+            ctx.arc(cloud.x - capR * 0.45, cloud.y - stemH * 0.7, capR * 0.55, 0, Math.PI * 2);
+            ctx.arc(cloud.x + capR * 0.45, cloud.y - stemH * 0.7, capR * 0.55, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Stem plume
+            const stemGradient = ctx.createLinearGradient(cloud.x, cloud.y - stemH, cloud.x, cloud.y + stemH * 0.1);
+            stemGradient.addColorStop(0, "rgba(255, 215, 120, 0.92)");
+            stemGradient.addColorStop(1, "rgba(144, 255, 98, 0)");
+            ctx.fillStyle = stemGradient;
+            drawRoundedRect(cloud.x - stemW * 0.5, cloud.y - stemH * 0.28, stemW, stemH, stemW * 0.45);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        for (const strike of world.mirvStrikes) {
+            const alpha = clamp(strike.life / strike.maxLife, 0, 1);
+            const progress = 1 - alpha;
+            const hx = strike.x0 + (strike.x1 - strike.x0) * progress;
+            const hy = strike.y0 + (strike.y1 - strike.y0) * progress;
+
+            ctx.save();
+            ctx.globalAlpha = 0.3 + alpha * 0.6;
+            const flame = ctx.createLinearGradient(strike.x0, strike.y0, hx, hy);
+            flame.addColorStop(0, "rgba(255, 74, 28, 0.2)");
+            flame.addColorStop(0.4, strike.color);
+            flame.addColorStop(1, strike.ember);
+            ctx.strokeStyle = flame;
+            ctx.lineWidth = 2.2 + alpha * 2;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(strike.x0, strike.y0);
+            ctx.lineTo(hx, hy);
+            ctx.stroke();
+
+            ctx.globalCompositeOperation = "lighter";
+            ctx.fillStyle = strike.ember;
+            ctx.beginPath();
+            ctx.arc(hx, hy, 3 + alpha * 2.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        for (const flash of world.flashes) {
+            const alpha = flash.life / flash.maxLife;
+            const baseRadius = typeof flash.baseRadius === "number" ? flash.baseRadius : 14;
+            const spread = typeof flash.spread === "number" ? flash.spread : 30;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = flash.color;
+            ctx.beginPath();
+            ctx.arc(flash.x, flash.y, (1 - alpha) * spread + baseRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        for (const particle of world.particles) {
+            const alpha = clamp(particle.life / particle.maxLife, 0, 1);
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = particle.color;
+            ctx.fillRect(particle.x - particle.size / 2, particle.y - particle.size / 2, particle.size, particle.size);
+            ctx.restore();
+        }
+
+    }
+
+    function draw(time) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        sky.addColorStop(0, "#1a1230");
+        sky.addColorStop(0.5, "#120d1e");
+        sky.addColorStop(1, "#09070f");
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < 60; i += 1) {
+            const x = (i * 97) % canvas.width;
+            const y = (i * 43 + (time * 0.018)) % canvas.height;
+            ctx.fillStyle = i % 3 === 0 ? "rgba(255,255,255,0.25)" : "rgba(255,220,190,0.14)";
+            ctx.fillRect(x, y, 2, 2);
+        }
+
+        drawBoardFrame(time);
+        drawSidebar(time);
+
+        for (let row = 0; row < ROWS; row += 1) {
+            for (let col = 0; col < COLS; col += 1) {
+                const piece = world.board[row] && world.board[row][col];
+                if (!piece) continue;
+                let scale = piece.scale;
+                if (world.selected && world.selected.row === piece.row && world.selected.col === piece.col) {
+                    scale += 0.08;
+                }
+                const pulse = 1 + Math.sin(time * 0.0022 + piece.wobbleSeed) * 0.02;
+                const viewportScale = clamp(layout.cellSize / BASE_CELL_SIZE, 0.84, 1.38);
+                drawInvaderIcon(piece.type, piece.x, piece.y, viewportScale * scale * pulse, piece.alpha, time);
+            }
+        }
+
+        drawEffects();
+    }
+
+    function getBoardCellFromClient(clientX, clientY) {
+        const boardX = layout.boardX;
+        const boardY = layout.boardY;
+        const boardSize = layout.boardSize;
+        const cellSize = layout.cellSize;
+        const rect = canvas.getBoundingClientRect();
+        const x = ((clientX - rect.left) / rect.width) * world.width;
+        const y = ((clientY - rect.top) / rect.height) * world.height;
+        if (x < boardX || x >= boardX + boardSize || y < boardY || y >= boardY + boardSize) {
+            return null;
+        }
+        return {
+            row: Math.floor((y - boardY) / cellSize),
+            col: Math.floor((x - boardX) / cellSize)
+        };
+    }
+
+    function setSettingsPanelOpen(isOpen) {
+        settingsPanel.classList.toggle("hidden", !isOpen);
+    }
+
+    function showOverlay(title, text, buttonLabel, showShare) {
+        overlayTitle.textContent = title;
+        overlayText.textContent = text;
+        startBtn.textContent = buttonLabel;
+        shareRow.classList.toggle("hidden", !showShare);
+        overlay.classList.remove("hidden");
+        app.classList.add("showing-overlay");
+    }
+
+    function hideOverlay() {
+        overlay.classList.add("hidden");
+        shareRow.classList.add("hidden");
+        app.classList.remove("showing-overlay");
+    }
+
+    function startNewGame() {
+        randomizeTypeOrder();
+        world.level = 1;
+        world.levelBaseScore = 0;
+        world.targetScore = targetForLevel(1);
+        world.score = 0;
+        world.movesLeft = movesForLevel(1);
+        world.shufflesLeft = SHUFFLES_PER_LEVEL;
+        world.board = createBoard();
+        world.chainDepth = 0;
+        world.selected = null;
+        world.cursor = { row: 0, col: 0 };
+        world.pendingSwap = null;
+        world.phase = "idle";
+        world.phaseTimer = 0;
+        world.hintMove = computeHintMove();
+        world.idleSeconds = 0;
+        world.doublePointsThisTurn = false;
+        world.doublePointsMovesPending = 0;
+        world.particles = [];
+        world.flashes = [];
+        world.mushroomClouds = [];
+        world.mirvStrikes = [];
+        world.bonusBanner = null;
+        hideBonusBanner();
+        if (levelUpLabel) levelUpLabel.classList.remove("show");
+        if (levelUpLabelTimer) {
+            clearTimeout(levelUpLabelTimer);
+            levelUpLabelTimer = null;
+        }
+        world.lastClearCount = 0;
+        world.win = false;
+        world.running = true;
+        updateHUD();
+        hideOverlay();
+    }
+
+    function handleRuntimeError(error, phase) {
+        if (runtimeFailed) return;
+        runtimeFailed = true;
+        world.running = false;
+        console.error("Runtime error during", phase, error);
+        showOverlay("Runtime Error", "A game error occurred. Tap Reload to recover.", "Reload", false);
+    }
+
+    function fitGameToViewport() {
+        const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+        const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const phonePortrait = vw <= 820 && vh >= vw;
+        const landscapePhone = vw <= 920 && vw > vh;
+        const aspect = BASE_WORLD_WIDTH / BASE_WORLD_HEIGHT;
+        if (phonePortrait) {
+            gameWrap.style.width = vw + "px";
+            gameWrap.style.height = vh + "px";
+            canvas.width = Math.floor(vw);
+            canvas.height = Math.floor(vh);
+            world.width = canvas.width;
+            world.height = canvas.height;
+            updateGameplayLayout(world.width, world.height, true);
+            syncPiecesToCurrentLayout();
+            return;
+        }
+        if (landscapePhone) {
+            const headerEl = app.querySelector("header");
+            const appGap = parseFloat(getComputedStyle(app).gap) || 0;
+            const headerH = headerEl ? headerEl.offsetHeight : 0;
+            const reservedOuter = 8;
+            const availableH = Math.max(180, Math.floor(vh - headerH - appGap - reservedOuter));
+            const targetW = Math.max(240, Math.floor(app.clientWidth));
+
+            gameWrap.style.width = targetW + "px";
+            gameWrap.style.height = availableH + "px";
+            canvas.width = targetW;
+            canvas.height = availableH;
+            world.width = targetW;
+            world.height = availableH;
+            updateGameplayLayout(world.width, world.height, false, true);
+            syncPiecesToCurrentLayout();
+            return;
+        }
+        const headerEl = app.querySelector("header");
+        const hintEl = document.getElementById("hint");
+        const appGap = parseFloat(getComputedStyle(app).gap) || 0;
+        const headerH = headerEl ? headerEl.offsetHeight : 0;
+        const hintH = hintEl ? hintEl.offsetHeight : 0;
+
+        // Reserve only the space needed by surrounding UI, so the board can occupy the rest.
+        const reservedOuter = 24;
+        const availableHeight = Math.max(220, vh - headerH - hintH - appGap * 2 - reservedOuter);
+        const maxW = Math.min(app.clientWidth, vw * 0.985, BASE_WORLD_WIDTH);
+        const targetW = clamp(Math.min(maxW, availableHeight * aspect), 240, BASE_WORLD_WIDTH);
+        const targetH = targetW / aspect;
+        gameWrap.style.width = targetW + "px";
+        gameWrap.style.height = targetH + "px";
+        canvas.width = BASE_WORLD_WIDTH;
+        canvas.height = BASE_WORLD_HEIGHT;
+        world.width = BASE_WORLD_WIDTH;
+        world.height = BASE_WORLD_HEIGHT;
+        updateGameplayLayout(world.width, world.height, false);
+        syncPiecesToCurrentLayout();
+    }
+
+    function shareScore(platform) {
+        const result = world.win ? "Sector cleared" : "Counterattack report";
+        const text = "Invaders Crusher score: " + world.score + " (" + result + "). Can you beat it?";
+        const emoji = "🎮⚔️";
+        const url = encodeURIComponent(location.href);
+
+        if (platform === "copy") {
+            navigator.clipboard.writeText(text + " " + emoji + "\n" + location.href)
+                .then(() => alert("Score copied!"))
+                .catch(error => console.error("Copy failed:", error));
+            return;
+        }
+
+        let shareUrl = "";
+        if (platform === "x") shareUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text + " " + emoji) + "&url=" + url;
+        if (platform === "wa") shareUrl = "https://wa.me/?text=" + encodeURIComponent(location.href + "\n" + text + " " + emoji);
+        if (platform === "tg") shareUrl = "https://t.me/share/url?url=" + url + "&text=" + encodeURIComponent(text + " " + emoji);
+        window.open(shareUrl, "_blank");
+    }
+
+    window.shareScore = shareScore;
+
+    startBtn.addEventListener("click", () => {
+        ensureAudioContext();
+        if (runtimeFailed) {
+            location.reload();
+            return;
+        }
+        startNewGame();
+    });
+
+    function setSoundEnabled(enabled) {
+        settings.soundEnabled = enabled;
+        if (enabled) ensureAudioContext();
+        saveSettings();
+        syncSoundUI();
+    }
+
+    muteBtn.addEventListener("click", () => {
+        setSoundEnabled(!settings.soundEnabled);
+    });
+
+    settingsBtn.addEventListener("click", () => setSettingsPanelOpen(true));
+    closeSettingsBtn.addEventListener("click", () => setSettingsPanelOpen(false));
+    settingsPanel.addEventListener("click", event => {
+        if (event.target === settingsPanel) setSettingsPanelOpen(false);
+    });
+
+    soundToggle.addEventListener("change", () => {
+        setSoundEnabled(soundToggle.checked);
+    });
+
+    function bindSettingsToggle(toggleEl, settingKey) {
+        toggleEl.addEventListener("change", () => {
+            settings[settingKey] = toggleEl.checked;
+            saveSettings();
+            syncSettingsUI();
+        });
+    }
+
+    bindSettingsToggle(hintToggle, "showHints");
+    bindSettingsToggle(glossToggle, "glossEnabled");
+    bindSettingsToggle(glowToggle, "glowEnabled");
+
+    // --- Pointer / drag input ------------------------------------------------
+    // A drag from one cell to an adjacent one performs the same swap as
+    // clicking the first cell then clicking the second.
+    let dragStartCell = null;
+    let suppressClickAfterDrag = false;
+
+    function pointerDown(clientX, clientY) {
+        const cell = getBoardCellFromClient(clientX, clientY);
+        if (!cell) return;
+        dragStartCell = cell;
+        suppressClickAfterDrag = false;
+        handleCellSelection(cell);
+    }
+
+    function pointerMove(clientX, clientY) {
+        if (!dragStartCell) return;
+        const cell = getBoardCellFromClient(clientX, clientY);
+        if (!cell) return;
+        if (cell.row === dragStartCell.row && cell.col === dragStartCell.col) return;
+        suppressClickAfterDrag = true;
+        // Treat the drag target as the second selection (swap if adjacent)
+        handleCellSelection(cell);
+        dragStartCell = null;
+    }
+
+    function pointerUp() {
+        dragStartCell = null;
+    }
+
+    // Mouse
+    canvas.addEventListener("mousedown", event => {
+        pointerDown(event.clientX, event.clientY);
+    });
+
+    canvas.addEventListener("mousemove", event => {
+        if (!dragStartCell) return;
+        pointerMove(event.clientX, event.clientY);
+    });
+
+    canvas.addEventListener("mouseup", () => pointerUp());
+    canvas.addEventListener("mouseleave", () => pointerUp());
+
+    // Click fires after mouseup; skip it when a drag already resolved the swap
+    canvas.addEventListener("click", event => {
+        if (suppressClickAfterDrag) {
+            suppressClickAfterDrag = false;
+            return;
+        }
+        const cell = getBoardCellFromClient(event.clientX, event.clientY);
+        if (!cell) return;
+        handleCellSelection(cell);
+    });
+
+    // Touch
+    canvas.addEventListener("touchstart", event => {
+        const touch = event.changedTouches[0];
+        if (!touch) return;
+        pointerDown(touch.clientX, touch.clientY);
+    }, { passive: true });
+
+    canvas.addEventListener("touchmove", event => {
+        const touch = event.changedTouches[0];
+        if (!touch) return;
+        pointerMove(touch.clientX, touch.clientY);
+    }, { passive: true });
+
+    canvas.addEventListener("touchend", () => pointerUp(), { passive: true });
+    canvas.addEventListener("touchcancel", () => pointerUp(), { passive: true });
+
+    window.addEventListener("keydown", event => {
+        const key = event.key.toLowerCase();
+        if (key === "r") {
+            startNewGame();
+            return;
+        }
+        if (!world.running || !settingsPanel.classList.contains("hidden")) return;
+        if (event.key === "ArrowLeft" || key === "a") {
+            world.cursor.col = clamp(world.cursor.col - 1, 0, COLS - 1);
+            event.preventDefault();
+        }
+        if (event.key === "ArrowRight" || key === "d") {
+            world.cursor.col = clamp(world.cursor.col + 1, 0, COLS - 1);
+            event.preventDefault();
+        }
+        if (event.key === "ArrowUp" || key === "w") {
+            world.cursor.row = clamp(world.cursor.row - 1, 0, ROWS - 1);
+            event.preventDefault();
+        }
+        if (event.key === "ArrowDown" || key === "s") {
+            world.cursor.row = clamp(world.cursor.row + 1, 0, ROWS - 1);
+            event.preventDefault();
+        }
+        if (event.code === "Space" || event.key === "Enter") {
+            event.preventDefault();
+            handleCellSelection({ row: world.cursor.row, col: world.cursor.col });
+        }
+        world.idleSeconds = 0;
+    });
+
+    window.addEventListener("resize", fitGameToViewport, { passive: true });
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", fitGameToViewport, { passive: true });
+    }
+
+    (async function registerSW() {
+        if (!("serviceWorker" in navigator) || location.protocol === "file:") return;
+        try {
+            await navigator.serviceWorker.register("./service-worker.js");
+        } catch (_error) {
+        }
+    }());
+
+    function frame(timestamp) {
+        if (runtimeFailed) return;
+        if (!lastFrameTime) lastFrameTime = timestamp;
+        const elapsed = timestamp - lastFrameTime;
+        lastFrameTime = timestamp;
+        const dtFactor = clamp(elapsed / (1000 / 60), 0.4, 2);
+        const seconds = dtFactor / 60;
+
+        try {
+            update(seconds);
+            draw(timestamp);
+        } catch (error) {
+            handleRuntimeError(error, "frame");
+            return;
+        }
+        requestAnimationFrame(frame);
+    }
+
+    loadSettings();
+    loadBestScore();
+    syncSoundUI();
+    updateHUD();
+    world.board = createBoard();
+    world.hintMove = computeHintMove();
+    fitGameToViewport();
+    requestAnimationFrame(frame);
+}());
+</script>
+</body>
+</html>

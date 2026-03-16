@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Popcorn</title>
+<meta name="description" content="A single-level Popcorn-style 80s arcade brick breaker with capsules and steel blocks.">
+<meta name="theme-color" content="#08110a">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cg%20transform='translate(-2.2%20-2.2)%20scale(1.14)'%3E%3Cpath%20d='M16.1%206.8c1.5-.2%202.9.8%203.3%202.3%201.3-.6%202.9-.1%203.7%201.1%201.1%201.4.9%203.4-.3%204.6%201.5%201%202%203%201.1%204.8-.9%201.8-2.8%202.6-4.6%202.1-.7%201.4-2.2%202.3-3.8%202.1-1.5-.2-2.8-1.4-3.2-2.8-1.7.4-3.4-.3-4.3-1.9-.9-1.6-.7-3.6.6-4.9-1.1-1.2-1.2-3.1-.2-4.4s2.7-1.9%204.3-1.4c.5-1%201.5-1.6%202.6-1.6z'%20fill='%23fff8d9'%20stroke='%2318110a'%20stroke-width='1.7'%20stroke-linejoin='round'/%3E%3Cpath%20d='M10.8%2013.1c1.8-2.5%203.9-3.9%206.8-4.5'%20stroke='%236a4b1b'%20stroke-width='1.1'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tamar Games">
+<meta property="og:title" content="Popcorn">
+<meta property="og:description" content="A single-level Popcorn-style 80s arcade brick breaker with capsules and steel blocks.">
+<meta property="og:url" content="https://tamar-it.biz/games/popcorn.html">
+<meta property="og:image" content="https://tamar-it.biz/games/popcorn-preview.png">
+<meta property="og:image:alt" content="Popcorn game preview">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Popcorn">
+<meta name="twitter:description" content="A single-level Popcorn-style 80s arcade brick breaker with capsules and steel blocks.">
+<meta name="twitter:image" content="https://tamar-it.biz/games/popcorn-preview.png">
+<style>
+:root {
+    --c0: #050505;
+    --c1: #1f1f1f;
+    --c2: #f2f2f2;
+    --c3: #00d0ff;
+    --text: var(--c2);
+    --soft: #9a9a9a;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    font-family: "Trebuchet MS", "Verdana", sans-serif;
+    color: var(--text);
+    background:
+        radial-gradient(820px 460px at 18% -8%, rgba(0, 208, 255, 0.12), transparent 62%),
+        radial-gradient(760px 420px at 100% -12%, rgba(242, 242, 242, 0.08), transparent 58%),
+        linear-gradient(165deg, var(--c0), var(--c1));
+    display: grid;
+    place-items: center;
+}
+
+#app {
+    width: min(92vw, 860px);
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(24px, 4vw, 34px);
+    letter-spacing: 0.02em;
+    color: var(--c2);
+    text-shadow:
+        0 0 10px rgba(0, 208, 255, 0.28),
+        0 1px 0 rgba(0, 0, 0, 0.45);
+    font-family: "Cooper Black", "Fredoka", "Baloo 2", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+    font-weight: 800;
+}
+
+#hud {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    color: #d7d7d7;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+}
+
+.hud-item {
+    border: 1px solid rgba(120, 120, 120, 0.6);
+    background: linear-gradient(180deg, rgba(36, 36, 36, 0.92), rgba(10, 10, 10, 0.9));
+    border-radius: 6px;
+    padding: 5px 8px;
+    min-height: 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.hud-key {
+    color: #8f8f8f;
+    font-size: 10px;
+}
+
+#livesKey,
+#powerKey {
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", "Trebuchet MS", sans-serif;
+    font-size: 12px;
+}
+
+.hud-value {
+    color: #f2f2f2;
+    font-variant-numeric: tabular-nums;
+}
+
+#tiltCalBtn {
+    border: 1px solid rgba(0, 208, 255, 0.6);
+    background: rgba(0, 208, 255, 0.12);
+    color: #d8f8ff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+#tiltCalBtn.hidden {
+    display: none;
+}
+
+.hud-tool-btn {
+    border: 1px solid rgba(0, 208, 255, 0.6);
+    background: rgba(0, 208, 255, 0.12);
+    color: #d8f8ff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+}
+
+.hud-tool-btn:hover {
+    background: rgba(0, 208, 255, 0.24);
+}
+
+#gameWrap {
+    position: relative;
+    border: 3px solid #6e6e6e;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(190, 190, 190, 0.24);
+    align-self: center;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #030303, #111111);
+}
+
+#gameWrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(242, 242, 242, 0.06) 0,
+        rgba(242, 242, 242, 0.06) 1px,
+        transparent 2px,
+        transparent 4px
+    );
+    opacity: 0.26;
+}
+
+#gameWrap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 45%, transparent 45%, rgba(0, 0, 0, 0.28) 100%);
+}
+
+#overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 17, 10, 0.8);
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
+#overlay.hidden {
+    display: none;
+}
+
+#overlay h2 {
+    margin: 0 0 10px;
+    font-size: clamp(22px, 4vw, 34px);
+}
+
+#overlay p {
+    margin: 0 0 16px;
+    color: #d4d4d4;
+}
+
+.share-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 0 14px;
+}
+
+.share-row.hidden {
+    display: none;
+}
+
+.share-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.share-btn svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.share-btn .icon-fill {
+    fill: currentColor;
+    stroke: none;
+}
+
+.share-x { background: #000; border-color: #333; }
+.share-wa { background: #25D366; border-color: #2fd877; }
+.share-tg { background: #0088cc; border-color: #1ba0e6; }
+.share-copy { background: #666; border-color: #7a7a7a; }
+
+button {
+    border: 1px solid rgba(242, 242, 242, 0.45);
+    background: rgba(242, 242, 242, 0.12);
+    color: #f2f2f2;
+    font: inherit;
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: rgba(242, 242, 242, 0.22);
+}
+
+#hint {
+    margin-top: 10px;
+    color: var(--soft);
+    font-size: 13px;
+}
+
+#settingsPanel {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.58);
+    display: grid;
+    place-items: center;
+    z-index: 30;
+}
+
+#settingsPanel.hidden {
+    display: none;
+}
+
+#settingsCard {
+    width: min(90vw, 340px);
+    background: linear-gradient(180deg, rgba(26, 26, 26, 0.95), rgba(10, 10, 10, 0.95));
+    border: 1px solid rgba(242, 242, 242, 0.25);
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+
+#settingsCard h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+#settingsActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+#powerLabel {
+    color: #00d0ff;
+}
+
+#backLink {
+    color: #f2f2f2;
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(214, 232, 255, 0.7);
+}
+
+@media (max-aspect-ratio: 1/1) {
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #tiltCalBtn,
+    .hud-tool-btn {
+        font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", "Trebuchet MS", sans-serif;
+        letter-spacing: 0;
+    }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+    #app {
+        width: min(96vw, 980px);
+    }
+
+    header {
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+
+    h1 {
+        font-size: clamp(18px, 3.4vw, 24px);
+        line-height: 1;
+    }
+
+    #hud {
+        gap: 6px;
+        font-size: 10px;
+        letter-spacing: 0.05em;
+    }
+
+    .hud-item {
+        min-height: 22px;
+        padding: 3px 6px;
+        gap: 5px;
+    }
+
+    .hud-key {
+        font-size: 9px;
+    }
+
+    #tiltCalBtn {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    .hud-tool-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    #hint {
+        margin-top: 6px;
+        font-size: 11px;
+        line-height: 1.2;
+    }
+}
+</style>
+</head>
+<body>
+<div id="app">
+    <header>
+        <h1 aria-label="POPCORN">POPCORN</h1>
+        <div id="hud" aria-live="polite">
+            <span class="hud-item"><span class="hud-key">1UP</span><span class="hud-value" id="scoreLabel">000000</span></span>
+            <span class="hud-item"><span class="hud-key">STAGE</span><span class="hud-value" id="stageLabel">1</span></span>
+            <span class="hud-item"><span class="hud-key" id="livesKey" aria-label="Lives">❤️</span><span class="hud-value" id="livesLabel">03</span></span>
+            <span class="hud-item"><span class="hud-key" id="powerKey" aria-label="Power">⚡</span><span class="hud-value" id="powerLabel">NONE</span></span>
+            <button id="tiltCalBtn" class="hidden" type="button">Calibrate Tilt</button>
+            <button id="muteBtn" class="hud-tool-btn" type="button" aria-label="Muted" title="Muted">🔇</button>
+            <button id="settingsBtn" class="hud-tool-btn" type="button" aria-label="Settings" title="Settings">⚙️</button>
+        </div>
+    </header>
+
+    <section id="gameWrap" aria-label="Popcorn game area">
+        <canvas id="game" width="800" height="520"></canvas>
+        <div id="overlay">
+            <div>
+                <h2 id="overlayTitle">Stage 1: Calibration</h2>
+                <p id="overlayText">Tilt to center, then clear the mini pattern. Press Space or tap Start.</p>
+                <div id="shareRow" class="share-row hidden" aria-label="Share score">
+                    <button class="share-btn share-x" type="button" onclick="shareScore('x')" aria-label="Share on X" title="Share on X">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path class="icon-fill" d="M4 3h5.1l3.7 5L16.8 3H20l-5.6 6.5L20 21h-5.1l-4.1-5.6L5.9 21H2.7l6.1-7.1L4 3z"></path>
+                        </svg>
+                    </button>
+                    <button class="share-btn share-wa" type="button" onclick="shareScore('wa')" aria-label="Share on WhatsApp" title="Share on WhatsApp">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7 18L4.5 19.5L5.5 16.5C4.6 15.2 4 13.7 4 12C4 7.6 7.6 4 12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20C10.3 20 8.8 19.4 7.5 18.5"></path>
+                            <path d="M9.2 8.8C9.6 8.4 10 8.4 10.3 8.9L11.2 10.3C11.4 10.7 11.4 11 11.1 11.3L10.5 11.9C10.9 12.8 11.6 13.5 12.5 13.9L13.1 13.3C13.4 13 13.7 13 14.1 13.2L15.5 14.1C16 14.4 16 14.8 15.6 15.2C14.9 15.9 14 16.1 13 15.8C10.6 15.1 8.9 13.4 8.2 11C7.9 10 8.1 9.1 8.8 8.4"></path>
+                        </svg>
+                    </button>
+                    <button class="share-btn share-tg" type="button" onclick="shareScore('tg')" aria-label="Share on Telegram" title="Share on Telegram">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M21 4L3.8 10.6C3.2 10.8 3.2 11.6 3.8 11.8L8.2 13.2L10.2 19.2C10.4 19.8 11.2 19.9 11.5 19.4L14 15.8L18.4 19C18.9 19.4 19.7 19.1 19.8 18.4L21.9 4.9C22 4.3 21.5 3.8 21 4Z"></path>
+                            <path d="M8.2 13.2L20.8 4.2"></path>
+                        </svg>
+                    </button>
+                    <button class="share-btn share-copy" type="button" onclick="shareScore('copy')" aria-label="Copy score" title="Copy score">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M6 5v13c0 1 1 2 2 2h10c1 0 2-1 2-2V5"></path>
+                            <path d="M9 3c0-1 1-2 2-2h2c1 0 2 1 2 2"></path>
+                            <path d="M9 12h6"></path>
+                        </svg>
+                    </button>
+                </div>
+                <button id="startBtn" type="button">Start</button>
+            </div>
+        </div>
+    </section>
+
+    <p id="hint">Controls: mobile tilt or keyboard arrows. <strong>Space</strong> launch, <strong>R</strong> restart. <a id="backLink" href="index.html">Back to hub</a>.</p>
+</div>
+
+<section id="settingsPanel" class="hidden" aria-label="Game settings">
+    <div id="settingsCard">
+        <h3>Settings</h3>
+        <div class="setting-row">
+            <label for="soundToggle">Sound</label>
+            <input id="soundToggle" type="checkbox">
+        </div>
+        <div class="setting-row">
+            <label for="fitHeightToggle">Fit Height</label>
+            <input id="fitHeightToggle" type="checkbox">
+        </div>
+        <div id="settingsActions">
+            <button id="closeSettingsBtn" type="button">Close</button>
+        </div>
+    </div>
+</section>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const scoreLabel = document.getElementById("scoreLabel");
+const stageLabel = document.getElementById("stageLabel");
+const livesLabel = document.getElementById("livesLabel");
+const powerLabel = document.getElementById("powerLabel");
+const overlay = document.getElementById("overlay");
+const overlayTitle = document.getElementById("overlayTitle");
+const overlayText = document.getElementById("overlayText");
+const shareRow = document.getElementById("shareRow");
+const startBtn = document.getElementById("startBtn");
+const hint = document.getElementById("hint");
+const tiltCalBtn = document.getElementById("tiltCalBtn");
+const muteBtn = document.getElementById("muteBtn");
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsPanel = document.getElementById("settingsPanel");
+const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const soundToggle = document.getElementById("soundToggle");
+const fitHeightToggle = document.getElementById("fitHeightToggle");
+const app = document.getElementById("app");
+const headerEl = document.querySelector("#app > header");
+const gameWrap = document.getElementById("gameWrap");
+
+const SETTINGS_KEY = "popcornSettings";
+const BASE_WORLD_WIDTH = 800;
+const BASE_WORLD_HEIGHT = 520;
+const settings = {
+    soundEnabled: false,
+    fitHeightEnabled: false
+};
+
+let audioCtx = null;
+let narrowButtons = false;
+
+function isNarrowScreen() {
+    const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    return vw < vh;
+}
+
+function getTallGameplayScale(height = world.height) {
+    if (!settings.fitHeightEnabled) return 1;
+    const ratio = Math.max(1, height / BASE_WORLD_HEIGHT);
+    return clamp(Math.sqrt(ratio), 1, 1.45);
+}
+
+const PALETTE_4 = {
+    bg: "#050505",
+    mid: "#1f1f1f",
+    hi: "#f2f2f2",
+    accent: "#00d0ff",
+    bricks: ["#00d0ff", "#4ef3c9", "#ff2e88", "#ffd166"],
+    lives: "#f2f2f2",
+    starA: "#f2f2f2",
+    starB: "#00d0ff"
+};
+
+const PALETTE_8 = {
+    bg: "#050505",
+    mid: "#1f1f1f",
+    hi: "#f2f2f2",
+    accent: "#00d0ff",
+    bricks: ["#ff4f4f", "#00d0ff", "#ffe066", "#58ff7d"],
+    lives: "#ffe066",
+    starA: "#f2f2f2",
+    starB: "#ff4fd8"
+};
+
+const PALETTE_MODERN = {
+    bg: "#06060a",
+    mid: "#1b1f38",
+    hi: "#f5f7ff",
+    accent: "#6df2ff",
+    bricks: ["#7c5cff", "#6df2ff", "#ff6ea8", "#9bff6d"],
+    lives: "#ffd96a",
+    starA: "#f5f7ff",
+    starB: "#6df2ff"
+};
+
+function getStagePalette() {
+    if (world.stageIndex <= 1) return PALETTE_4;
+    if (world.stageIndex === 2) return PALETTE_8;
+    return PALETTE_MODERN;
+}
+
+const world = {
+    width: BASE_WORLD_WIDTH,
+    height: BASE_WORLD_HEIGHT,
+    playTop: 26,
+    gameSpeedScale: 0.82,
+    score: 0,
+    lives: 3,
+    stageIndex: 0,
+    running: false,
+    waitingServe: true,
+    catchModeUntil: 0,
+    expandUntil: 0
+};
+
+const paddle = {
+    baseW: 104,
+    w: 104,
+    h: 14,
+    x: 0,
+    y: world.height - 36,
+    speed: 7.2,
+    vx: 0,
+    caughtBall: null
+};
+
+const tilt = {
+    available: typeof window !== "undefined" && "DeviceOrientationEvent" in window,
+    permissionAsked: false,
+    enabled: false,
+    rawGamma: 0,
+    gamma: 0,
+    center: 0
+};
+
+let orientationBound = false;
+let lastFrameTime = 0;
+let orientationCalibrateTimer = null;
+let runtimeFailed = false;
+
+const keys = { left: false, right: false };
+const brickCols = 12;
+const brickRows = 8;
+const bricks = [];
+const balls = [];
+const capsules = [];
+const stars = Array.from({ length: 48 }, () => ({
+    x: Math.random() * canvas.width,
+    y: 22 + Math.random() * (canvas.height - 86),
+    size: Math.random() > 0.82 ? 2 : 1,
+    twinkle: Math.random() * Math.PI * 2
+}));
+
+const levels = [
+    {
+        name: "Calibration",
+        hint: "Stage 1: tilt to center and clear a tiny block set.",
+        speedScale: 0.82,
+        map: [
+            "............",
+            "............",
+            "............",
+            "....1111....",
+            "............",
+            "............",
+            "............",
+            "............"
+        ]
+    },
+    {
+        name: "Arcade",
+        hint: "Stage 2: full 80s formation with steel and tough blocks.",
+        speedScale: 1,
+        map: [
+            "..1111222211",
+            ".12222332221",
+            "122334433221",
+            "22344TT44322",
+            "2344TXXT4432",
+            "22344TT44322",
+            ".12233443321",
+            "..111122221."
+        ]
+    },
+    {
+        name: "8 Color Scheme",
+        hint: "Stage 3: advanced round with the richer 8-color arcade palette.",
+        speedScale: 1.08,
+        map: [
+            "..1122332211",
+            ".12334443321",
+            "12344TT44321",
+            "2344TXXT4432",
+            "344TTXXTT443",
+            "2344TXXT4432",
+            ".12334443321",
+            "..1122332211"
+        ]
+    },
+    {
+        name: "Neo",
+        hint: "Stage 4: neon palette unleashed.",
+        speedScale: 1.14,
+        map: [
+            ".12344334421",
+            "12344TT44321",
+            "2344TXXT4432",
+            "344TTXXTT443",
+            "44TXXXXXXT44",
+            "344TTXXTT443",
+            "2344TXXT4432",
+            ".12344334421"
+        ]
+    }
+];
+
+const brickPalette = {
+    "1": 0,
+    "2": 1,
+    "3": 2,
+    "4": 3,
+    "T": 2,
+    "X": -1
+};
+
+const capsuleTypes = [
+    { kind: "E", label: "Expand", color: "#58ff7d" },
+    { kind: "B", label: "Break", color: "#00d0ff" },
+    { kind: "C", label: "Catch", color: "#ffe066" },
+    { kind: "S", label: "Slow", color: "#ff4fd8" }
+];
+
+function makeBall() {
+    const speedScale = levels[world.stageIndex]?.speedScale || 1;
+    const baseSpeed = 3.9 * speedScale * world.gameSpeedScale;
+    const gScale = getTallGameplayScale();
+    return {
+        r: 7 * gScale,
+        x: 0,
+        y: 0,
+        vx: baseSpeed * (Math.random() > 0.5 ? 1 : -1),
+        vy: -baseSpeed,
+        speedMin: 3.2 * speedScale,
+        speedCap: 8.4 * speedScale,
+        stuck: true
+    };
+}
+
+function activePowerText(now) {
+    const labels = [];
+    if (now < world.expandUntil) labels.push("expand");
+    if (now < world.catchModeUntil) labels.push("catch");
+    return labels.length ? labels.join(" + ") : "none";
+}
+
+function formatScore(value) {
+    return String(Math.max(0, Math.floor(value))).padStart(6, "0");
+}
+
+function setHud() {
+    scoreLabel.textContent = formatScore(world.score);
+    stageLabel.textContent = String(world.stageIndex + 1);
+    livesLabel.textContent = String(Math.max(0, world.lives)).padStart(2, "0");
+    powerLabel.textContent = activePowerText(performance.now()).toUpperCase();
+}
+
+function syncPaddleSize(now, dtFactor) {
+    const target = now < world.expandUntil ? paddle.baseW * 1.55 : paddle.baseW;
+    const smoothing = 1 - Math.pow(0.8, dtFactor);
+    paddle.w += (target - paddle.w) * smoothing;
+}
+
+function resetPaddleAndBall() {
+    const gScale = getTallGameplayScale();
+    paddle.baseW = 104 * gScale;
+    paddle.h = 14 * gScale;
+    paddle.w = paddle.baseW;
+    paddle.x = (world.width - paddle.w) / 2;
+    paddle.y = world.height - 36 * gScale;
+    paddle.caughtBall = null;
+    balls.length = 0;
+    const b = makeBall();
+    b.x = paddle.x + paddle.w / 2;
+    b.y = paddle.y - b.r - 2;
+    b.stuck = true;
+    balls.push(b);
+    world.waitingServe = true;
+}
+
+function buildBricks() {
+    bricks.length = 0;
+    const stage = levels[world.stageIndex] || levels[0];
+    const palette = getStagePalette();
+    const gScale = getTallGameplayScale();
+    const levelMap = stage.map;
+    const padX = 18;
+    const padY = 36 * gScale;
+    const gap = 6 * Math.min(gScale, 1.3);
+    const bw = (world.width - padX * 2 - gap * (brickCols - 1)) / brickCols;
+    const bh = 22 * gScale;
+
+    for (let row = 0; row < brickRows; row++) {
+        for (let col = 0; col < brickCols; col++) {
+            const token = levelMap[row][col];
+            if (!token || token === ".") continue;
+            bricks.push({
+                x: padX + col * (bw + gap),
+                y: padY + row * (bh + gap),
+                w: bw,
+                h: bh,
+                alive: true,
+                token,
+                hp: token === "T" ? 2 : token === "X" ? 999 : 1,
+                steel: token === "X",
+                color: token === "X"
+                    ? palette.mid
+                    : palette.bricks[brickPalette[token] ?? 0]
+            });
+        }
+    }
+}
+
+function showOverlay(title, text, buttonLabel) {
+    overlayTitle.textContent = title;
+    overlayText.textContent = text;
+    startBtn.textContent = buttonLabel;
+    overlay.classList.remove("hidden");
+}
+
+function setShareVisible(isVisible) {
+    shareRow.classList.toggle("hidden", !isVisible);
+}
+
+function shareScore(platform) {
+    const stage = world.stageIndex + 1;
+    const text = `Popcorn score: ${world.score} points on stage ${stage}. Can you beat this retro run?`;
+    const emoji = "🍿🎮✨";
+    const url = encodeURIComponent(location.href);
+    let shareUrl = "";
+
+    if (platform === "copy") {
+        const copyText = `${text} ${emoji}\n${location.href}`;
+        navigator.clipboard.writeText(copyText).then(() => {
+            alert("Score copied to clipboard!");
+        }).catch(err => {
+            console.error("Failed to copy:", err);
+            alert("Failed to copy to clipboard");
+        });
+        return;
+    }
+
+    if (platform === "x") {
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text + " " + emoji)}&url=${url}`;
+    }
+    if (platform === "wa") {
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(location.href + "\n" + text)}`;
+    }
+    if (platform === "tg") {
+        shareUrl = `https://t.me/share/url?url=${url}&text=${encodeURIComponent(text + " " + emoji)}`;
+    }
+
+    window.open(shareUrl, "_blank");
+}
+
+function loadSettings() {
+    try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (!raw) {
+            settings.fitHeightEnabled = isNarrowScreen();
+            return;
+        }
+        const parsed = JSON.parse(raw);
+        if (typeof parsed.soundEnabled === "boolean") {
+            settings.soundEnabled = parsed.soundEnabled;
+        }
+        if (typeof parsed.fitHeightEnabled === "boolean") {
+            settings.fitHeightEnabled = parsed.fitHeightEnabled;
+        } else {
+            settings.fitHeightEnabled = isNarrowScreen();
+        }
+    } catch (_error) {
+        // Keep defaults if settings parsing fails.
+        settings.fitHeightEnabled = isNarrowScreen();
+    }
+}
+
+function saveSettings() {
+    try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch (_error) {
+        // Ignore storage failures.
+    }
+}
+
+function syncSoundUI() {
+    const soundOn = settings.soundEnabled;
+    muteBtn.textContent = soundOn ? "🔊" : "🔇";
+    muteBtn.setAttribute("aria-label", soundOn ? "Sound On" : "Muted");
+    muteBtn.title = soundOn ? "Sound On" : "Muted";
+    soundToggle.checked = settings.soundEnabled;
+    fitHeightToggle.checked = settings.fitHeightEnabled;
+}
+
+function syncResponsiveButtonLabels() {
+    narrowButtons = isNarrowScreen();
+    settingsBtn.textContent = "⚙️";
+    settingsBtn.setAttribute("aria-label", "Settings");
+    settingsBtn.title = "Settings";
+    if (tilt.enabled) {
+        tiltCalBtn.textContent = narrowButtons ? "🧭" : "Calibrate Tilt";
+    }
+    syncSoundUI();
+}
+
+function ensureAudioContext() {
+    if (!audioCtx) {
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) return null;
+        audioCtx = new AudioCtor();
+    }
+    if (audioCtx.state === "suspended") {
+        audioCtx.resume().catch(() => {});
+    }
+    return audioCtx;
+}
+
+function playTone({
+    freq = 440,
+    duration = 0.08,
+    type = "square",
+    gain = 0.03,
+    endFreq = null
+} = {}) {
+    if (!settings.soundEnabled) return;
+    const ctxAudio = ensureAudioContext();
+    if (!ctxAudio) return;
+
+    const t0 = ctxAudio.currentTime;
+    const t1 = t0 + duration;
+
+    const osc = ctxAudio.createOscillator();
+    const amp = ctxAudio.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if (typeof endFreq === "number") {
+        osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), t1);
+    }
+
+    amp.gain.setValueAtTime(0.0001, t0);
+    amp.gain.linearRampToValueAtTime(gain, t0 + 0.008);
+    amp.gain.exponentialRampToValueAtTime(0.0001, t1);
+
+    osc.connect(amp);
+    amp.connect(ctxAudio.destination);
+    osc.start(t0);
+    osc.stop(t1 + 0.01);
+}
+
+function playSfx(name) {
+    if (!settings.soundEnabled) return;
+    if (name === "launch") {
+        playTone({ freq: 460, endFreq: 560, duration: 0.06, type: "square", gain: 0.03 });
+    } else if (name === "paddle") {
+        playTone({ freq: 760, endFreq: 620, duration: 0.04, type: "square", gain: 0.028 });
+    } else if (name === "wall") {
+        playTone({ freq: 520, duration: 0.03, type: "triangle", gain: 0.02 });
+    } else if (name === "brick") {
+        playTone({ freq: 330, endFreq: 240, duration: 0.05, type: "square", gain: 0.026 });
+    } else if (name === "steel") {
+        playTone({ freq: 240, duration: 0.045, type: "sawtooth", gain: 0.02 });
+    } else if (name === "capsule") {
+        playTone({ freq: 650, endFreq: 920, duration: 0.07, type: "triangle", gain: 0.03 });
+    } else if (name === "life-lost") {
+        playTone({ freq: 320, endFreq: 140, duration: 0.2, type: "sawtooth", gain: 0.032 });
+    } else if (name === "stage-clear") {
+        playTone({ freq: 440, duration: 0.06, type: "square", gain: 0.026 });
+        setTimeout(() => playTone({ freq: 554, duration: 0.06, type: "square", gain: 0.026 }), 80);
+        setTimeout(() => playTone({ freq: 659, duration: 0.09, type: "square", gain: 0.028 }), 160);
+    } else if (name === "game-over") {
+        playTone({ freq: 260, endFreq: 120, duration: 0.24, type: "sawtooth", gain: 0.034 });
+    }
+}
+
+function handleRuntimeError(error, phase) {
+    if (runtimeFailed) return;
+    runtimeFailed = true;
+    world.running = false;
+    console.error("Popcorn runtime error during", phase, error);
+    showOverlay(
+        "Runtime Error",
+        "A rendering/game error occurred. Tap Reload to recover.",
+        "Reload"
+    );
+}
+
+function hideOverlay() {
+    overlay.classList.add("hidden");
+}
+
+function startRound() {
+    if (world.lives <= 0) return;
+    world.running = true;
+    world.waitingServe = false;
+    setShareVisible(false);
+    for (const ball of balls) ball.stuck = false;
+    playSfx("launch");
+    hideOverlay();
+}
+
+function startNewGame() {
+    world.score = 0;
+    world.lives = 3;
+    world.stageIndex = 0;
+    world.catchModeUntil = 0;
+    world.expandUntil = 0;
+    world.running = false;
+    capsules.length = 0;
+    setShareVisible(false);
+    buildBricks();
+    resetPaddleAndBall();
+    setHud();
+    showOverlay("Stage 1: Calibration", "Tilt to center, then clear this mini pattern. Tap Calibrate Tilt if drifted.", "Start");
+    hint.innerHTML = "Stage 1 (calibration): tilt gently to align. <strong>Space</strong> launch, <strong>R</strong> restart. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.";
+}
+
+function loseLife() {
+    world.lives -= 1;
+    world.catchModeUntil = 0;
+    world.expandUntil = 0;
+    capsules.length = 0;
+    setHud();
+    if (world.lives <= 0) {
+        world.running = false;
+        playSfx("game-over");
+        setShareVisible(true);
+        showOverlay("Game Over", `Final score: ${world.score}.`, "Play Again");
+        return;
+    }
+    world.running = false;
+    setShareVisible(false);
+    playSfx("life-lost");
+    resetPaddleAndBall();
+    showOverlay("Life Lost", "Press Space or tap Start to continue.", "Continue");
+}
+
+function checkWin() {
+    const remaining = bricks.some(b => b.alive && !b.steel);
+    if (!remaining) {
+        if (world.stageIndex < levels.length - 1) {
+            world.stageIndex += 1;
+            const nextStage = levels[world.stageIndex];
+            world.running = false;
+            world.waitingServe = true;
+            capsules.length = 0;
+            world.catchModeUntil = 0;
+            world.expandUntil = 0;
+            setShareVisible(false);
+            buildBricks();
+            resetPaddleAndBall();
+            setHud();
+            playSfx("stage-clear");
+            showOverlay(
+                `Stage ${world.stageIndex + 1}: ${nextStage.name}`,
+                nextStage.hint,
+                `Start Stage ${world.stageIndex + 1}`
+            );
+            hint.innerHTML = `Stage ${world.stageIndex + 1}: ${nextStage.name} active. <strong>Space</strong> launch, <strong>R</strong> restart. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.`;
+            return;
+        }
+        world.running = false;
+        playSfx("stage-clear");
+        setShareVisible(true);
+        showOverlay("Stage Clear", `All breakable blocks cleared. Score: ${world.score}.`, "Play Again");
+    }
+}
+
+function clampPaddle() {
+    if (paddle.x < 0) paddle.x = 0;
+    if (paddle.x + paddle.w > world.width) paddle.x = world.width - paddle.w;
+}
+
+function releaseCaughtBall() {
+    if (!paddle.caughtBall) return;
+    const b = paddle.caughtBall;
+    const speedScale = levels[world.stageIndex]?.speedScale || 1;
+    const launchSpeed = 3.9 * speedScale * world.gameSpeedScale;
+    b.stuck = false;
+    b.vx = launchSpeed * (Math.random() > 0.5 ? 1 : -1);
+    b.vy = -launchSpeed;
+    paddle.caughtBall = null;
+    world.waitingServe = false;
+    playSfx("launch");
+}
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function roundedRectPath(x, y, w, h, r) {
+    const rr = Math.min(r, w * 0.5, h * 0.5);
+    ctx.beginPath();
+    ctx.moveTo(x + rr, y);
+    ctx.arcTo(x + w, y, x + w, y + h, rr);
+    ctx.arcTo(x + w, y + h, x, y + h, rr);
+    ctx.arcTo(x, y + h, x, y, rr);
+    ctx.arcTo(x, y, x + w, y, rr);
+    ctx.closePath();
+}
+
+function resizeWorld(nextWidth, nextHeight) {
+    const prevWidth = world.width;
+    const prevHeight = world.height;
+    if (prevWidth === nextWidth && prevHeight === nextHeight) return;
+
+    const sx = nextWidth / prevWidth;
+    const sy = nextHeight / prevHeight;
+    const prevGameplayScale = getTallGameplayScale(prevHeight);
+    const nextGameplayScale = getTallGameplayScale(nextHeight);
+    const gameplayScaleFactor = nextGameplayScale / prevGameplayScale;
+
+    world.width = nextWidth;
+    world.height = nextHeight;
+    canvas.width = nextWidth;
+    canvas.height = nextHeight;
+
+    paddle.baseW *= gameplayScaleFactor;
+    paddle.w *= gameplayScaleFactor;
+    paddle.h *= gameplayScaleFactor;
+    paddle.x *= sx;
+    paddle.y *= sy;
+    clampPaddle();
+
+    for (const brick of bricks) {
+        brick.x *= sx;
+        brick.y *= sy;
+        brick.w *= sx;
+        brick.h *= sy;
+    }
+
+    for (const ball of balls) {
+        ball.r *= gameplayScaleFactor;
+        ball.x *= sx;
+        ball.y *= sy;
+        if (ball.y < world.playTop + ball.r) ball.y = world.playTop + ball.r;
+        if (ball.y > world.height - ball.r) ball.y = world.height - ball.r;
+    }
+
+    for (const c of capsules) {
+        c.w *= gameplayScaleFactor;
+        c.h *= gameplayScaleFactor;
+        c.x *= sx;
+        c.y *= sy;
+    }
+
+    for (const s of stars) {
+        s.x = clamp(s.x * sx, 0, world.width - 2);
+        s.y = clamp(s.y * sy, world.playTop, world.height - 2);
+    }
+}
+
+function fitGameToViewport() {
+    const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const headerH = headerEl ? headerEl.offsetHeight : 0;
+    const hintH = hint ? hint.offsetHeight : 0;
+    const narrowPhone = isNarrowScreen();
+    const fitHeightMode = settings.fitHeightEnabled;
+    const reserve = fitHeightMode
+        ? 6
+        : (narrowPhone ? 12 : 38);
+    const minGameH = 220;
+    const maxGameW = Math.min(app.clientWidth, BASE_WORLD_WIDTH);
+
+    const availableH = Math.max(minGameH, viewportHeight - headerH - hintH - reserve);
+    let nextWorldHeight = BASE_WORLD_HEIGHT;
+    if (fitHeightMode) {
+        // Make board taller to match available screen height while preserving element proportions.
+        nextWorldHeight = Math.round((BASE_WORLD_WIDTH * availableH) / maxGameW);
+        nextWorldHeight = clamp(nextWorldHeight, BASE_WORLD_HEIGHT, 1900);
+    }
+    resizeWorld(BASE_WORLD_WIDTH, nextWorldHeight);
+
+    const aspect = world.width / world.height;
+    const fitByWidth = maxGameW;
+    const fitByHeight = availableH * aspect;
+    const targetW = Math.min(fitByWidth, fitByHeight);
+    const targetH = targetW / aspect;
+
+    gameWrap.style.width = `${targetW}px`;
+    gameWrap.style.height = `${targetH}px`;
+}
+
+function onDeviceOrientation(event) {
+    if (typeof event.gamma !== "number") return;
+    tilt.rawGamma = event.gamma;
+    tilt.gamma = tilt.rawGamma - tilt.center;
+}
+
+function calibrateTilt() {
+    if (!tilt.enabled) return;
+    tilt.center = tilt.rawGamma;
+    tilt.gamma = 0;
+    hint.innerHTML = "Tilt calibrated. Controls: tilt your phone or use keyboard arrows. <strong>Space</strong> launch, <strong>R</strong> restart. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.";
+}
+
+function autoCalibrateTiltAfterRotate() {
+    if (!tilt.enabled) return;
+    if (orientationCalibrateTimer) {
+        clearTimeout(orientationCalibrateTimer);
+    }
+    // Give sensors a moment to settle after portrait/landscape switch.
+    orientationCalibrateTimer = setTimeout(() => {
+        calibrateTilt();
+        hint.innerHTML = "Tilt auto-calibrated after rotate. Controls: tilt your phone or use keyboard arrows. <strong>Space</strong> launch, <strong>R</strong> restart. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.";
+    }, 220);
+}
+
+async function enableTiltControl() {
+    if (!tilt.available || tilt.enabled) return;
+
+    if (
+        typeof DeviceOrientationEvent !== "undefined" &&
+        typeof DeviceOrientationEvent.requestPermission === "function"
+    ) {
+        if (tilt.permissionAsked) return;
+        tilt.permissionAsked = true;
+        try {
+            const permission = await DeviceOrientationEvent.requestPermission();
+            if (permission !== "granted") {
+                hint.innerHTML = "Tilt permission denied. Keyboard arrows are still available. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.";
+                return;
+            }
+        } catch (_error) {
+            hint.innerHTML = "Tilt permission blocked. Keyboard arrows are still available. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.";
+            return;
+        }
+    }
+
+    if (!orientationBound) {
+        window.addEventListener("deviceorientation", onDeviceOrientation, { passive: true });
+        orientationBound = true;
+    }
+
+    tilt.center = tilt.rawGamma;
+    tilt.gamma = 0;
+    tilt.enabled = true;
+    tiltCalBtn.classList.remove("hidden");
+    syncResponsiveButtonLabels();
+}
+
+function getTiltVelocity() {
+    if (!tilt.enabled) return 0;
+    const deadZone = 2.5;
+    const maxTilt = 28;
+    const magnitude = Math.abs(tilt.gamma);
+    if (magnitude < deadZone) return 0;
+    const normalized = clamp((magnitude - deadZone) / (maxTilt - deadZone), 0, 1);
+    const direction = Math.sign(tilt.gamma);
+    return direction * paddle.speed * (0.35 + normalized * 1.25);
+}
+
+function spawnCapsule(x, y) {
+    if (world.stageIndex === 0) return;
+    if (Math.random() > 0.2) return;
+    const gScale = getTallGameplayScale();
+    const type = capsuleTypes[Math.floor(Math.random() * capsuleTypes.length)];
+    capsules.push({ x, y, vy: 1.65 * world.gameSpeedScale, w: 28 * gScale, h: 14 * gScale, ...type });
+}
+
+function applyCapsule(kind) {
+    const now = performance.now();
+    if (kind === "E") {
+        world.expandUntil = now + 12000;
+    } else if (kind === "S") {
+        for (const b of balls) {
+            b.vx *= 0.83;
+            b.vy *= 0.83;
+        }
+    } else if (kind === "C") {
+        world.catchModeUntil = now + 10000;
+    } else if (kind === "B") {
+        const clones = [];
+        for (const b of balls) {
+            if (balls.length + clones.length >= 3) break;
+            clones.push({
+                ...b,
+                x: b.x,
+                y: b.y,
+                vx: -b.vx,
+                vy: b.vy,
+                stuck: false
+            });
+        }
+        balls.push(...clones);
+    }
+    playSfx("capsule");
+    setHud();
+}
+
+function reflectBallFromPaddle(ball) {
+    const hit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
+    const angle = hit * (Math.PI / 3);
+    const speed = Math.max(ball.speedMin, Math.min(ball.speedCap, Math.hypot(ball.vx, ball.vy) * 1.02));
+    ball.vx = Math.sin(angle) * speed;
+    ball.vy = -Math.cos(angle) * speed;
+    ball.y = paddle.y - ball.r - 0.1;
+    playSfx("paddle");
+}
+
+function hitBrick(ball, brick) {
+    const prevX = ball.x - ball.vx;
+    const prevY = ball.y - ball.vy;
+    const fromLeft = prevX <= brick.x - ball.r;
+    const fromRight = prevX >= brick.x + brick.w + ball.r;
+    const fromTop = prevY <= brick.y - ball.r;
+    const fromBottom = prevY >= brick.y + brick.h + ball.r;
+
+    if (fromLeft || fromRight) {
+        ball.vx *= -1;
+    } else if (fromTop || fromBottom) {
+        ball.vy *= -1;
+    } else {
+        ball.vy *= -1;
+    }
+
+    if (brick.steel) return;
+    brick.hp -= 1;
+    world.score += brick.token === "T" ? 25 : 10;
+    if (brick.hp <= 0) {
+        brick.alive = false;
+        spawnCapsule(brick.x + brick.w / 2, brick.y + brick.h / 2);
+    }
+    playSfx("brick");
+    setHud();
+    checkWin();
+}
+
+function update(dtFactor) {
+    const now = performance.now();
+    syncPaddleSize(now, dtFactor);
+    paddle.vx = 0;
+    if (keys.left) paddle.vx -= paddle.speed;
+    if (keys.right) paddle.vx += paddle.speed;
+    if (!keys.left && !keys.right) {
+        paddle.vx = getTiltVelocity();
+    }
+    paddle.x += paddle.vx * dtFactor;
+    clampPaddle();
+
+    if (now > world.catchModeUntil && paddle.caughtBall) {
+        releaseCaughtBall();
+    }
+
+    for (let i = capsules.length - 1; i >= 0; i--) {
+        const c = capsules[i];
+        c.y += c.vy * dtFactor;
+        const caught =
+            c.y + c.h >= paddle.y &&
+            c.y <= paddle.y + paddle.h &&
+            c.x + c.w / 2 >= paddle.x &&
+            c.x - c.w / 2 <= paddle.x + paddle.w;
+        if (caught) {
+            applyCapsule(c.kind);
+            capsules.splice(i, 1);
+            continue;
+        }
+        if (c.y > world.height + 30) capsules.splice(i, 1);
+    }
+
+    for (let i = balls.length - 1; i >= 0; i--) {
+        const ball = balls[i];
+        if (ball.stuck) {
+            ball.x = paddle.x + paddle.w / 2;
+            ball.y = paddle.y - ball.r - 2;
+            continue;
+        }
+
+        ball.x += ball.vx * dtFactor;
+        ball.y += ball.vy * dtFactor;
+
+        if (ball.x - ball.r <= 0) {
+            ball.x = ball.r;
+            ball.vx *= -1;
+            playSfx("wall");
+        } else if (ball.x + ball.r >= world.width) {
+            ball.x = world.width - ball.r;
+            ball.vx *= -1;
+            playSfx("wall");
+        }
+
+        if (ball.y - ball.r <= world.playTop) {
+            ball.y = world.playTop + ball.r;
+            ball.vy *= -1;
+            playSfx("wall");
+        }
+
+        if (ball.y - ball.r > world.height) {
+            balls.splice(i, 1);
+            continue;
+        }
+
+        const paddleHit =
+            ball.y + ball.r >= paddle.y &&
+            ball.y - ball.r <= paddle.y + paddle.h &&
+            ball.x >= paddle.x &&
+            ball.x <= paddle.x + paddle.w &&
+            ball.vy > 0;
+
+        if (paddleHit) {
+            reflectBallFromPaddle(ball);
+            if (performance.now() < world.catchModeUntil && !paddle.caughtBall) {
+                ball.stuck = true;
+                paddle.caughtBall = ball;
+                world.waitingServe = true;
+            }
+        }
+
+        for (const brick of bricks) {
+            if (!brick.alive) continue;
+            const hitX = ball.x > brick.x - ball.r && ball.x < brick.x + brick.w + ball.r;
+            const hitY = ball.y > brick.y - ball.r && ball.y < brick.y + brick.h + ball.r;
+            if (!hitX || !hitY) continue;
+            if (brick.steel) playSfx("steel");
+            hitBrick(ball, brick);
+            break;
+        }
+    }
+
+    if (balls.length === 0) {
+        if (world.stageIndex === 0) {
+            // Calibration stage: allow unlimited retries without consuming lives.
+            world.running = false;
+            setShareVisible(false);
+            resetPaddleAndBall();
+            setHud();
+            showOverlay("Stage 1: Calibration", "No life lost in calibration. Press Space or Start and try again.", "Retry");
+        } else {
+            loseLife();
+        }
+    }
+
+    setHud();
+}
+
+function drawBricks() {
+    const palette = getStagePalette();
+    for (const brick of bricks) {
+        if (!brick.alive) continue;
+        ctx.fillStyle = brick.color;
+        ctx.fillRect(brick.x, brick.y, brick.w, brick.h);
+        ctx.strokeStyle = "rgba(5, 5, 5, 0.95)";
+        ctx.strokeRect(brick.x + 0.5, brick.y + 0.5, brick.w - 1, brick.h - 1);
+        ctx.fillStyle = "rgba(242, 242, 242, 0.22)";
+        ctx.fillRect(brick.x + 2, brick.y + 2, brick.w - 4, 2);
+        if (brick.token === "T" && brick.hp === 1) {
+            ctx.fillStyle = "rgba(5, 5, 5, 0.5)";
+            ctx.fillRect(brick.x, brick.y, brick.w, brick.h);
+        }
+        if (brick.steel) {
+            ctx.fillStyle = palette.mid;
+            ctx.fillRect(brick.x, brick.y, brick.w, brick.h);
+            ctx.strokeStyle = "rgba(242, 242, 242, 0.8)";
+            ctx.strokeRect(brick.x + 1, brick.y + 1, brick.w - 2, brick.h - 2);
+            ctx.fillStyle = "rgba(0, 208, 255, 0.55)";
+            ctx.fillRect(brick.x + 4, brick.y + 4, 3, 3);
+            ctx.fillRect(brick.x + brick.w - 7, brick.y + 4, 3, 3);
+            ctx.fillRect(brick.x + 4, brick.y + brick.h - 7, 3, 3);
+            ctx.fillRect(brick.x + brick.w - 7, brick.y + brick.h - 7, 3, 3);
+        }
+    }
+}
+
+function drawCapsules() {
+    const palette = getStagePalette();
+    for (const c of capsules) {
+        ctx.fillStyle = c.color;
+        roundedRectPath(c.x - c.w / 2, c.y, c.w, c.h, 6);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(8, 17, 10, 0.9)";
+        ctx.stroke();
+        ctx.fillStyle = "rgba(255, 211, 106, 0.24)";
+        ctx.fillRect(c.x - c.w / 2 + 2, c.y + 2, c.w - 4, 2);
+        ctx.fillStyle = palette.bg;
+        ctx.font = "bold 10px Verdana, sans-serif";
+        ctx.fillText(c.kind, c.x - 3, c.y + 10);
+    }
+}
+
+function drawPlayfieldBackground(now) {
+    const palette = getStagePalette();
+    const g = ctx.createLinearGradient(0, world.playTop, 0, world.height);
+    g.addColorStop(0, palette.bg);
+    g.addColorStop(0.45, palette.mid);
+    g.addColorStop(1, palette.bg);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, world.playTop, world.width, world.height - world.playTop);
+
+    for (const s of stars) {
+        const pulse = 0.55 + 0.45 * Math.sin(now * 0.002 + s.twinkle);
+        const useAccent = s.size > 1;
+        const c = useAccent ? palette.starB : palette.starA;
+        const r = parseInt(c.slice(1, 3), 16);
+        const gch = parseInt(c.slice(3, 5), 16);
+        const b = parseInt(c.slice(5, 7), 16);
+        ctx.fillStyle = `rgba(${r}, ${gch}, ${b}, ${0.2 + pulse * 0.5})`;
+        ctx.fillRect(s.x, s.y, s.size, s.size);
+    }
+
+    const wallW = 6;
+    const wallGradL = ctx.createLinearGradient(0, 0, wallW, 0);
+    wallGradL.addColorStop(0, palette.hi);
+    wallGradL.addColorStop(1, palette.mid);
+    ctx.fillStyle = wallGradL;
+    ctx.fillRect(0, world.playTop, wallW, world.height - world.playTop);
+
+    const wallGradR = ctx.createLinearGradient(world.width - wallW, 0, world.width, 0);
+    wallGradR.addColorStop(0, palette.mid);
+    wallGradR.addColorStop(1, palette.hi);
+    ctx.fillStyle = wallGradR;
+    ctx.fillRect(world.width - wallW, world.playTop, wallW, world.height - world.playTop);
+}
+
+function draw() {
+    const now = performance.now();
+    const palette = getStagePalette();
+    ctx.clearRect(0, 0, world.width, world.height);
+
+    const topGrad = ctx.createLinearGradient(0, 0, 0, world.playTop);
+    topGrad.addColorStop(0, palette.mid);
+    topGrad.addColorStop(1, palette.bg);
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(0, 0, world.width, world.playTop);
+    ctx.strokeStyle = "rgba(242, 242, 242, 0.4)";
+    ctx.strokeRect(0.5, 0.5, world.width - 1, world.playTop - 1);
+
+    ctx.fillStyle = palette.hi;
+    ctx.font = "bold 11px Verdana, sans-serif";
+    ctx.fillText(`1UP ${formatScore(world.score)}`, 10, 17);
+    ctx.fillText(`STAGE ${world.stageIndex + 1}`, world.width / 2 - 34, 17);
+    ctx.fillStyle = palette.lives;
+    ctx.fillText(`LIVES ${Math.max(0, world.lives)}`, world.width - 76, 17);
+
+    drawPlayfieldBackground(now);
+
+    drawBricks();
+    drawCapsules();
+
+    const paddleGrad = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.h);
+    paddleGrad.addColorStop(0, palette.hi);
+    paddleGrad.addColorStop(0.35, palette.accent);
+    paddleGrad.addColorStop(1, palette.mid);
+    ctx.fillStyle = paddleGrad;
+    roundedRectPath(paddle.x, paddle.y, paddle.w, paddle.h, 5);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(5, 5, 5, 0.85)";
+    ctx.stroke();
+
+    const coreW = Math.max(18, paddle.w * 0.24);
+    const coreX = paddle.x + (paddle.w - coreW) * 0.5;
+    ctx.fillStyle = palette.lives;
+    roundedRectPath(coreX, paddle.y + 2, coreW, paddle.h - 4, 3);
+    ctx.fill();
+
+    for (const ball of balls) {
+        const glow = ctx.createRadialGradient(ball.x, ball.y, 1, ball.x, ball.y, ball.r + 5);
+        glow.addColorStop(0, "rgba(242, 242, 242, 0.95)");
+        glow.addColorStop(0.7, "rgba(0, 208, 255, 0.72)");
+        glow.addColorStop(1, "rgba(0, 208, 255, 0)");
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+        ctx.fillStyle = glow;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(ball.x - 2, ball.y - 2, 2, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(242, 242, 242, 0.72)";
+        ctx.fill();
+    }
+
+    if (world.waitingServe && world.lives > 0) {
+        ctx.fillStyle = "rgba(242, 242, 242, 0.85)";
+        ctx.font = "16px Trebuchet MS, sans-serif";
+        ctx.fillText("PRESS SPACE", world.width / 2 - 58, world.height - 72);
+    }
+}
+
+function frame(timestamp) {
+    if (runtimeFailed) return;
+    if (!lastFrameTime) lastFrameTime = timestamp;
+    const elapsed = timestamp - lastFrameTime;
+    lastFrameTime = timestamp;
+    const dtFactor = clamp(elapsed / (1000 / 60), 0.4, 2);
+
+    try {
+        if (world.running) update(dtFactor);
+        draw();
+    } catch (error) {
+        handleRuntimeError(error, "frame");
+        return;
+    }
+    requestAnimationFrame(frame);
+}
+
+function setPaddleByClientX(clientX) {
+    const rect = canvas.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * world.width;
+    paddle.x = x - paddle.w / 2;
+    clampPaddle();
+}
+
+window.addEventListener("keydown", event => {
+    if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") keys.left = true;
+    if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") keys.right = true;
+
+    if (event.key === " " || event.code === "Space") {
+        event.preventDefault();
+        if (!world.running && world.lives > 0) {
+            startRound();
+        } else {
+            releaseCaughtBall();
+        }
+    }
+
+    if (event.key.toLowerCase() === "r") {
+        startNewGame();
+    }
+});
+
+window.addEventListener("keyup", event => {
+    if (event.key === "ArrowLeft" || event.key.toLowerCase() === "a") keys.left = false;
+    if (event.key === "ArrowRight" || event.key.toLowerCase() === "d") keys.right = false;
+});
+
+canvas.addEventListener("mousemove", event => {
+    setPaddleByClientX(event.clientX);
+});
+
+startBtn.addEventListener("click", () => {
+    if (runtimeFailed) {
+        window.location.reload();
+        return;
+    }
+    if (world.lives <= 0 || !bricks.some(b => b.alive && !b.steel)) {
+        startNewGame();
+    }
+    ensureAudioContext();
+    enableTiltControl();
+    startRound();
+});
+
+muteBtn.addEventListener("click", () => {
+    settings.soundEnabled = !settings.soundEnabled;
+    if (settings.soundEnabled) ensureAudioContext();
+    saveSettings();
+    syncSoundUI();
+});
+
+settingsBtn.addEventListener("click", () => {
+    settingsPanel.classList.remove("hidden");
+});
+
+closeSettingsBtn.addEventListener("click", () => {
+    settingsPanel.classList.add("hidden");
+});
+
+settingsPanel.addEventListener("click", event => {
+    if (event.target === settingsPanel) {
+        settingsPanel.classList.add("hidden");
+    }
+});
+
+soundToggle.addEventListener("change", () => {
+    settings.soundEnabled = soundToggle.checked;
+    if (settings.soundEnabled) ensureAudioContext();
+    saveSettings();
+    syncSoundUI();
+});
+
+fitHeightToggle.addEventListener("change", () => {
+    settings.fitHeightEnabled = fitHeightToggle.checked;
+    saveSettings();
+    fitGameToViewport();
+});
+
+tiltCalBtn.addEventListener("click", () => {
+    calibrateTilt();
+});
+
+canvas.addEventListener("click", () => {
+    if (!world.running && world.lives > 0) {
+        startRound();
+    } else {
+        releaseCaughtBall();
+    }
+});
+
+if (tilt.available) {
+    hint.innerHTML = "Controls: tilt your phone or use keyboard arrows. <strong>Space</strong> launch, <strong>R</strong> restart. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.";
+    window.addEventListener("orientationchange", autoCalibrateTiltAfterRotate, { passive: true });
+}
+
+window.addEventListener("resize", fitGameToViewport, { passive: true });
+window.addEventListener("resize", syncResponsiveButtonLabels, { passive: true });
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", fitGameToViewport, { passive: true });
+}
+
+buildBricks();
+resetPaddleAndBall();
+setShareVisible(false);
+loadSettings();
+syncResponsiveButtonLabels();
+syncSoundUI();
+setHud();
+fitGameToViewport();
+frame();
+</script>
+</body>
+</html>

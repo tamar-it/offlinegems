@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Missile Shooter</title>
+<meta name="theme-color" content="#172033">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" id="manifestLink">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='6'%20fill='%23172033'/%3E%3Cpath%20d='M5%2016h11l5-5%206%205-6%205-5-5H5z'%20fill='%23ffcf44'/%3E%3Ccircle%20cx='9'%20cy='16'%20r='2.2'%20fill='%23ffe69f'/%3E%3C/svg%3E">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tamar Games">
+<meta property="og:title" content="Missile Shooter">
+<meta property="og:description" content="Launch armor-coded missiles at incoming drones. Match armor classes to shatter formations and hold the defense line.">
+<meta property="og:image" content="https://tamar-it.biz/games/missile-shooter.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Missile Shooter gameplay preview">
+<meta property="og:url" content="https://tamar-it.biz/games/missile-shooter.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Missile Shooter">
+<meta name="twitter:description" content="Launch armor-coded missiles at incoming drones. Match armor classes to shatter formations and hold the defense line.">
+<meta name="twitter:image" content="https://tamar-it.biz/games/missile-shooter.png">
+
+<style>
+body {
+    margin: 0;
+    background: #0b101a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    height: 100dvh;
+    width: 100vw;
+    overflow: hidden;
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    color: white;
+}
+
+#appShell {
+    width: min(100vw, 1200px);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
+canvas {
+    background: radial-gradient(circle at 50% 15%, #20325b 0%, #172033 35%, #0b101a 100%);
+    display: block;
+    flex: 1 1 auto;
+}
+
+#controlDock {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: linear-gradient(180deg, rgba(10, 14, 24, 0.98), rgba(7, 10, 18, 0.98));
+    border-top: 1px solid rgba(255, 207, 68, 0.35);
+    min-height: 78px;
+    box-sizing: border-box;
+}
+
+#nextMissilePanel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 14px;
+}
+
+#nextMissileCanvas {
+    width: 52px;
+    height: 48px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+#controlButtons {
+    display: flex;
+    gap: 10px;
+}
+
+.ctrl-btn {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid rgba(255, 207, 68, 0.45);
+    border-radius: 8px;
+    background: rgba(255, 207, 68, 0.12);
+    color: #fff6d5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+}
+
+.ctrl-btn:active {
+    transform: scale(0.97);
+}
+
+#settingsPanel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(90vw, 320px);
+    background: rgba(11, 16, 27, 0.97);
+    border: 1px solid rgba(255, 207, 68, 0.5);
+    border-radius: 12px;
+    box-shadow: 0 0 28px rgba(255, 207, 68, 0.24);
+    padding: 16px;
+    z-index: 30;
+    display: none;
+}
+
+#settingsPanel h3 {
+    margin: 0 0 14px 0;
+    color: #ffcf44;
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.setting-row:first-of-type {
+    border-top: none;
+}
+
+#settingsPanel .close-settings {
+    margin-top: 12px;
+    width: 100%;
+    height: 42px;
+    padding: 0 14px;
+}
+
+.settings-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 25;
+    display: none;
+}
+
+#uiOverlay {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(10, 15, 26, 0.95);
+    padding: 36px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 0 32px rgba(255, 207, 68, 0.35);
+    border: 1px solid #ffcf44;
+    z-index: 10;
+}
+
+#uiOverlay h1 {
+    margin-top: 0;
+    color: #ffcf44;
+    text-shadow: 0 0 10px #ffcf44;
+}
+
+#uiOverlay h2 {
+    margin-bottom: 28px;
+    font-size: 28px;
+}
+
+.btn {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+    margin: 5px;
+    transition: transform 0.1s;
+}
+
+.btn:active {
+    transform: scale(0.95);
+}
+
+.btn-icon {
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.share-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+}
+
+.btn-new { background: #ffcf44; color: #111; width: 100%; margin: 15px 0 0 0; }
+.btn-x { background: #000000; border: 1px solid #333; }
+.btn-wa { background: #25D366; }
+.btn-tg { background: #0088cc; }
+.btn-copy { background: #666666; }
+#installBtn { display: none; }
+</style>
+</head>
+
+<body>
+
+<div id="appShell">
+<canvas id="game"></canvas>
+<div id="controlDock">
+    <div id="nextMissilePanel">
+        <span>Next Missile</span>
+        <canvas id="nextMissileCanvas" width="52" height="48" aria-label="Next missile preview"></canvas>
+    </div>
+    <div id="controlButtons">
+        <button id="aimBtn" class="ctrl-btn" type="button" aria-label="Toggle aim guide" title="Aim Guide"></button>
+        <button id="newGameBtn" class="ctrl-btn" type="button" aria-label="New Game" title="New Game">♻️</button>
+        <button id="volumeBtn" class="ctrl-btn" type="button" aria-label="Toggle sound" title="Toggle Sound"></button>
+        <button id="settingsBtn" class="ctrl-btn" type="button" aria-label="Settings" title="Settings">⚙️</button>
+        <button id="installBtn" class="ctrl-btn" type="button" aria-label="Install app" title="Install App">📲</button>
+    </div>
+</div>
+</div>
+
+<div id="settingsBackdrop" class="settings-backdrop"></div>
+<div id="settingsPanel" role="dialog" aria-modal="true" aria-label="Game settings">
+    <h3>Settings</h3>
+    <div class="setting-row">
+        <label for="soundToggle">Sound Effects</label>
+        <input id="soundToggle" type="checkbox">
+    </div>
+    <div class="setting-row">
+        <label for="guideToggle">Aim Guide</label>
+        <input id="guideToggle" type="checkbox" checked>
+    </div>
+    <button id="closeSettingsBtn" class="ctrl-btn close-settings" type="button">Close</button>
+</div>
+
+<div id="uiOverlay">
+    <h1 id="uiTitle">Mission Failed</h1>
+    <h2 id="uiScore">Score: 0</h2>
+
+    <div class="share-row">
+        <button class="btn btn-icon btn-x" onclick="shareScore('x')" aria-label="Share on X" title="Share on X">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 4L19 20"></path>
+                <path d="M19 4L5 20"></path>
+            </svg>
+        </button>
+        <button class="btn btn-icon btn-wa" onclick="shareScore('wa')" aria-label="Share on WhatsApp" title="Share on WhatsApp">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 18L4.5 19.5L5.5 16.5C4.6 15.2 4 13.7 4 12C4 7.6 7.6 4 12 4C16.4 4 20 7.6 20 12C20 16.4 16.4 20 12 20C10.3 20 8.8 19.4 7.5 18.5"></path>
+                <path d="M9.2 8.8C9.6 8.4 10 8.4 10.3 8.9L11.2 10.3C11.4 10.7 11.4 11 11.1 11.3L10.5 11.9C10.9 12.8 11.6 13.5 12.5 13.9L13.1 13.3C13.4 13 13.7 13 14.1 13.2L15.5 14.1C16 14.4 16 14.8 15.6 15.2C14.9 15.9 14 16.1 13 15.8C10.6 15.1 8.9 13.4 8.2 11C7.9 10 8.1 9.1 8.8 8.4"></path>
+            </svg>
+        </button>
+        <button class="btn btn-icon btn-tg" onclick="shareScore('tg')" aria-label="Share on Telegram" title="Share on Telegram">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 4L3.8 10.6C3.2 10.8 3.2 11.6 3.8 11.8L8.2 13.2L10.2 19.2C10.4 19.8 11.2 19.9 11.5 19.4L14 15.8L18.4 19C18.9 19.4 19.7 19.1 19.8 18.4L21.9 4.9C22 4.3 21.5 3.8 21 4Z"></path>
+                <path d="M8.2 13.2L20.8 4.2"></path>
+            </svg>
+        </button>
+        <button class="btn btn-icon btn-copy" onclick="shareScore('copy')" aria-label="Copy score text" title="Copy to Clipboard">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 5v13c0 1 1 2 2 2h10c1 0 2-1 2-2V5"></path>
+                <path d="M9 3c0-1 1-2 2-2h2c1 0 2 1 2 2"></path>
+                <path d="M9 12h6"></path>
+            </svg>
+        </button>
+    </div>
+
+    <button class="btn btn-new" onclick="startNewGame()">Launch New Mission</button>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const appShell = document.getElementById("appShell");
+const controlDock = document.getElementById("controlDock");
+const nextMissileCanvas = document.getElementById("nextMissileCanvas");
+const nextMissileCtx = nextMissileCanvas.getContext("2d");
+const aimBtn = document.getElementById("aimBtn");
+const newGameBtn = document.getElementById("newGameBtn");
+const volumeBtn = document.getElementById("volumeBtn");
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsPanel = document.getElementById("settingsPanel");
+const settingsBackdrop = document.getElementById("settingsBackdrop");
+const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+const soundToggle = document.getElementById("soundToggle");
+const guideToggle = document.getElementById("guideToggle");
+const uiOverlay = document.getElementById("uiOverlay");
+const uiTitle = document.getElementById("uiTitle");
+const uiScore = document.getElementById("uiScore");
+const installBtn = document.getElementById("installBtn");
+const manifestLink = document.getElementById("manifestLink");
+
+const SETTINGS_KEY = "missileShooterSettings";
+const defaultSettings = { soundEnabled: false, showAimGuide: true };
+let settings = loadSettings();
+let audioContext = null;
+
+const REFERENCE_FPS = 60;
+const SPEED = 30;
+const SHOT_EVENT_EPSILON = 0.0001;
+const SHOT_POSITION_EPSILON = 0.01;
+const MAX_SHOT_EVENTS_PER_FRAME = 8;
+const MAX_TRAJECTORY_EVENTS = 24;
+let COLS = 1;
+let R = 18;
+const START_ROWS = 7;
+const ARMOR_TYPES = [
+    { id: "ceramic", color: "#f5f7ff", accent: "#d2dcff" },
+    { id: "reactive", color: "#3fd5ff", accent: "#b5f2ff" },
+    { id: "titan", color: "#8fa5ff", accent: "#d8e2ff" },
+    { id: "carbon", color: "#4de389", accent: "#b6ffd4" },
+    { id: "plasma", color: "#ff7a5c", accent: "#ffd5cb" },
+    { id: "obsidian", color: "#9072ff", accent: "#e0d7ff" },
+    { id: "ember", color: "#ffbe3b", accent: "#ffe5ad" },
+    { id: "shadow", color: "#8f9bb3", accent: "#e4e9f2" }
+];
+
+let grid = new Map();
+let score = 0;
+let combo = 0;
+let clearedArmor = new Set();
+const BASE_MISSES_PER_DROP = 3;
+const MIN_MISSES_PER_DROP = 2;
+const SHOTS_PER_LEVEL = 30;
+const BASE_ARMOR_COUNT = 5;
+const LEVELS_PER_ROOF_LOWER = 3;
+const ROOF_LOWER_STEP_ROWS = 0.5;
+let maxMissesForCycle = BASE_MISSES_PER_DROP;
+let currentMissesLeft = BASE_MISSES_PER_DROP;
+let dropShiftLeftNext = false;
+let level = 1;
+let shotsFired = 0;
+let unlockedArmorCount = BASE_ARMOR_COUNT;
+let ceilingY = 40 - R;
+let gameOver = false;
+let win = false;
+let shotMissile = null;
+let explosionTimer = 0;
+let islandTimer = 0;
+let pendingExplosion = null;
+let explosionClouds = [];
+
+const MATCH_SCORE = 10;
+const FLOATING_SCORE = 20;
+const ARMOR_CLEAR_BONUS = 150;
+const BOARD_CLEAR_BONUS = 1000;
+
+let launcher = { x: 0, y: 0, angle: 0 };
+let mouseX = 0;
+let mouseY = 0;
+let isTouchDevice = false;
+let touchAimActive = false;
+let installPromptEvent = null;
+
+let currentMissile;
+let nextMissile;
+
+function getMissileCollisionRadius() {
+    // Missile threading should only happen through openings roughly the size of a drone.
+    return R * 0.95;
+}
+
+function distancePointToSegmentSquared(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    if (dx === 0 && dy === 0) {
+        const sx = px - x1;
+        const sy = py - y1;
+        return sx * sx + sy * sy;
+    }
+
+    const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)));
+    const cx = x1 + t * dx;
+    const cy = y1 + t * dy;
+    const ox = px - cx;
+    const oy = py - cy;
+    return ox * ox + oy * oy;
+}
+
+function isStandaloneMode() {
+    return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+}
+
+function isIosBrowser() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
+function loadSettings() {
+    try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (!raw) return { ...defaultSettings };
+        const parsed = JSON.parse(raw);
+        return {
+            soundEnabled: parsed.soundEnabled === true,
+            showAimGuide: parsed.showAimGuide !== false
+        };
+    } catch {
+        return { ...defaultSettings };
+    }
+}
+
+function saveSettings() {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function syncSettingsUi() {
+    soundToggle.checked = settings.soundEnabled;
+    guideToggle.checked = settings.showAimGuide;
+
+    aimBtn.setAttribute("aria-pressed", String(settings.showAimGuide));
+    aimBtn.setAttribute("title", settings.showAimGuide ? "Aim Guide On" : "Aim Guide Off");
+    aimBtn.textContent = settings.showAimGuide ? "🎯" : "🚫";
+
+    volumeBtn.setAttribute("aria-pressed", String(settings.soundEnabled));
+    volumeBtn.setAttribute("title", settings.soundEnabled ? "Sound On" : "Sound Off");
+    volumeBtn.textContent = settings.soundEnabled ? "🔊" : "🔇";
+}
+
+function openSettings() {
+    syncSettingsUi();
+    settingsBackdrop.style.display = "block";
+    settingsPanel.style.display = "block";
+}
+
+function closeSettings() {
+    settingsBackdrop.style.display = "none";
+    settingsPanel.style.display = "none";
+}
+
+function ensureAudioContext() {
+    if (!audioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return null;
+        audioContext = new AudioCtx();
+    }
+    if (audioContext.state === "suspended") {
+        audioContext.resume();
+    }
+    return audioContext;
+}
+
+function playTone(type, options) {
+    if (!settings.soundEnabled) return;
+    const ctxAudio = ensureAudioContext();
+    if (!ctxAudio) return;
+
+    const now = ctxAudio.currentTime;
+    const osc = ctxAudio.createOscillator();
+    const gain = ctxAudio.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(options.startFreq, now);
+    if (options.endFreq !== undefined) {
+        osc.frequency.exponentialRampToValueAtTime(Math.max(1, options.endFreq), now + options.duration);
+    }
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(options.peak, now + options.attack);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + options.duration);
+    osc.connect(gain);
+    gain.connect(ctxAudio.destination);
+    osc.start(now);
+    osc.stop(now + options.duration + 0.02);
+}
+
+function playMatchBoomSound() {
+    // Low-volume boom for successful armor match.
+    playTone("sine", { startFreq: 180, endFreq: 72, attack: 0.01, duration: 0.26, peak: 0.05 });
+}
+
+function playCrashSound() {
+    // Low-volume crash for a hit that does not create a match.
+    playTone("square", { startFreq: 280, endFreq: 120, attack: 0.003, duration: 0.08, peak: 0.03 });
+}
+
+function playLaunchSound() {
+    playTone("sawtooth", { startFreq: 260, endFreq: 140, attack: 0.01, duration: 0.18, peak: 0.08 });
+}
+
+function buildWebAppManifest() {
+    const iconSvg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='#172033'/><path d='M26 96h66l30-30 42 30-42 30-30-30H26z' fill='#ffcf44'/><circle cx='52' cy='96' r='14' fill='#ffe9aa'/></svg>";
+    const iconUrl = "data:image/svg+xml," + encodeURIComponent(iconSvg);
+    const startUrl = new URL(location.pathname.split("/").pop() || "bubble-shooter.html", location.href).toString();
+    const scopeUrl = new URL(".", location.href).toString();
+    const manifest = {
+        name: "Missile Shooter",
+        short_name: "Missiles",
+        start_url: startUrl,
+        scope: scopeUrl,
+        display: "standalone",
+        background_color: "#0b101a",
+        theme_color: "#172033",
+        description: "Armor-match missile shooter with bouncing trajectories and advancing drone formations.",
+        icons: [
+            { src: iconUrl, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+            { src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+        ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+    manifestLink.href = URL.createObjectURL(blob);
+}
+
+function updateInstallButton() {
+    if (isStandaloneMode()) {
+        installBtn.style.display = "none";
+        return;
+    }
+    if (installPromptEvent) {
+        installBtn.textContent = "📲";
+        installBtn.title = "Install App";
+        installBtn.style.display = "inline-flex";
+        return;
+    }
+    if (isIosBrowser()) {
+        installBtn.textContent = "🏠";
+        installBtn.title = "Add to Home Screen";
+        installBtn.style.display = "inline-flex";
+        return;
+    }
+    installBtn.style.display = "none";
+}
+
+async function registerWebAppSupport() {
+    buildWebAppManifest();
+    if (!("serviceWorker" in navigator) || location.protocol === "file:") {
+        updateInstallButton();
+        return;
+    }
+    try {
+        await navigator.serviceWorker.register("./service-worker.js");
+    } catch (error) {
+        console.warn("Service worker registration failed", error);
+    }
+    updateInstallButton();
+}
+
+function getRowHeight() {
+    return R * 1.5;
+}
+
+function getBaseCeilingY() {
+    return 40 - R;
+}
+
+function updateRoofHeight() {
+    const roofLowerSteps = Math.floor((level - 1) / LEVELS_PER_ROOF_LOWER);
+    ceilingY = getBaseCeilingY() + roofLowerSteps * getRowHeight() * ROOF_LOWER_STEP_ROWS;
+}
+
+function resizeCanvas() {
+    const shellWidth = Math.min(window.innerWidth, 1200);
+    appShell.style.width = shellWidth + "px";
+    const dockHeight = controlDock.offsetHeight || 78;
+    canvas.height = Math.max(320, window.innerHeight - dockHeight);
+    R = Math.floor(canvas.height / 40);
+    canvas.width = shellWidth;
+    COLS = Math.floor(canvas.width / (R * Math.sqrt(3)));
+    updateRoofHeight();
+    launcher.x = canvas.width / 2;
+    launcher.y = canvas.height - Math.max(54, R * 3);
+    mouseX = launcher.x;
+    mouseY = launcher.y - 100;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+syncSettingsUi();
+
+function key(q, r) {
+    return q + "," + r;
+}
+
+function neighbors(q, r) {
+    return [[q + 1, r], [q - 1, r], [q, r + 1], [q, r - 1], [q + 1, r - 1], [q - 1, r + 1]];
+}
+
+function hexToPixel(q, r) {
+    return { x: R * Math.sqrt(3) * (q + r / 2) + canvas.width / 2, y: R * 1.5 * r + ceilingY + R };
+}
+
+function pixelToHex(x, y) {
+    x -= canvas.width / 2;
+    y -= ceilingY + R;
+    return hexRound((Math.sqrt(3) / 3 * x - y / 3) / R, (2 / 3 * y) / R);
+}
+
+function hexRound(q, r) {
+    let x = q;
+    let z = r;
+    let y = -x - z;
+    let rx = Math.round(x);
+    let ry = Math.round(y);
+    let rz = Math.round(z);
+    let xd = Math.abs(rx - x);
+    let yd = Math.abs(ry - y);
+    let zd = Math.abs(rz - z);
+
+    if (xd > yd && xd > zd) rx = -ry - rz;
+    else if (yd > zd) ry = -rx - rz;
+    else rz = -rx - ry;
+
+    return [rx, rz];
+}
+
+function activeArmorIds() {
+    const set = new Set();
+    grid.forEach(v => set.add(v.armorId));
+    return [...set];
+}
+
+function unlockedArmorList() {
+    return ARMOR_TYPES.slice(0, unlockedArmorCount);
+}
+
+function armorFromId(id) {
+    return ARMOR_TYPES.find(a => a.id === id) || ARMOR_TYPES[0];
+}
+
+function randomArmor(source = "shot") {
+    const activeIds = activeArmorIds();
+    const unlocked = unlockedArmorList();
+    const available = unlocked.filter(a => !clearedArmor.has(a.id));
+    if (available.length === 0) return ARMOR_TYPES[0];
+
+    let preferActiveChance = source === "ceiling" ? 0.55 : 0.8;
+    if (activeIds.length <= 2) preferActiveChance = source === "ceiling" ? 0.25 : 0.45;
+    if (activeIds.length === 0 || Math.random() > preferActiveChance) {
+        return available[Math.floor(Math.random() * available.length)];
+    }
+
+    const id = activeIds[Math.floor(Math.random() * activeIds.length)];
+    return armorFromId(id);
+}
+
+function createMissile(armor) {
+    return { x: launcher.x, y: launcher.y, vx: 0, vy: 0, armorId: armor.id, moving: false };
+}
+
+function initBoard() {
+    grid.clear();
+    for (let r = 0; r < START_ROWS; r++) {
+        const startQ = -Math.floor((COLS + 4) / 2);
+        for (let i = 0; i <= COLS + 4; i++) {
+            const q = startQ + i;
+            const p = hexToPixel(q, r);
+            if (p.x >= R && p.x <= canvas.width - R && Math.random() < 0.9) {
+                const armor = unlockedArmorList();
+                const pick = armor[Math.floor(Math.random() * armor.length)];
+                grid.set(key(q, r), { armorId: pick.id });
+            }
+        }
+    }
+}
+
+function injectUnlockedArmor(armor) {
+    const topKeys = [];
+    grid.forEach((v, k) => {
+        const parts = k.split(",").map(Number);
+        if (parts[1] === 0) topKeys.push(k);
+    });
+
+    if (topKeys.length > 0) {
+        const picked = topKeys[Math.floor(Math.random() * topKeys.length)];
+        grid.set(picked, { armorId: armor.id });
+        return;
+    }
+
+    grid.set(key(0, 0), { armorId: armor.id });
+}
+
+function startNewGame() {
+    resizeCanvas();
+    initBoard();
+    score = 0;
+    combo = 0;
+    shotsFired = 0;
+    unlockedArmorCount = BASE_ARMOR_COUNT;
+    maxMissesForCycle = BASE_MISSES_PER_DROP;
+    currentMissesLeft = maxMissesForCycle;
+    dropShiftLeftNext = false;
+    level = 1;
+    updateRoofHeight();
+    gameOver = false;
+    win = false;
+    shotMissile = null;
+    pendingExplosion = null;
+    currentMissile = createMissile(randomArmor("shot"));
+    nextMissile = createMissile(randomArmor("shot"));
+    uiOverlay.style.display = "none";
+}
+
+startNewGame();
+registerWebAppSupport();
+
+window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    installPromptEvent = event;
+    updateInstallButton();
+});
+
+window.addEventListener("appinstalled", () => {
+    installPromptEvent = null;
+    updateInstallButton();
+});
+
+installBtn.addEventListener("click", async () => {
+    if (installPromptEvent) {
+        installPromptEvent.prompt();
+        await installPromptEvent.userChoice;
+        installPromptEvent = null;
+        updateInstallButton();
+        return;
+    }
+    if (isIosBrowser()) {
+        alert("To save this game as a web app on iPhone or iPad, open the browser share menu and choose Add to Home Screen.");
+    }
+});
+
+aimBtn.addEventListener("click", () => {
+    settings.showAimGuide = !settings.showAimGuide;
+    saveSettings();
+    syncSettingsUi();
+});
+
+newGameBtn.addEventListener("click", () => {
+    startNewGame();
+});
+
+volumeBtn.addEventListener("click", () => {
+    settings.soundEnabled = !settings.soundEnabled;
+    saveSettings();
+    syncSettingsUi();
+    if (settings.soundEnabled) {
+        ensureAudioContext();
+        playCrashSound();
+    }
+});
+
+settingsBtn.addEventListener("click", () => {
+    openSettings();
+});
+
+closeSettingsBtn.addEventListener("click", () => {
+    closeSettings();
+});
+
+settingsBackdrop.addEventListener("click", () => {
+    closeSettings();
+});
+
+soundToggle.addEventListener("change", () => {
+    settings.soundEnabled = soundToggle.checked;
+    saveSettings();
+    syncSettingsUi();
+    if (settings.soundEnabled) {
+        ensureAudioContext();
+        playCrashSound();
+    }
+});
+
+guideToggle.addEventListener("change", () => {
+    settings.showAimGuide = guideToggle.checked;
+    saveSettings();
+});
+
+canvas.addEventListener("mousemove", e => {
+    isTouchDevice = false;
+    const rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+    launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+});
+
+canvas.addEventListener("touchmove", e => {
+    isTouchDevice = true;
+    touchAimActive = true;
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    mouseX = e.touches[0].clientX - rect.left;
+    mouseY = e.touches[0].clientY - rect.top;
+    launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+}, { passive: false });
+
+canvas.addEventListener("click", () => {
+    ensureAudioContext();
+    if (!isTouchDevice) fireMissile();
+});
+
+canvas.addEventListener("touchstart", e => {
+    ensureAudioContext();
+    isTouchDevice = true;
+    touchAimActive = true;
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    mouseX = e.touches[0].clientX - rect.left;
+    mouseY = e.touches[0].clientY - rect.top;
+}, { passive: false });
+
+canvas.addEventListener("touchend", e => {
+    if (!touchAimActive) return;
+    e.preventDefault();
+    if (e.changedTouches.length > 0) {
+        const rect = canvas.getBoundingClientRect();
+        mouseX = e.changedTouches[0].clientX - rect.left;
+        mouseY = e.changedTouches[0].clientY - rect.top;
+        launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+    }
+    touchAimActive = false;
+    fireMissile();
+}, { passive: false });
+
+canvas.addEventListener("touchcancel", () => {
+    touchAimActive = false;
+}, { passive: true });
+
+function fireMissile() {
+    if (shotMissile || gameOver || win) return;
+    let dx = mouseX - launcher.x;
+    let dy = mouseY - launcher.y;
+    const length = Math.hypot(dx, dy);
+    if (dy > -10 || length < 0.001) return;
+
+    dx /= length;
+    dy /= length;
+    currentMissile.vx = dx * SPEED;
+    currentMissile.vy = dy * SPEED;
+    currentMissile.moving = true;
+    shotMissile = currentMissile;
+    shotsFired++;
+    updateLevelFromShots();
+    playLaunchSound();
+
+    currentMissile = createMissile(armorFromId(nextMissile.armorId));
+    nextMissile = createMissile(randomArmor("shot"));
+}
+
+function findSegmentDroneCollision(startX, startY, endX, endY) {
+    const dx = endX - startX;
+    const dy = endY - startY;
+    const segmentLengthSq = dx * dx + dy * dy;
+    if (segmentLengthSq === 0) return null;
+
+    const collisionDistance = getMissileCollisionRadius() + R * 0.95 - 1;
+    const collisionDistanceSq = collisionDistance * collisionDistance;
+    let earliestHit = null;
+
+    for (const [k] of grid) {
+        const [q, r] = k.split(",").map(Number);
+        const center = hexToPixel(q, r);
+        const relX = startX - center.x;
+        const relY = startY - center.y;
+        const a = segmentLengthSq;
+        const b = 2 * (relX * dx + relY * dy);
+        const c = relX * relX + relY * relY - collisionDistanceSq;
+        const discriminant = b * b - 4 * a * c;
+        if (discriminant < 0) continue;
+
+        const root = Math.sqrt(discriminant);
+        const candidateTs = [(-b - root) / (2 * a), (-b + root) / (2 * a)];
+        for (const t of candidateTs) {
+            if (t < SHOT_EVENT_EPSILON || t > 1) continue;
+            if (!earliestHit || t < earliestHit.t) {
+                earliestHit = {
+                    t,
+                    x: startX + dx * t,
+                    y: startY + dy * t
+                };
+            }
+        }
+    }
+
+    return earliestHit;
+}
+
+function getNextMissileEvent(startX, startY, vx, vy, maxTime) {
+    const missileRadius = getMissileCollisionRadius();
+    const segmentEndX = startX + vx * maxTime;
+    const segmentEndY = startY + vy * maxTime;
+    let bestEvent = {
+        type: "move",
+        time: maxTime,
+        x: segmentEndX,
+        y: segmentEndY
+    };
+
+    const droneHit = findSegmentDroneCollision(startX, startY, segmentEndX, segmentEndY);
+    if (droneHit) {
+        const droneTime = maxTime * droneHit.t;
+        if (droneTime < bestEvent.time) {
+            bestEvent = {
+                type: "drone",
+                time: droneTime,
+                x: droneHit.x,
+                y: droneHit.y
+            };
+        }
+    }
+
+    if (vy < -SHOT_EVENT_EPSILON) {
+        const ceilingTime = (ceilingY + missileRadius - startY) / vy;
+        if (ceilingTime >= SHOT_EVENT_EPSILON && ceilingTime < bestEvent.time) {
+            bestEvent = {
+                type: "ceiling",
+                time: ceilingTime,
+                x: startX + vx * ceilingTime,
+                y: ceilingY + missileRadius
+            };
+        }
+    }
+
+    if (vx > SHOT_EVENT_EPSILON) {
+        const rightWallTime = (canvas.width - missileRadius - startX) / vx;
+        if (rightWallTime >= SHOT_EVENT_EPSILON && rightWallTime < bestEvent.time) {
+            bestEvent = {
+                type: "wall",
+                time: rightWallTime,
+                x: canvas.width - missileRadius,
+                y: startY + vy * rightWallTime
+            };
+        }
+    } else if (vx < -SHOT_EVENT_EPSILON) {
+        const leftWallTime = (missileRadius - startX) / vx;
+        if (leftWallTime >= SHOT_EVENT_EPSILON && leftWallTime < bestEvent.time) {
+            bestEvent = {
+                type: "wall",
+                time: leftWallTime,
+                x: missileRadius,
+                y: startY + vy * leftWallTime
+            };
+        }
+    }
+
+    return bestEvent;
+}
+
+function advanceShotMissile(frameScale) {
+    const missileRadius = getMissileCollisionRadius();
+    let remainingTime = frameScale;
+    let handledEvents = 0;
+
+    while (shotMissile && shotMissile.moving && remainingTime > SHOT_EVENT_EPSILON && handledEvents < MAX_SHOT_EVENTS_PER_FRAME) {
+        handledEvents++;
+        const event = getNextMissileEvent(shotMissile.x, shotMissile.y, shotMissile.vx, shotMissile.vy, remainingTime);
+
+        shotMissile.x = event.x;
+        shotMissile.y = event.y;
+
+        if (event.type === "move") {
+            break;
+        }
+
+        if (event.type === "wall") {
+            shotMissile.vx *= -1;
+            shotMissile.x = Math.min(
+                canvas.width - missileRadius,
+                Math.max(missileRadius, shotMissile.x + Math.sign(shotMissile.vx) * SHOT_POSITION_EPSILON)
+            );
+            remainingTime -= event.time;
+            continue;
+        }
+
+        snapMissile();
+        return;
+    }
+}
+
+function traceMissilePath(startX, startY, vx, vy, maxTime) {
+    const missileRadius = getMissileCollisionRadius();
+    const points = [{ x: startX, y: startY }];
+    let x = startX;
+    let y = startY;
+    let currentVx = vx;
+    let currentVy = vy;
+    let remainingTime = maxTime;
+    let handledEvents = 0;
+
+    while (remainingTime > SHOT_EVENT_EPSILON && handledEvents < MAX_TRAJECTORY_EVENTS) {
+        handledEvents++;
+        const event = getNextMissileEvent(x, y, currentVx, currentVy, remainingTime);
+        points.push({ x: event.x, y: event.y });
+
+        if (event.type === "move" || event.type === "drone" || event.type === "ceiling") {
+            break;
+        }
+
+        remainingTime -= event.time;
+        currentVx *= -1;
+        x = Math.min(canvas.width - missileRadius, Math.max(missileRadius, event.x + Math.sign(currentVx) * SHOT_POSITION_EPSILON));
+        y = event.y;
+    }
+
+    return points;
+}
+
+function updateLevelFromShots() {
+    const targetLevel = 1 + Math.floor(shotsFired / SHOTS_PER_LEVEL);
+    if (targetLevel <= level) return;
+
+    while (level < targetLevel) {
+        level++;
+
+        const targetUnlockedCount = Math.min(BASE_ARMOR_COUNT + Math.floor((level - 1) / 4), ARMOR_TYPES.length);
+        if (targetUnlockedCount > unlockedArmorCount) {
+            unlockedArmorCount = targetUnlockedCount;
+            injectUnlockedArmor(ARMOR_TYPES[unlockedArmorCount - 1]);
+        }
+
+        maxMissesForCycle = Math.max(BASE_MISSES_PER_DROP - Math.floor((level - 1) / 3), MIN_MISSES_PER_DROP);
+        currentMissesLeft = Math.min(currentMissesLeft, maxMissesForCycle);
+        updateRoofHeight();
+    }
+}
+
+function findBestSnapCell(x, y) {
+    const base = pixelToHex(x, y);
+    const startQ = base[0];
+    const startR = base[1];
+    const startKey = key(startQ, startR);
+    if (!grid.has(startKey)) return [startQ, startR];
+
+    const visited = new Set([startKey]);
+    let frontier = [[startQ, startR]];
+    let candidates = [];
+
+    for (let depth = 0; depth < 2; depth++) {
+        const nextFrontier = [];
+        for (let i = 0; i < frontier.length; i++) {
+            const node = frontier[i];
+            const near = neighbors(node[0], node[1]);
+            for (let j = 0; j < near.length; j++) {
+                const nq = near[j][0];
+                const nr = near[j][1];
+                const nk = key(nq, nr);
+                if (visited.has(nk)) continue;
+                visited.add(nk);
+
+                if (!grid.has(nk)) {
+                    const p = hexToPixel(nq, nr);
+                    if (p.x >= R && p.x <= canvas.width - R) {
+                        candidates.push([nq, nr]);
+                    }
+                } else {
+                    nextFrontier.push([nq, nr]);
+                }
+            }
+        }
+        if (candidates.length > 0) break;
+        frontier = nextFrontier;
+        if (frontier.length === 0) break;
+    }
+
+    if (candidates.length === 0) return null;
+
+    let best = candidates[0];
+    let bestDist = Infinity;
+    for (let i = 0; i < candidates.length; i++) {
+        const p = hexToPixel(candidates[i][0], candidates[i][1]);
+        const d = Math.hypot(x - p.x, y - p.y);
+        if (d < bestDist) {
+            bestDist = d;
+            best = candidates[i];
+        }
+    }
+    return best;
+}
+
+function snapMissile() {
+    if (!shotMissile) return;
+    const snapped = findBestSnapCell(shotMissile.x, shotMissile.y);
+    if (!snapped) {
+        shotMissile = null;
+        checkGameOver();
+        return;
+    }
+
+    const q = snapped[0];
+    const r = snapped[1];
+    grid.set(key(q, r), { armorId: shotMissile.armorId });
+
+    const match = findMatches(q, r);
+    if (match.length >= 3) {
+        playMatchBoomSound();
+        pendingExplosion = match;
+        explosionTimer = 8;
+        combo++;
+    } else {
+        playCrashSound();
+        combo = 0;
+        islandTimer = 8;
+        currentMissesLeft--;
+        if (currentMissesLeft <= 0) {
+            const linesToDrop = level >= 8 ? 2 : 1;
+            for (let i = 0; i < linesToDrop; i++) {
+                dropCeiling();
+            }
+            currentMissesLeft = maxMissesForCycle;
+        }
+    }
+
+    shotMissile = null;
+    checkGameOver();
+}
+
+function findMatches(q, r) {
+    if (!grid.has(key(q, r))) return [];
+    const armorId = grid.get(key(q, r)).armorId;
+    const stack = [[q, r]];
+    const visited = new Set();
+    const match = [];
+
+    while (stack.length) {
+        const node = stack.pop();
+        const cq = node[0];
+        const cr = node[1];
+        const k = key(cq, cr);
+        if (visited.has(k)) continue;
+        visited.add(k);
+
+        const cell = grid.get(k);
+        if (!cell || cell.armorId !== armorId) continue;
+
+        match.push([cq, cr]);
+        const near = neighbors(cq, cr);
+        for (let i = 0; i < near.length; i++) stack.push(near[i]);
+    }
+
+    return match;
+}
+
+function spawnExplosionCloud(x, y, armorId) {
+    const armor = armorFromId(armorId);
+    const puffCount = 8 + Math.floor(Math.random() * 5);
+    for (let i = 0; i < puffCount; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 0.8 + Math.random() * 2.4;
+        explosionClouds.push({
+            x,
+            y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 0.3,
+            r: R * (0.18 + Math.random() * 0.28),
+            life: 24 + Math.floor(Math.random() * 18),
+            maxLife: 24 + Math.floor(Math.random() * 18),
+            color: armor.accent,
+            glow: armor.color
+        });
+    }
+}
+
+function updateExplosionClouds(frameScale) {
+    for (let i = explosionClouds.length - 1; i >= 0; i--) {
+        const p = explosionClouds[i];
+        p.x += p.vx * frameScale;
+        p.y += p.vy * frameScale;
+        p.vx *= Math.pow(0.96, frameScale);
+        p.vy = p.vy * Math.pow(0.96, frameScale) - 0.02 * frameScale;
+        p.r *= Math.pow(1.015, frameScale);
+        p.life -= frameScale;
+        if (p.life <= 0 || p.r > R * 1.2) {
+            explosionClouds.splice(i, 1);
+        }
+    }
+}
+
+function drawExplosionClouds() {
+    for (let i = 0; i < explosionClouds.length; i++) {
+        const p = explosionClouds[i];
+        const alpha = Math.max(0, p.life / p.maxLife);
+        ctx.save();
+        ctx.globalAlpha = alpha * 0.55;
+        ctx.shadowColor = p.glow;
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+function explodeMatch() {
+    if (!pendingExplosion) return;
+    const prevArmor = activeArmorIds();
+    const comboMultiplier = Math.max(1, combo);
+
+    pendingExplosion.forEach(pair => {
+        const k = key(pair[0], pair[1]);
+        const cell = grid.get(k);
+        const pos = hexToPixel(pair[0], pair[1]);
+        if (cell) {
+            spawnExplosionCloud(pos.x, pos.y, cell.armorId);
+        }
+        grid.delete(key(pair[0], pair[1]));
+        score += MATCH_SCORE * comboMultiplier;
+    });
+
+    pendingExplosion = null;
+    islandTimer = 15;
+    checkArmorClears(prevArmor);
+}
+
+function removeFloating() {
+    const visited = new Set();
+    const stack = [];
+
+    grid.forEach((v, k) => {
+        const parts = k.split(",").map(Number);
+        if (parts[1] === 0) stack.push([parts[0], parts[1]]);
+    });
+
+    while (stack.length) {
+        const node = stack.pop();
+        const q = node[0];
+        const r = node[1];
+        const k = key(q, r);
+        if (visited.has(k)) continue;
+        visited.add(k);
+
+        const near = neighbors(q, r);
+        for (let i = 0; i < near.length; i++) {
+            if (grid.has(key(near[i][0], near[i][1]))) stack.push(near[i]);
+        }
+    }
+
+    const prevArmor = activeArmorIds();
+    grid.forEach((v, k) => {
+        if (!visited.has(k)) {
+            grid.delete(k);
+            score += FLOATING_SCORE * Math.max(1, combo);
+        }
+    });
+
+    checkArmorClears(prevArmor);
+    checkWin();
+}
+
+function checkArmorClears(previousArmorList) {
+    const currentSet = new Set(activeArmorIds());
+    let clearedCount = 0;
+
+    for (let i = 0; i < previousArmorList.length; i++) {
+        const id = previousArmorList[i];
+        if (!currentSet.has(id)) {
+            clearedArmor.add(id);
+            clearedCount++;
+        }
+    }
+
+    if (clearedCount > 0) {
+        score += ARMOR_CLEAR_BONUS * clearedCount;
+    }
+}
+
+function dropCeiling() {
+    const newGrid = new Map();
+    const qShift = dropShiftLeftNext ? -1 : 0;
+
+    grid.forEach((v, k) => {
+        const parts = k.split(",").map(Number);
+        const q = parts[0];
+        const r = parts[1];
+        const nextQ = q + qShift;
+        const p = hexToPixel(nextQ, r + 1);
+        if (p.x >= R && p.x <= canvas.width - R) {
+            newGrid.set(key(nextQ, r + 1), v);
+        }
+    });
+
+    const startQ = -Math.floor((COLS + 4) / 2);
+    for (let i = 0; i <= COLS + 4; i++) {
+        const q = startQ + i;
+        const p = hexToPixel(q, 0);
+        if (p.x >= R && p.x <= canvas.width - R) {
+            newGrid.set(key(q, 0), { armorId: randomArmor("ceiling").id });
+        }
+    }
+
+    grid = newGrid;
+    dropShiftLeftNext = !dropShiftLeftNext;
+}
+
+function showOverlay(title) {
+    uiTitle.innerText = title;
+    uiScore.innerText = "Score: " + score;
+    uiOverlay.style.display = "block";
+}
+
+function checkGameOver() {
+    grid.forEach((v, k) => {
+        const parts = k.split(",").map(Number);
+        const p = hexToPixel(parts[0], parts[1]);
+        if (p.y > launcher.y - R * 2) {
+            gameOver = true;
+            showOverlay("Mission Failed");
+        }
+    });
+}
+
+function checkWin() {
+    if (grid.size === 0) {
+        score += BOARD_CLEAR_BONUS;
+        win = true;
+        showOverlay("Sector Cleared");
+    }
+}
+
+function shareScore(platform) {
+    const text = `Missile Shooter score: ${score} points, level ${level}. Match armor classes and beat this run.`;
+    const emoji = "🚀🛡️🤖";
+    const url = encodeURIComponent(location.href);
+    let shareUrl = "";
+
+    if (platform === "copy") {
+        const copyText = `${text} ${emoji}\n${location.href}`;
+        navigator.clipboard.writeText(copyText).then(() => {
+            alert("Score copied to clipboard!");
+        }).catch(err => {
+            console.error("Failed to copy:", err);
+            alert("Failed to copy to clipboard");
+        });
+        return;
+    }
+
+    if (platform === "x") {
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text + " " + emoji)}&url=${url}`;
+    }
+    if (platform === "wa") {
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(location.href + "\n" + text)}`;
+    }
+    if (platform === "tg") {
+        shareUrl = `https://t.me/share/url?url=${url}&text=${encodeURIComponent(text + " " + emoji)}`;
+    }
+
+    window.open(shareUrl, "_blank");
+}
+
+function update(deltaSeconds) {
+    if (gameOver || win) return;
+
+    const frameScale = deltaSeconds * REFERENCE_FPS;
+
+    updateExplosionClouds(frameScale);
+
+    if (explosionTimer > 0) {
+        explosionTimer = Math.max(0, explosionTimer - frameScale);
+        if (explosionTimer === 0) explodeMatch();
+    }
+    if (islandTimer > 0) {
+        islandTimer = Math.max(0, islandTimer - frameScale);
+        if (islandTimer === 0) removeFloating();
+    }
+
+    if (shotMissile && shotMissile.moving) {
+        advanceShotMissile(frameScale);
+    }
+}
+
+function drawTrajectory() {
+    if (!settings.showAimGuide) return;
+    if (shotMissile || gameOver || win || (isTouchDevice && !touchAimActive)) return;
+
+    let dx = mouseX - launcher.x;
+    let dy = mouseY - launcher.y;
+    if (dy > -10) return;
+
+    let angle = Math.atan2(dy, dx);
+    let vx = Math.cos(angle) * SPEED;
+    let vy = Math.sin(angle) * SPEED;
+    const path = traceMissilePath(launcher.x, launcher.y, vx, vy, 60 * 2.5);
+    if (path.length < 2) return;
+
+    ctx.beginPath();
+    ctx.setLineDash([8, 12]);
+    ctx.strokeStyle = "rgba(255, 225, 140, 0.5)";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.moveTo(path[0].x, path[0].y);
+
+    for (let i = 1; i < path.length; i++) {
+        ctx.lineTo(path[i].x, path[i].y);
+    }
+
+    ctx.stroke();
+    ctx.setLineDash([]);
+}
+
+function drawDrone(x, y, armorId) {
+    const armor = armorFromId(armorId);
+    ctx.save();
+
+    const bodyGrad = ctx.createRadialGradient(x - R * 0.35, y - R * 0.4, R * 0.25, x, y, R * 1.1);
+    bodyGrad.addColorStop(0, armor.accent);
+    bodyGrad.addColorStop(0.65, armor.color);
+    bodyGrad.addColorStop(1, "#111827");
+
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.arc(x, y, R * 0.95, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(255,255,255,0.4)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(x, y, R * 0.65, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(5, 10, 18, 0.55)";
+    ctx.beginPath();
+    ctx.arc(x, y, R * 0.28, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
+function drawMissileSprite(targetCtx, x, y, armorId, scale = 1) {
+    const armor = armorFromId(armorId);
+    const nose = 12 * scale;
+    const body = 18 * scale;
+    const halfH = 6 * scale;
+
+    targetCtx.save();
+    targetCtx.translate(x, y);
+
+    targetCtx.beginPath();
+    targetCtx.moveTo(-body * 0.5, -halfH);
+    targetCtx.lineTo(body * 0.2, -halfH);
+    targetCtx.lineTo(body * 0.5 + nose, 0);
+    targetCtx.lineTo(body * 0.2, halfH);
+    targetCtx.lineTo(-body * 0.5, halfH);
+    targetCtx.closePath();
+
+    const missileGrad = targetCtx.createLinearGradient(-body * 0.5, 0, body * 0.5 + nose, 0);
+    missileGrad.addColorStop(0, "#22304f");
+    missileGrad.addColorStop(0.55, armor.color);
+    missileGrad.addColorStop(1, armor.accent);
+    targetCtx.fillStyle = missileGrad;
+    targetCtx.fill();
+
+    targetCtx.strokeStyle = "rgba(255,255,255,0.35)";
+    targetCtx.lineWidth = 1.3 * scale;
+    targetCtx.stroke();
+
+    targetCtx.fillStyle = "#111";
+    targetCtx.fillRect(-body * 0.2, -halfH * 0.3, body * 0.22, halfH * 0.6);
+
+    targetCtx.fillStyle = "#ff8655";
+    targetCtx.beginPath();
+    targetCtx.moveTo(-body * 0.5, -halfH * 0.65);
+    targetCtx.lineTo(-body * 0.95, 0);
+    targetCtx.lineTo(-body * 0.5, halfH * 0.65);
+    targetCtx.closePath();
+    targetCtx.fill();
+
+    targetCtx.restore();
+}
+
+function drawGrid() {
+    grid.forEach((v, k) => {
+        const parts = k.split(",").map(Number);
+        const p = hexToPixel(parts[0], parts[1]);
+        drawDrone(p.x, p.y, v.armorId);
+    });
+}
+
+function drawLauncher() {
+    drawTrajectory();
+
+    let aimAngle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+    if (mouseY > launcher.y - 10) {
+        aimAngle = -Math.PI / 2;
+    }
+
+    ctx.save();
+    ctx.translate(launcher.x, launcher.y + 8);
+    ctx.fillStyle = "#1a243d";
+    ctx.strokeStyle = "#ffd97a";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(-28, -14, 56, 24, 8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(launcher.x, launcher.y - 6);
+    ctx.rotate(aimAngle);
+    drawMissileSprite(ctx, 0, 0, currentMissile.armorId, Math.max(1, R / 16));
+    ctx.restore();
+
+    if (shotMissile) {
+        const angle = Math.atan2(shotMissile.vy, shotMissile.vx);
+        ctx.save();
+        ctx.translate(shotMissile.x, shotMissile.y);
+        ctx.rotate(angle);
+        drawMissileSprite(ctx, 0, 0, shotMissile.armorId, Math.max(0.95, R / 18));
+        ctx.restore();
+    }
+
+    const startX = 22;
+    const startY = canvas.height - 24;
+    const gap = 22;
+    for (let i = 0; i < currentMissesLeft; i++) {
+        const x = startX + i * gap;
+        ctx.save();
+        ctx.translate(x, startY);
+        ctx.rotate(-Math.PI / 2);
+        ctx.globalAlpha = 0.9;
+        drawMissileSprite(ctx, 0, 0, "ember", 0.58);
+        ctx.restore();
+    }
+}
+
+function drawNextMissilePreview() {
+    nextMissileCtx.clearRect(0, 0, nextMissileCanvas.width, nextMissileCanvas.height);
+    if (!nextMissile) return;
+    drawMissileSprite(nextMissileCtx, nextMissileCanvas.width / 2, nextMissileCanvas.height / 2, nextMissile.armorId, 1.1);
+}
+
+function drawScore() {
+    ctx.save();
+    ctx.font = "bold 34px \"Trebuchet MS\", sans-serif";
+    ctx.textAlign = "right";
+    const sx = canvas.width - 20;
+    const sy = canvas.height - 20;
+
+    ctx.shadowColor = "#ffcf44";
+    ctx.shadowBlur = 26;
+    ctx.fillStyle = "rgba(255, 207, 68, 0.48)";
+    ctx.fillText(score, sx, sy);
+
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = "rgba(255, 242, 200, 0.95)";
+    ctx.fillText(score, sx, sy);
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(score, sx, sy);
+    ctx.restore();
+}
+
+function drawCeiling() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.52)";
+    ctx.fillRect(0, 0, canvas.width, ceilingY - 1);
+
+    ctx.save();
+    ctx.shadowColor = "#ffcf44";
+    ctx.shadowBlur = 9;
+    ctx.strokeStyle = "#ffcf44";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, ceilingY - 1);
+    ctx.lineTo(canvas.width, ceilingY - 1);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.font = "bold 13px sans-serif";
+    ctx.fillStyle = "#ffcf44";
+    ctx.textAlign = "left";
+    ctx.fillText("LEVEL " + level, 10, ceilingY - 5);
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
+    drawExplosionClouds();
+    drawCeiling();
+    drawLauncher();
+    drawScore();
+    drawNextMissilePreview();
+}
+
+let lastFrameTime = performance.now();
+
+function loop(timestamp) {
+    const deltaSeconds = Math.min((timestamp - lastFrameTime) / 1000, 0.05);
+    lastFrameTime = timestamp;
+    update(deltaSeconds);
+    draw();
+    requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+
+</body>
+</html>
