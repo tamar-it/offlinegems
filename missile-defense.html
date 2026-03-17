@@ -46,6 +46,7 @@ body {
 #appShell {
     width: min(100vw, 1200px);
     height: 100%;
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -78,31 +79,27 @@ canvas {
     flex: 1;
 }
 
-#stat {
+.stat {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-#stat-label {
+.stat-label {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.6);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-#stat-value {
+.stat-value {
     font-size: 20px;
     font-weight: bold;
     color: #ffd93d;
 }
 
-#stat-health {
+.stat-health {
     color: #ff6b6b;
-}
-
-#stat-ammo {
-    color: #4ecdc4;
 }
 
 #controlButtons {
@@ -495,11 +492,25 @@ const EXPLOSION_EMOJI = "💥";
 const CARRIER_EMOJI = "🛳️";
 const COMPACT_LAYOUT_MAX_WIDTH = 768;
 
+function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function drawEmoji(x, y, emoji, size = 32) {
+    ctx.font = size + "px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(emoji, x, y);
+}
+
+function getCanvasPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
 function useCompactCoastLayout() {
     return canvas.width <= COMPACT_LAYOUT_MAX_WIDTH;
 }
 
-function getCarrierMetrics() {
+function _computeCarrierMetrics() {
     if (useCompactCoastLayout()) {
         return {
             fontSize: 50,
@@ -530,26 +541,29 @@ function getCarrierMetrics() {
         flagHeight: 12
     };
 }
+let cachedCarrierMetrics = null;
+function getCarrierMetrics() { return cachedCarrierMetrics; }
 
-function getSeaCityBoundaryX() {
+function _computeSeaCityBoundaryX() {
     if (useCompactCoastLayout()) {
-        const carrierMetrics = getCarrierMetrics();
         const maxCompactSeaWidth = canvas.width / 3;
-        const desiredSeaWidth = carrierMetrics.bodyWidth + 18;
+        const desiredSeaWidth = cachedCarrierMetrics.bodyWidth + 18;
         return Math.min(maxCompactSeaWidth, desiredSeaWidth);
     }
 
     return Math.max(220, canvas.width * 0.24);
 }
+let cachedSeaCityBoundaryX = 0;
+function getSeaCityBoundaryX() { return cachedSeaCityBoundaryX; }
 
 function smoothStep01(t) {
     const clamped = Math.max(0, Math.min(1, t));
     return clamped * clamped * (3 - 2 * clamped);
 }
 
-function getGroundYAt(x) {
+function _rawGroundYAt(x) {
     const seaTop = canvas.height - 56;
-    const boundaryX = getSeaCityBoundaryX();
+    const boundaryX = cachedSeaCityBoundaryX;
     const coastFlatY = seaTop - 24;
     const peakY = seaTop - 84;
     const farRightFlatY = seaTop - 30;
@@ -576,12 +590,22 @@ function getGroundYAt(x) {
     return farRightFlatY;
 }
 
+let groundYCache = null;
+function buildGroundCache() {
+    const w = canvas.width | 0;
+    groundYCache = new Float32Array(w + 2);
+    for (let i = 0; i <= w + 1; i++) groundYCache[i] = _rawGroundYAt(i);
+}
+function getGroundYAt(x) {
+    const xi = x < 0 ? 0 : x > canvas.width ? canvas.width | 0 : x | 0;
+    return groundYCache ? groundYCache[xi] : _rawGroundYAt(x);
+}
+
 let gameOver = false;
 let score = 0;
 let kills = 0;
 let health = INITIAL_HEALTH;
 let wave = 1;
-let enemiesKilled = 0;
 let frameCount = 0;
 let levelKills = 0;
 let toastQueue = [];
@@ -702,7 +726,6 @@ function drawMissionToast() {
 function handleMissionProgress(pointsAwarded) {
     score += pointsAwarded;
     kills++;
-    enemiesKilled++;
     levelKills++;
 
     if (levelKills < getCurrentMissionGoal()) return;
@@ -821,12 +844,53 @@ async function registerWebAppSupport() {
     updateInstallButton();
 }
 
+let cachedSeaGradient = null, cachedLandGradient = null, cachedSandGradient = null, cachedRockGradient = null, cachedHaze = null;
+let cachedSandEnd = 0, cachedRockyStart = 0, cachedRockyEnd = 0;
+function buildCachedGradients() {
+    const seaTop = canvas.height - 56;
+    const bx = cachedSeaCityBoundaryX;
+    cachedSandEnd = Math.min(canvas.width * 0.5, bx + 230);
+    cachedRockyStart = canvas.width * 0.64;
+    cachedRockyEnd = canvas.width * 0.9;
+    const sandEnd = cachedSandEnd;
+    const rockyStart = cachedRockyStart;
+    const rockyEnd = cachedRockyEnd;
+
+    cachedSeaGradient = ctx.createLinearGradient(0, seaTop, 0, canvas.height);
+    cachedSeaGradient.addColorStop(0, "rgba(27, 86, 140, 0.45)");
+    cachedSeaGradient.addColorStop(1, "rgba(15, 58, 102, 0.85)");
+
+    cachedLandGradient = ctx.createLinearGradient(bx, seaTop - 120, canvas.width, canvas.height);
+    cachedLandGradient.addColorStop(0, "#b8a77a");
+    cachedLandGradient.addColorStop(0.42, "#9d8d68");
+    cachedLandGradient.addColorStop(0.76, "#7f7c70");
+    cachedLandGradient.addColorStop(1, "#9d916f");
+
+    cachedSandGradient = ctx.createLinearGradient(bx, seaTop - 40, sandEnd, seaTop + 20);
+    cachedSandGradient.addColorStop(0, "rgba(221, 199, 143, 0.95)");
+    cachedSandGradient.addColorStop(1, "rgba(194, 165, 106, 0.85)");
+
+    cachedRockGradient = ctx.createLinearGradient(rockyStart, seaTop - 120, rockyEnd, seaTop + 10);
+    cachedRockGradient.addColorStop(0, "rgba(110, 108, 103, 0.84)");
+    cachedRockGradient.addColorStop(0.5, "rgba(86, 84, 80, 0.9)");
+    cachedRockGradient.addColorStop(1, "rgba(125, 119, 108, 0.78)");
+
+    cachedHaze = ctx.createLinearGradient(bx, seaTop - 130, canvas.width, seaTop + 18);
+    cachedHaze.addColorStop(0, "rgba(255, 236, 196, 0.08)");
+    cachedHaze.addColorStop(0.5, "rgba(255, 221, 168, 0.05)");
+    cachedHaze.addColorStop(1, "rgba(220, 216, 205, 0.04)");
+}
+
 function resizeCanvas() {
     const shellWidth = Math.min(window.innerWidth, 1200);
     appShell.style.width = shellWidth + "px";
     const dockHeight = controlDock.offsetHeight || 78;
     canvas.height = Math.max(320, window.innerHeight - dockHeight);
     canvas.width = shellWidth;
+    cachedCarrierMetrics = _computeCarrierMetrics();
+    cachedSeaCityBoundaryX = _computeSeaCityBoundaryX();
+    buildGroundCache();
+    buildCachedGradients();
     launcher.x = canvas.width / 2;
     launcher.y = canvas.height - 40;
     mouseX = launcher.x;
@@ -866,7 +930,7 @@ function initializeBuildings() {
                 width: buildingWidth,
                 height: buildingHeight,
                 health: 1,
-                emoji: BUILDING_EMOJIS[Math.floor(Math.random() * BUILDING_EMOJIS.length)]
+                emoji: randomFrom(BUILDING_EMOJIS)
             });
         }
 
@@ -880,7 +944,7 @@ function initializeBuildings() {
                 width: buildingWidth,
                 height: buildingHeight,
                 health: 1,
-                emoji: BUILDING_EMOJIS[Math.floor(Math.random() * BUILDING_EMOJIS.length)]
+                emoji: randomFrom(BUILDING_EMOJIS)
             });
         }
         
@@ -890,25 +954,12 @@ function initializeBuildings() {
     }
 }
 
-function isHitOnBuilding(x, y) {
-    for (let b of buildings) {
-        if (x >= b.x && x <= b.x + b.width && 
-            y >= b.y && y <= b.y + b.height) {
-            return true;
-        }
+function findHitBuilding(x, y) {
+    for (let i = 0; i < buildings.length; i++) {
+        const b = buildings[i];
+        if (x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height) return b;
     }
-    return false;
-}
-
-function damageBuilding(x, y) {
-    for (let b of buildings) {
-        if (x >= b.x && x <= b.x + b.width && 
-            y >= b.y && y <= b.y + b.height) {
-            b.health--;
-            return true;
-        }
-    }
-    return false;
+    return null;
 }
 
 function spawnFriendlyJet() {
@@ -922,8 +973,7 @@ function spawnFriendlyJet() {
         vx: Math.random() > 0.5 ? jetSpeed : -jetSpeed,
         age: 0,
         maxAge: 400,
-        target: null,
-        shotRange: shotRange,
+        shotRange,
         shotCooldown: 0,
         maxCooldown: 15
     });
@@ -938,7 +988,6 @@ function initializeCarrier() {
         x: carrierX,
         y: seaY,
         vx: 0,
-        deckX: 0,
         targetX: carrierX,
         shotCooldown: 45,
         maxCooldown: 45,
@@ -1068,7 +1117,6 @@ function startNewGame() {
     kills = 0;
     health = INITIAL_HEALTH;
     wave = 1;
-    enemiesKilled = 0;
     levelKills = 0;
     frameCount = 0;
     toastQueue = [];
@@ -1107,55 +1155,28 @@ installBtn.addEventListener("click", async () => {
     }
 });
 
-newGameBtn.addEventListener("click", () => {
-    startNewGame();
-});
+newGameBtn.addEventListener("click", startNewGame);
 
-volumeBtn.addEventListener("click", () => {
-    settings.soundEnabled = !settings.soundEnabled;
+function applySoundEnabled(val) {
+    settings.soundEnabled = val;
     saveSettings();
     syncSettingsUi();
-    if (settings.soundEnabled) {
-        ensureAudioContext();
-        playShootSound();
-    }
-});
+    if (val) { ensureAudioContext(); playShootSound(); }
+}
 
-guideBtn.addEventListener("click", () => {
-    openGuide();
-});
-
-settingsBtn.addEventListener("click", () => {
-    openSettings();
-});
-
-closeSettingsBtn.addEventListener("click", () => {
-    closeSettings();
-});
-
-closeGuideBtn.addEventListener("click", () => {
-    closeSettings();
-});
-
-settingsBackdrop.addEventListener("click", () => {
-    closeSettings();
-});
-
-soundToggle.addEventListener("change", () => {
-    settings.soundEnabled = soundToggle.checked;
-    saveSettings();
-    syncSettingsUi();
-    if (settings.soundEnabled) {
-        ensureAudioContext();
-        playShootSound();
-    }
-});
+volumeBtn.addEventListener("click", () => applySoundEnabled(!settings.soundEnabled));
+guideBtn.addEventListener("click", openGuide);
+settingsBtn.addEventListener("click", openSettings);
+closeSettingsBtn.addEventListener("click", closeSettings);
+closeGuideBtn.addEventListener("click", closeSettings);
+settingsBackdrop.addEventListener("click", closeSettings);
+soundToggle.addEventListener("change", () => applySoundEnabled(soundToggle.checked));
 
 canvas.addEventListener("mousemove", e => {
     isTouchDevice = false;
-    let rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
+    const pos = getCanvasPos(e);
+    mouseX = pos.x;
+    mouseY = pos.y;
     launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
 });
 
@@ -1168,9 +1189,9 @@ canvas.addEventListener("touchmove", e => {
     isTouchDevice = true;
     touchAimActive = true;
     e.preventDefault();
-    let rect = canvas.getBoundingClientRect();
-    mouseX = e.touches[0].clientX - rect.left;
-    mouseY = e.touches[0].clientY - rect.top;
+    const pos = getCanvasPos(e.touches[0]);
+    mouseX = pos.x;
+    mouseY = pos.y;
     launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
 }, { passive: false });
 
@@ -1179,18 +1200,18 @@ canvas.addEventListener("touchstart", e => {
     isTouchDevice = true;
     touchAimActive = true;
     e.preventDefault();
-    let rect = canvas.getBoundingClientRect();
-    mouseX = e.touches[0].clientX - rect.left;
-    mouseY = e.touches[0].clientY - rect.top;
+    const pos = getCanvasPos(e.touches[0]);
+    mouseX = pos.x;
+    mouseY = pos.y;
 }, { passive: false });
 
 canvas.addEventListener("touchend", e => {
     if (!touchAimActive) return;
     e.preventDefault();
     if (e.changedTouches.length > 0) {
-        let rect = canvas.getBoundingClientRect();
-        mouseX = e.changedTouches[0].clientX - rect.left;
-        mouseY = e.changedTouches[0].clientY - rect.top;
+        const pos = getCanvasPos(e.changedTouches[0]);
+        mouseX = pos.x;
+        mouseY = pos.y;
         launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
     }
     touchAimActive = false;
@@ -1220,7 +1241,7 @@ function shoot() {
 function spawnMissile() {
     const levelIndex = Math.min(wave - 1, LEVEL_CONFIGS.length - 1);
     const levelConfig = LEVEL_CONFIGS[levelIndex];
-    const typeKey = levelConfig.enemyTypes[Math.floor(Math.random() * levelConfig.enemyTypes.length)];
+    const typeKey = randomFrom(levelConfig.enemyTypes);
     const type = MISSILE_TYPES[typeKey];
     
     let x, y, vx, vy;
@@ -1239,16 +1260,7 @@ function spawnMissile() {
         vy = type.speed;
     }
     
-    missiles.push({
-        x: x,
-        y: y,
-        vx: vx,
-        vy: vy,
-        type: typeKey,
-        typeData: type,
-        health: type.health,
-        age: 0
-    });
+    missiles.push({ x, y, vx, vy, type: typeKey, typeData: type, health: type.health, age: 0 });
 }
 
 function createExplosion(x, y) {
@@ -1310,9 +1322,9 @@ function update(deltaSeconds) {
         
         // Check if missile reached ground
         if (m.y > canvas.height - 85) {
-            // Check if it hits a building
-            if (isHitOnBuilding(m.x, m.y)) {
-                damageBuilding(m.x, m.y);
+            const hitBuilding = findHitBuilding(m.x, m.y);
+            if (hitBuilding) {
+                hitBuilding.health--;
                 createExplosion(m.x, m.y);
                 score = Math.max(0, score - BUILDING_HIT_PENALTY);
                 missiles.splice(i, 1);
@@ -1449,13 +1461,6 @@ function update(deltaSeconds) {
     updateUI();
 }
 
-function drawMissile(x, y, emoji) {
-    ctx.font = "32px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(emoji, x, y);
-}
-
 function drawLauncher() {
     // Draw aim line
     if (!gameOver && (isTouchDevice ? touchAimActive : true)) {
@@ -1511,14 +1516,9 @@ function draw() {
 
     // Sea strip where the carrier lands and operates.
     const seaTop = canvas.height - 56;
-    const seaCityBoundaryX = getSeaCityBoundaryX();
-    const seaGradient = ctx.createLinearGradient(0, seaTop, 0, canvas.height);
-    seaGradient.addColorStop(0, "rgba(27, 86, 140, 0.45)");
-    seaGradient.addColorStop(1, "rgba(15, 58, 102, 0.85)");
-    ctx.fillStyle = seaGradient;
+    const seaCityBoundaryX = cachedSeaCityBoundaryX;
+    ctx.fillStyle = cachedSeaGradient;
     ctx.fillRect(0, seaTop, canvas.width, canvas.height - seaTop);
-
-    // Keep sea color clean to avoid a boxed blue patch near the ground.
 
     // Curved land mass: flat near coast, climbs to the right, then drops to far-right flat.
     ctx.beginPath();
@@ -1529,18 +1529,13 @@ function draw() {
     }
     ctx.lineTo(canvas.width, canvas.height);
     ctx.closePath();
-    const landGradient = ctx.createLinearGradient(seaCityBoundaryX, seaTop - 120, canvas.width, canvas.height);
-    landGradient.addColorStop(0, "#b8a77a");
-    landGradient.addColorStop(0.42, "#9d8d68");
-    landGradient.addColorStop(0.76, "#7f7c70");
-    landGradient.addColorStop(1, "#9d916f");
-    ctx.fillStyle = landGradient;
+    ctx.fillStyle = cachedLandGradient;
     ctx.fill();
 
     const sandStart = seaCityBoundaryX;
-    const sandEnd = Math.min(canvas.width * 0.5, sandStart + 230);
-    const rockyStart = canvas.width * 0.64;
-    const rockyEnd = canvas.width * 0.9;
+    const sandEnd = cachedSandEnd;
+    const rockyStart = cachedRockyStart;
+    const rockyEnd = cachedRockyEnd;
 
     // Sandy coastal cap following the same curve.
     ctx.beginPath();
@@ -1552,10 +1547,7 @@ function draw() {
         ctx.lineTo(x, getGroundYAt(x) + 16);
     }
     ctx.closePath();
-    const sandGradient = ctx.createLinearGradient(sandStart, seaTop - 40, sandEnd, seaTop + 20);
-    sandGradient.addColorStop(0, "rgba(221, 199, 143, 0.95)");
-    sandGradient.addColorStop(1, "rgba(194, 165, 106, 0.85)");
-    ctx.fillStyle = sandGradient;
+    ctx.fillStyle = cachedSandGradient;
     ctx.fill();
 
     // Rocky mountain cap on the right highlands.
@@ -1569,19 +1561,11 @@ function draw() {
         ctx.lineTo(x, getGroundYAt(x) + 18);
     }
     ctx.closePath();
-    const rockGradient = ctx.createLinearGradient(rockyStart, seaTop - 120, rockyEnd, seaTop + 10);
-    rockGradient.addColorStop(0, "rgba(110, 108, 103, 0.84)");
-    rockGradient.addColorStop(0.5, "rgba(86, 84, 80, 0.9)");
-    rockGradient.addColorStop(1, "rgba(125, 119, 108, 0.78)");
-    ctx.fillStyle = rockGradient;
+    ctx.fillStyle = cachedRockGradient;
     ctx.fill();
 
     // Curved atmospheric blend so no rectangular patch appears over ground/buildings.
-    const haze = ctx.createLinearGradient(seaCityBoundaryX, seaTop - 130, canvas.width, seaTop + 18);
-    haze.addColorStop(0, "rgba(255, 236, 196, 0.08)");
-    haze.addColorStop(0.5, "rgba(255, 221, 168, 0.05)");
-    haze.addColorStop(1, "rgba(220, 216, 205, 0.04)");
-    ctx.fillStyle = haze;
+    ctx.fillStyle = cachedHaze;
     ctx.beginPath();
     for (let x = seaCityBoundaryX; x <= canvas.width; x += 6) {
         ctx.lineTo(x, getGroundYAt(x) - 64);
@@ -1591,13 +1575,10 @@ function draw() {
     }
     ctx.closePath();
     ctx.fill();
-    
+
     // Draw buildings
     buildings.forEach(b => {
-        ctx.font = "32px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(b.emoji, b.x + b.width / 2, b.y + b.height / 2);
+        drawEmoji(b.x + b.width / 2, b.y + b.height / 2, b.emoji);
         
         // Draw health indicator
         if (b.health < 1) {
@@ -1609,13 +1590,8 @@ function draw() {
     });
     
     // Draw game objects
-    missiles.forEach(m => {
-        drawMissile(m.x, m.y, m.typeData.emoji);
-    });
-    
-    interceptors.forEach(inter => {
-        drawMissile(inter.x, inter.y, INTERCEPTOR_EMOJI);
-    });
+    missiles.forEach(m => drawEmoji(m.x, m.y, m.typeData.emoji));
+    interceptors.forEach(inter => drawEmoji(inter.x, inter.y, INTERCEPTOR_EMOJI));
 
     drawCarrier();
     
@@ -1635,9 +1611,8 @@ function draw() {
     });
     
     explosions.forEach(exp => {
-        const opacity = 1 - (exp.age / exp.maxAge);
-        ctx.globalAlpha = opacity;
-        drawMissile(exp.x, exp.y, EXPLOSION_EMOJI);
+        ctx.globalAlpha = 1 - (exp.age / exp.maxAge);
+        drawEmoji(exp.x, exp.y, EXPLOSION_EMOJI);
         ctx.globalAlpha = 1;
     });
     
@@ -1673,28 +1648,24 @@ function showOverlay(title, message) {
 }
 
 function shareScore(platform) {
-    let text = `Iron Dome Defense score: ${score} points, Wave ${wave}, ${kills} kills. Can you survive longer? 🚀💥`;
-    let url = encodeURIComponent(location.href);
-    let shareUrl = "";
-    
+    const text = `Iron Dome Defense score: ${score} points, Wave ${wave}, ${kills} kills. Can you survive longer? 🚀💥`;
+    const encodedUrl = encodeURIComponent(location.href);
+
     if (platform === 'copy') {
-        const copyText = `${text}\n${location.href}`;
-        navigator.clipboard.writeText(copyText).then(() => {
+        navigator.clipboard.writeText(`${text}\n${location.href}`).then(() => {
             alert("Score copied to clipboard!");
-        }).catch(err => {
-            console.error("Failed to copy:", err);
+        }).catch(() => {
             alert("Failed to copy to clipboard");
         });
         return;
     }
-    if (platform === 'x') shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
-    if (platform === 'wa') {
-        const waText = `${location.href}\n${text}`;
-        shareUrl = `https://wa.me/?text=${encodeURIComponent(waText)}`;
-    }
-    if (platform === 'tg') shareUrl = `https://t.me/share/url?url=${url}&text=${encodeURIComponent(text)}`;
-    
-    window.open(shareUrl, '_blank');
+
+    let shareUrl;
+    if (platform === 'x')        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodedUrl}`;
+    else if (platform === 'wa') shareUrl = `https://wa.me/?text=${encodeURIComponent(`${location.href}\n${text}`)}`;
+    else if (platform === 'tg') shareUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent(text)}`;
+
+    if (shareUrl) window.open(shareUrl, '_blank');
 }
 
 requestAnimationFrame(loop);
