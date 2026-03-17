@@ -334,17 +334,40 @@ h1 {
 </main>
 <script>
 (function () {
-    const APP_VERSION = "2026.03.15.1";
+    const APP_VERSION = "2026.03.17.1";
     const installBtn = document.getElementById("installBtn");
     const refreshBtn = document.getElementById("refreshBtn");
     const appStatus = document.getElementById("appStatus");
     const appVersion = document.getElementById("appVersion");
     let deferredInstallPrompt = null;
+    let activeRegistration = null;
+    let hasPendingUpdate = false;
+    let isApplyingUpdate = false;
 
     appVersion.textContent = "App version: " + APP_VERSION;
 
     function setStatus(text) {
         appStatus.textContent = text;
+    }
+
+    function showUpdatePrompt() {
+        hasPendingUpdate = true;
+        refreshBtn.hidden = false;
+        setStatus("A new app version is ready. Tap Update App.");
+    }
+
+    function applyUpdate() {
+        if (isApplyingUpdate) return;
+        isApplyingUpdate = true;
+        setStatus("Applying update...");
+
+        const waiting = activeRegistration && activeRegistration.waiting;
+        if (waiting) {
+            waiting.postMessage({ type: "SKIP_WAITING" });
+            return;
+        }
+
+        window.location.reload();
     }
 
     function isStandaloneMode() {
@@ -377,9 +400,7 @@ h1 {
         }
     });
 
-    refreshBtn.addEventListener("click", () => {
-        window.location.reload();
-    });
+    refreshBtn.addEventListener("click", applyUpdate);
 
     window.addEventListener("beforeinstallprompt", event => {
         event.preventDefault();
@@ -393,6 +414,11 @@ h1 {
         installBtn.hidden = true;
     });
 
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!isApplyingUpdate) return;
+        window.location.reload();
+    });
+
     async function registerServiceWorker() {
         if (!("serviceWorker" in navigator) || location.protocol === "file:") {
             setStatus("Open from your website URL to enable offline app support.");
@@ -402,15 +428,19 @@ h1 {
 
         try {
             const registration = await navigator.serviceWorker.register("./service-worker.js");
+            activeRegistration = registration;
             setStatus("Offline mode enabled. Updates are fetched when available.");
             updateInstallUi();
+
+            if (registration.waiting) {
+                showUpdatePrompt();
+            }
 
             function handleNewWorker(worker) {
                 if (!worker) return;
                 worker.addEventListener("statechange", () => {
                     if (worker.state === "installed" && navigator.serviceWorker.controller) {
-                        refreshBtn.hidden = false;
-                        setStatus("A game update is ready. Tap Update App.");
+                        showUpdatePrompt();
                     }
                 });
             }
@@ -419,6 +449,10 @@ h1 {
             registration.addEventListener("updatefound", () => {
                 handleNewWorker(registration.installing);
             });
+
+            if (!hasPendingUpdate) {
+                registration.update().catch(() => {});
+            }
         } catch (_error) {
             setStatus("Offline mode is unavailable right now.");
         }

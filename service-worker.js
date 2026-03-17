@@ -1,4 +1,4 @@
-const CACHE_VERSION = "offline-games-v1";
+const CACHE_VERSION = "offline-games-v2";
 const CORE_ASSETS = [
     "./",
     "./index.html",
@@ -105,4 +105,9 @@ self.addEventListener("fetch", event => {
     if (url.origin !== self.location.origin) return;
 
     event.respondWith(networkThenCache(request));
+});
+
+self.addEventListener("message", event => {
+    if (!event.data || event.data.type !== "SKIP_WAITING") return;
+    self.skipWaiting();
 });
