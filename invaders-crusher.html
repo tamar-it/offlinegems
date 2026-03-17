@@ -56,6 +56,7 @@
 
 html, body {
     overscroll-behavior: none;
+    overflow: hidden;
 }
 
 body {
@@ -208,6 +209,7 @@ canvas {
     width: 100%;
     height: 100%;
     background: linear-gradient(180deg, #040713, #091530);
+    touch-action: none;
 }
 
 #bonusLabel,
@@ -450,9 +452,9 @@ input[type="checkbox"] {
 
     #app {
         position: relative;
-        width: 100vw;
+        width: 100%;
         max-width: none;
-        height: 100dvh;
+        height: 100%;
         gap: 0;
         grid-template-rows: 1fr;
         padding: 0;
@@ -509,8 +511,8 @@ input[type="checkbox"] {
     }
 
     #gameWrap {
-        width: 100vw !important;
-        height: 100dvh !important;
+        width: 100% !important;
+        height: 100% !important;
         border-radius: 0;
         border-width: 0;
         box-shadow: none;
@@ -567,7 +569,7 @@ input[type="checkbox"] {
     }
 
     #app {
-        width: 100vw;
+        width: 100%;
         max-width: none;
         gap: var(--space-2xs);
         padding: 0 var(--space-2xs) var(--space-2xs);
@@ -3090,14 +3092,19 @@ input[type="checkbox"] {
     function fitGameToViewport() {
         const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
         const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+        const extraBottomGuard = standalone ? 8 : 0;
+        const safeVh = Math.max(220, vh - extraBottomGuard);
         const phonePortrait = vw <= 820 && vh >= vw;
         const landscapePhone = vw <= 920 && vw > vh;
         const aspect = BASE_WORLD_WIDTH / BASE_WORLD_HEIGHT;
         if (phonePortrait) {
+            app.style.width = Math.floor(vw) + "px";
+            app.style.height = Math.floor(safeVh) + "px";
             gameWrap.style.width = vw + "px";
-            gameWrap.style.height = vh + "px";
+            gameWrap.style.height = safeVh + "px";
             canvas.width = Math.floor(vw);
-            canvas.height = Math.floor(vh);
+            canvas.height = Math.floor(safeVh);
             world.width = canvas.width;
             world.height = canvas.height;
             updateGameplayLayout(world.width, world.height, true);
@@ -3109,8 +3116,11 @@ input[type="checkbox"] {
             const appGap = parseFloat(getComputedStyle(app).gap) || 0;
             const headerH = headerEl ? headerEl.offsetHeight : 0;
             const reservedOuter = 8;
-            const availableH = Math.max(180, Math.floor(vh - headerH - appGap - reservedOuter));
+            const availableH = Math.max(180, Math.floor(safeVh - headerH - appGap - reservedOuter));
             const targetW = Math.max(240, Math.floor(app.clientWidth));
+
+            app.style.width = Math.floor(vw) + "px";
+            app.style.height = Math.floor(safeVh) + "px";
 
             gameWrap.style.width = targetW + "px";
             gameWrap.style.height = availableH + "px";
@@ -3134,6 +3144,9 @@ input[type="checkbox"] {
         const maxW = Math.min(app.clientWidth, vw * 0.985, BASE_WORLD_WIDTH);
         const targetW = clamp(Math.min(maxW, availableHeight * aspect), 240, BASE_WORLD_WIDTH);
         const targetH = targetW / aspect;
+
+        app.style.width = Math.floor(targetW) + "px";
+        app.style.height = "auto";
         gameWrap.style.width = targetW + "px";
         gameWrap.style.height = targetH + "px";
         canvas.width = BASE_WORLD_WIDTH;
@@ -3265,17 +3278,25 @@ input[type="checkbox"] {
     canvas.addEventListener("touchstart", event => {
         const touch = event.changedTouches[0];
         if (!touch) return;
+        event.preventDefault();
         pointerDown(touch.clientX, touch.clientY);
-    }, { passive: true });
+    }, { passive: false });
 
     canvas.addEventListener("touchmove", event => {
         const touch = event.changedTouches[0];
         if (!touch) return;
+        event.preventDefault();
         pointerMove(touch.clientX, touch.clientY);
-    }, { passive: true });
+    }, { passive: false });
 
-    canvas.addEventListener("touchend", () => pointerUp(), { passive: true });
-    canvas.addEventListener("touchcancel", () => pointerUp(), { passive: true });
+    canvas.addEventListener("touchend", event => {
+        event.preventDefault();
+        pointerUp();
+    }, { passive: false });
+    canvas.addEventListener("touchcancel", event => {
+        event.preventDefault();
+        pointerUp();
+    }, { passive: false });
 
     window.addEventListener("keydown", event => {
         const key = event.key.toLowerCase();
