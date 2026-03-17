@@ -40,6 +40,7 @@
     --text-dim: rgba(231, 241, 255, 0.7);
     --accent: #ffd93d;
     --danger: #ff7a7a;
+    --runtime-bottom-inset: 0px;
 }
 
 body {
@@ -56,7 +57,7 @@ body {
     height: 100dvh;
     width: 100vw;
     padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(env(safe-area-inset-bottom) + var(--runtime-bottom-inset));
     box-sizing: border-box;
     overflow: hidden;
     font-family: "Trebuchet MS", "Verdana", sans-serif;
@@ -1090,6 +1091,11 @@ function buildCachedGradients() {
 function resizeCanvas() {
     const viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
     const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const runtimeBottomInset = window.visualViewport
+        ? Math.max(0, Math.round(window.innerHeight - (window.visualViewport.height + window.visualViewport.offsetTop)))
+        : 0;
+    document.documentElement.style.setProperty("--runtime-bottom-inset", runtimeBottomInset + "px");
+
     const shellWidth = Math.min(viewportWidth, 1200);
     appShell.style.width = shellWidth + "px";
     appShell.style.height = Math.max(320, Math.floor(viewportHeight)) + "px";
@@ -1116,6 +1122,7 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", resizeCanvas);
+    window.visualViewport.addEventListener("scroll", resizeCanvas);
 }
 resizeCanvas();
 syncSettingsUi();
