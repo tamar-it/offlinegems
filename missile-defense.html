@@ -73,7 +73,8 @@ body {
 canvas {
     background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     display: block;
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    min-height: 0;
 }
 
 #controlDock {
@@ -88,6 +89,7 @@ canvas {
     backdrop-filter: blur(3px);
     min-height: 78px;
     box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 #statsPanel {
@@ -1084,8 +1086,10 @@ function buildCachedGradients() {
 function resizeCanvas() {
     const shellWidth = Math.min(window.innerWidth, 1200);
     appShell.style.width = shellWidth + "px";
-    const dockHeight = controlDock.offsetHeight || 78;
-    canvas.height = Math.max(320, window.innerHeight - dockHeight);
+    // Read the height CSS flex has already allocated to the canvas (avoids
+    // window.innerHeight vs dvh mismatch on mobile that pushes the dock off-screen)
+    const canvasHeight = Math.max(320, canvas.offsetHeight || (window.innerHeight - (controlDock.offsetHeight || 78)));
+    canvas.height = canvasHeight;
     canvas.width = shellWidth;
     cachedCarrierMetrics = _computeCarrierMetrics();
     cachedSeaCityBoundaryX = _computeSeaCityBoundaryX();
