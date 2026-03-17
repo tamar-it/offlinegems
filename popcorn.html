@@ -20,12 +20,14 @@
 <meta name="twitter:image" content="https://offlinegems.com/popcorn-preview.png">
 <style>
 :root {
-    --c0: #050505;
-    --c1: #1f1f1f;
-    --c2: #f2f2f2;
-    --c3: #00d0ff;
+    --c0: #03060a;
+    --c1: #101824;
+    --c2: #f2f8ff;
+    --c3: #14d7ff;
+    --c4: #ffbd59;
+    --glass: rgba(8, 14, 24, 0.66);
     --text: var(--c2);
-    --soft: #9a9a9a;
+    --soft: #97a9c1;
 }
 
 * {
@@ -39,17 +41,46 @@ body {
     font-family: "Trebuchet MS", "Verdana", sans-serif;
     color: var(--text);
     background:
-        radial-gradient(820px 460px at 18% -8%, rgba(0, 208, 255, 0.12), transparent 62%),
-        radial-gradient(760px 420px at 100% -12%, rgba(242, 242, 242, 0.08), transparent 58%),
-        linear-gradient(165deg, var(--c0), var(--c1));
+        radial-gradient(900px 520px at 18% -10%, rgba(20, 215, 255, 0.2), transparent 62%),
+        radial-gradient(880px 520px at 95% -12%, rgba(255, 189, 89, 0.14), transparent 58%),
+        linear-gradient(160deg, var(--c0), var(--c1));
     display: grid;
     place-items: center;
+    overflow-x: hidden;
+}
+
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    pointer-events: none;
+    z-index: -1;
+}
+
+body::before {
+    inset: 0;
+    background-image:
+        linear-gradient(90deg, rgba(20, 215, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(20, 215, 255, 0.04) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.85), transparent 78%);
+}
+
+body::after {
+    width: min(90vw, 980px);
+    height: min(70vh, 620px);
+    top: 6vh;
+    left: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle at center, rgba(20, 215, 255, 0.16), transparent 74%);
+    filter: blur(24px);
 }
 
 #app {
     width: min(92vw, 860px);
     display: flex;
     flex-direction: column;
+    animation: app-enter 420ms ease-out both;
 }
 
 header {
@@ -58,15 +89,22 @@ header {
     align-items: center;
     gap: 12px;
     margin-bottom: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(20, 215, 255, 0.22);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(13, 20, 32, 0.75), rgba(5, 10, 18, 0.82));
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(242, 248, 255, 0.14);
+    backdrop-filter: blur(3px);
 }
 
 h1 {
     margin: 0;
     font-size: clamp(24px, 4vw, 34px);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.05em;
     color: var(--c2);
     text-shadow:
-        0 0 10px rgba(0, 208, 255, 0.28),
+        0 0 8px rgba(20, 215, 255, 0.32),
+        0 0 24px rgba(20, 215, 255, 0.24),
         0 1px 0 rgba(0, 0, 0, 0.45);
     font-family: "Cooper Black", "Fredoka", "Baloo 2", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
     font-weight: 800;
@@ -77,25 +115,28 @@ h1 {
     gap: 8px;
     align-items: center;
     flex-wrap: wrap;
-    color: #d7d7d7;
+    color: #d7e4f6;
     font-weight: 700;
     font-size: 12px;
     letter-spacing: 0.08em;
 }
 
 .hud-item {
-    border: 1px solid rgba(120, 120, 120, 0.6);
-    background: linear-gradient(180deg, rgba(36, 36, 36, 0.92), rgba(10, 10, 10, 0.9));
+    border: 1px solid rgba(20, 215, 255, 0.3);
+    background:
+        linear-gradient(180deg, rgba(19, 34, 54, 0.9), rgba(8, 14, 24, 0.9));
     border-radius: 6px;
     padding: 5px 8px;
     min-height: 28px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    box-shadow: inset 0 1px 0 rgba(242, 248, 255, 0.14);
+    animation: item-in 340ms ease-out both;
 }
 
 .hud-key {
-    color: #8f8f8f;
+    color: #90a5c0;
     font-size: 10px;
 }
 
@@ -106,14 +147,14 @@ h1 {
 }
 
 .hud-value {
-    color: #f2f2f2;
+    color: #f2f8ff;
     font-variant-numeric: tabular-nums;
 }
 
 #tiltCalBtn {
-    border: 1px solid rgba(0, 208, 255, 0.6);
-    background: rgba(0, 208, 255, 0.12);
-    color: #d8f8ff;
+    border: 1px solid rgba(20, 215, 255, 0.55);
+    background: linear-gradient(180deg, rgba(20, 215, 255, 0.2), rgba(20, 215, 255, 0.08));
+    color: #e3f9ff;
     border-radius: 8px;
     padding: 6px 10px;
     font-size: 11px;
@@ -126,9 +167,9 @@ h1 {
 }
 
 .hud-tool-btn {
-    border: 1px solid rgba(0, 208, 255, 0.6);
-    background: rgba(0, 208, 255, 0.12);
-    color: #d8f8ff;
+    border: 1px solid rgba(20, 215, 255, 0.55);
+    background: linear-gradient(180deg, rgba(20, 215, 255, 0.2), rgba(20, 215, 255, 0.08));
+    color: #e3f9ff;
     border-radius: 8px;
     padding: 6px 10px;
     font-size: 11px;
@@ -138,15 +179,18 @@ h1 {
 }
 
 .hud-tool-btn:hover {
-    background: rgba(0, 208, 255, 0.24);
+    background: linear-gradient(180deg, rgba(20, 215, 255, 0.32), rgba(20, 215, 255, 0.14));
 }
 
 #gameWrap {
     position: relative;
-    border: 3px solid #6e6e6e;
+    border: 3px solid rgba(132, 165, 201, 0.9);
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(190, 190, 190, 0.24);
+    box-shadow:
+        0 28px 50px rgba(0, 0, 0, 0.56),
+        0 0 34px rgba(20, 215, 255, 0.18),
+        inset 0 0 0 2px rgba(213, 231, 255, 0.28);
     align-self: center;
 }
 
@@ -169,7 +213,7 @@ canvas {
         transparent 2px,
         transparent 4px
     );
-    opacity: 0.26;
+    opacity: 0.2;
 }
 
 #gameWrap::before {
@@ -177,17 +221,30 @@ canvas {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: radial-gradient(circle at 50% 45%, transparent 45%, rgba(0, 0, 0, 0.28) 100%);
+    background: radial-gradient(circle at 50% 45%, transparent 45%, rgba(0, 0, 0, 0.38) 100%);
 }
 
 #overlay {
     position: absolute;
     inset: 0;
-    background: rgba(8, 17, 10, 0.8);
+    background:
+        radial-gradient(circle at 50% 30%, rgba(20, 215, 255, 0.16), transparent 56%),
+        linear-gradient(180deg, rgba(4, 8, 14, 0.78), rgba(4, 8, 14, 0.9));
     display: grid;
     place-items: center;
     text-align: center;
     padding: 20px;
+}
+
+#overlay > div {
+    width: min(92%, 460px);
+    border: 1px solid rgba(20, 215, 255, 0.34);
+    border-radius: 14px;
+    padding: 18px 16px;
+    background: var(--glass);
+    box-shadow: 0 16px 26px rgba(0, 0, 0, 0.38);
+    backdrop-filter: blur(5px);
+    animation: item-in 320ms ease-out both;
 }
 
 #overlay.hidden {
@@ -197,11 +254,12 @@ canvas {
 #overlay h2 {
     margin: 0 0 10px;
     font-size: clamp(22px, 4vw, 34px);
+    letter-spacing: 0.03em;
 }
 
 #overlay p {
     margin: 0 0 16px;
-    color: #d4d4d4;
+    color: #c0cfdf;
 }
 
 .share-row {
@@ -225,6 +283,7 @@ canvas {
     justify-content: center;
     font-size: 20px;
     line-height: 1;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.34);
 }
 
 .share-btn svg {
@@ -249,28 +308,41 @@ canvas {
 
 button {
     border: 1px solid rgba(242, 242, 242, 0.45);
-    background: rgba(242, 242, 242, 0.12);
+    background: linear-gradient(180deg, rgba(245, 251, 255, 0.14), rgba(245, 251, 255, 0.06));
     color: #f2f2f2;
     font: inherit;
     padding: 10px 16px;
     border-radius: 10px;
     cursor: pointer;
+    transition: background-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
 }
 
 button:hover {
-    background: rgba(242, 242, 242, 0.22);
+    background: linear-gradient(180deg, rgba(245, 251, 255, 0.24), rgba(245, 251, 255, 0.12));
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button:focus-visible {
+    outline: 2px solid rgba(0, 208, 255, 0.9);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(8, 17, 10, 0.8);
 }
 
 #hint {
     margin-top: 10px;
     color: var(--soft);
     font-size: 13px;
+    padding: 6px 2px;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
 }
 
 #settingsPanel {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.58);
+    background: rgba(2, 4, 8, 0.72);
     display: grid;
     place-items: center;
     z-index: 30;
@@ -282,16 +354,18 @@ button:hover {
 
 #settingsCard {
     width: min(90vw, 340px);
-    background: linear-gradient(180deg, rgba(26, 26, 26, 0.95), rgba(10, 10, 10, 0.95));
-    border: 1px solid rgba(242, 242, 242, 0.25);
+    background: linear-gradient(180deg, rgba(16, 26, 40, 0.95), rgba(7, 13, 24, 0.96));
+    border: 1px solid rgba(20, 215, 255, 0.34);
     border-radius: 12px;
     padding: 14px;
     box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
 }
 
 #settingsCard h3 {
     margin: 0 0 10px;
     font-size: 18px;
+    letter-spacing: 0.04em;
 }
 
 .setting-row {
@@ -309,19 +383,51 @@ button:hover {
 }
 
 #powerLabel {
-    color: #00d0ff;
+    color: #14d7ff;
 }
 
 #backLink {
-    color: #f2f2f2;
+    color: #ffe0aa;
     text-decoration: none;
-    border-bottom: 1px dashed rgba(214, 232, 255, 0.7);
+    border-bottom: 1px dashed rgba(255, 224, 170, 0.8);
+}
+
+#backLink:hover {
+    color: #fff4dd;
+}
+
+.hud-item:nth-child(1) { animation-delay: 30ms; }
+.hud-item:nth-child(2) { animation-delay: 70ms; }
+.hud-item:nth-child(3) { animation-delay: 110ms; }
+.hud-item:nth-child(4) { animation-delay: 150ms; }
+
+@keyframes app-enter {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.99);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes item-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @media (max-aspect-ratio: 1/1) {
     header {
         flex-direction: column;
         align-items: flex-start;
+        padding: 8px 10px;
     }
 
     #tiltCalBtn,
@@ -376,6 +482,18 @@ button:hover {
         margin-top: 6px;
         font-size: 11px;
         line-height: 1.2;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    button {
+        transition: none;
+    }
+
+    #app,
+    .hud-item,
+    #overlay > div {
+        animation: none;
     }
 }
 </style>
@@ -477,6 +595,7 @@ const headerEl = document.querySelector("#app > header");
 const gameWrap = document.getElementById("gameWrap");
 
 const SETTINGS_KEY = "popcornSettings";
+const BACK_LINK_HTML = '<a id="backLink" href="index.html">Back to hub</a>.';
 const BASE_WORLD_WIDTH = 800;
 const BASE_WORLD_HEIGHT = 520;
 const settings = {
@@ -504,6 +623,15 @@ const PALETTE_4 = {
     mid: "#1f1f1f",
     hi: "#f2f2f2",
     accent: "#00d0ff",
+    rackTop: "#223653",
+    rackBottom: "#0b1220",
+    rackStroke: "rgba(182, 216, 255, 0.5)",
+    rackText: "#f2f8ff",
+    rackSubText: "#9ec8ff",
+    promptText: "rgba(242, 248, 255, 0.9)",
+    ballCore: "rgba(242, 248, 255, 0.95)",
+    ballGlow: "rgba(20, 215, 255, 0.72)",
+    ballSpark: "rgba(242, 248, 255, 0.78)",
     bricks: ["#00d0ff", "#4ef3c9", "#ff2e88", "#ffd166"],
     lives: "#f2f2f2",
     starA: "#f2f2f2",
@@ -515,6 +643,15 @@ const PALETTE_8 = {
     mid: "#1f1f1f",
     hi: "#f2f2f2",
     accent: "#00d0ff",
+    rackTop: "#2d3b5a",
+    rackBottom: "#101a2b",
+    rackStroke: "rgba(255, 232, 168, 0.55)",
+    rackText: "#f6fbff",
+    rackSubText: "#ffe58a",
+    promptText: "rgba(255, 244, 210, 0.94)",
+    ballCore: "rgba(255, 250, 238, 0.96)",
+    ballGlow: "rgba(255, 79, 216, 0.65)",
+    ballSpark: "rgba(255, 255, 255, 0.82)",
     bricks: ["#ff4f4f", "#00d0ff", "#ffe066", "#58ff7d"],
     lives: "#ffe066",
     starA: "#f2f2f2",
@@ -526,6 +663,15 @@ const PALETTE_MODERN = {
     mid: "#1b1f38",
     hi: "#f5f7ff",
     accent: "#6df2ff",
+    rackTop: "#2b2850",
+    rackBottom: "#141a33",
+    rackStroke: "rgba(172, 245, 255, 0.55)",
+    rackText: "#f5f7ff",
+    rackSubText: "#9df6ff",
+    promptText: "rgba(223, 247, 255, 0.92)",
+    ballCore: "rgba(247, 251, 255, 0.96)",
+    ballGlow: "rgba(109, 242, 255, 0.72)",
+    ballSpark: "rgba(245, 247, 255, 0.82)",
     bricks: ["#7c5cff", "#6df2ff", "#ff6ea8", "#9bff6d"],
     lives: "#ffd96a",
     starA: "#f5f7ff",
@@ -576,6 +722,7 @@ let orientationBound = false;
 let lastFrameTime = 0;
 let orientationCalibrateTimer = null;
 let runtimeFailed = false;
+let prefersReducedMotion = false;
 
 const keys = { left: false, right: false };
 const brickCols = 12;
@@ -692,6 +839,10 @@ function activePowerText(now) {
     return labels.length ? labels.join(" + ") : "none";
 }
 
+function setHint(contentHtml) {
+    hint.innerHTML = `${contentHtml} ${BACK_LINK_HTML}`;
+}
+
 function formatScore(value) {
     return String(Math.max(0, Math.floor(value))).padStart(6, "0");
 }
@@ -770,13 +921,24 @@ function setShareVisible(isVisible) {
     shareRow.classList.toggle("hidden", !isVisible);
 }
 
+function buildShareUrl(platform, text, emoji, urlEncoded) {
+    if (platform === "x") {
+        return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text + " " + emoji)}&url=${urlEncoded}`;
+    }
+    if (platform === "wa") {
+        return `https://wa.me/?text=${encodeURIComponent(location.href + "\n" + text)}`;
+    }
+    if (platform === "tg") {
+        return `https://t.me/share/url?url=${urlEncoded}&text=${encodeURIComponent(text + " " + emoji)}`;
+    }
+    return "";
+}
+
 function shareScore(platform) {
     const stage = world.stageIndex + 1;
     const text = `Popcorn score: ${world.score} points on stage ${stage}. Can you beat this retro run?`;
     const emoji = "🍿🎮✨";
     const url = encodeURIComponent(location.href);
-    let shareUrl = "";
-
     if (platform === "copy") {
         const copyText = `${text} ${emoji}\n${location.href}`;
         navigator.clipboard.writeText(copyText).then(() => {
@@ -788,15 +950,8 @@ function shareScore(platform) {
         return;
     }
 
-    if (platform === "x") {
-        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text + " " + emoji)}&url=${url}`;
-    }
-    if (platform === "wa") {
-        shareUrl = `https://wa.me/?text=${encodeURIComponent(location.href + "\n" + text)}`;
-    }
-    if (platform === "tg") {
-        shareUrl = `https://t.me/share/url?url=${url}&text=${encodeURIComponent(text + " " + emoji)}`;
-    }
+    const shareUrl = buildShareUrl(platform, text, emoji, url);
+    if (!shareUrl) return;
 
     window.open(shareUrl, "_blank");
 }
@@ -959,7 +1114,7 @@ function startNewGame() {
     resetPaddleAndBall();
     setHud();
     showOverlay("Stage 1: Calibration", "Tilt to center, then clear this mini pattern. Tap Calibrate Tilt if drifted.", "Start");
-    hint.innerHTML = "Stage 1 (calibration): tilt gently to align. <strong>Space</strong> launch, <strong>R</strong> restart. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.";
+    setHint("Stage 1 (calibration): tilt gently to align. <strong>Space</strong> launch, <strong>R</strong> restart.");
 }
 
 function loseLife() {
@@ -1003,7 +1158,7 @@ function checkWin() {
                 nextStage.hint,
                 `Start Stage ${world.stageIndex + 1}`
             );
-            hint.innerHTML = `Stage ${world.stageIndex + 1}: ${nextStage.name} active. <strong>Space</strong> launch, <strong>R</strong> restart. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.`;
+            setHint(`Stage ${world.stageIndex + 1}: ${nextStage.name} active. <strong>Space</strong> launch, <strong>R</strong> restart.`);
             return;
         }
         world.running = false;
@@ -1138,7 +1293,7 @@ function calibrateTilt() {
     if (!tilt.enabled) return;
     tilt.center = tilt.rawGamma;
     tilt.gamma = 0;
-    hint.innerHTML = "Tilt calibrated. Controls: tilt your phone or use keyboard arrows. <strong>Space</strong> launch, <strong>R</strong> restart. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.";
+    setHint("Tilt calibrated. Controls: tilt your phone or use keyboard arrows. <strong>Space</strong> launch, <strong>R</strong> restart.");
 }
 
 function autoCalibrateTiltAfterRotate() {
@@ -1149,7 +1304,7 @@ function autoCalibrateTiltAfterRotate() {
     // Give sensors a moment to settle after portrait/landscape switch.
     orientationCalibrateTimer = setTimeout(() => {
         calibrateTilt();
-        hint.innerHTML = "Tilt auto-calibrated after rotate. Controls: tilt your phone or use keyboard arrows. <strong>Space</strong> launch, <strong>R</strong> restart. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.";
+        setHint("Tilt auto-calibrated after rotate. Controls: tilt your phone or use keyboard arrows. <strong>Space</strong> launch, <strong>R</strong> restart.");
     }, 220);
 }
 
@@ -1165,11 +1320,11 @@ async function enableTiltControl() {
         try {
             const permission = await DeviceOrientationEvent.requestPermission();
             if (permission !== "granted") {
-                hint.innerHTML = "Tilt permission denied. Keyboard arrows are still available. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.";
+                setHint("Tilt permission denied. Keyboard arrows are still available.");
                 return;
             }
         } catch (_error) {
-            hint.innerHTML = "Tilt permission blocked. Keyboard arrows are still available. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.";
+            setHint("Tilt permission blocked. Keyboard arrows are still available.");
             return;
         }
     }
@@ -1399,7 +1554,7 @@ function drawBricks() {
             ctx.fillRect(brick.x, brick.y, brick.w, brick.h);
             ctx.strokeStyle = "rgba(242, 242, 242, 0.8)";
             ctx.strokeRect(brick.x + 1, brick.y + 1, brick.w - 2, brick.h - 2);
-            ctx.fillStyle = "rgba(0, 208, 255, 0.55)";
+            ctx.fillStyle = palette.ballGlow;
             ctx.fillRect(brick.x + 4, brick.y + 4, 3, 3);
             ctx.fillRect(brick.x + brick.w - 7, brick.y + 4, 3, 3);
             ctx.fillRect(brick.x + 4, brick.y + brick.h - 7, 3, 3);
@@ -1464,16 +1619,17 @@ function draw() {
     ctx.clearRect(0, 0, world.width, world.height);
 
     const topGrad = ctx.createLinearGradient(0, 0, 0, world.playTop);
-    topGrad.addColorStop(0, palette.mid);
-    topGrad.addColorStop(1, palette.bg);
+    topGrad.addColorStop(0, palette.rackTop);
+    topGrad.addColorStop(1, palette.rackBottom);
     ctx.fillStyle = topGrad;
     ctx.fillRect(0, 0, world.width, world.playTop);
-    ctx.strokeStyle = "rgba(242, 242, 242, 0.4)";
+    ctx.strokeStyle = palette.rackStroke;
     ctx.strokeRect(0.5, 0.5, world.width - 1, world.playTop - 1);
 
-    ctx.fillStyle = palette.hi;
+    ctx.fillStyle = palette.rackText;
     ctx.font = "bold 11px Verdana, sans-serif";
     ctx.fillText(`1UP ${formatScore(world.score)}`, 10, 17);
+    ctx.fillStyle = palette.rackSubText;
     ctx.fillText(`STAGE ${world.stageIndex + 1}`, world.width / 2 - 34, 17);
     ctx.fillStyle = palette.lives;
     ctx.fillText(`LIVES ${Math.max(0, world.lives)}`, world.width - 76, 17);
@@ -1501,23 +1657,27 @@ function draw() {
 
     for (const ball of balls) {
         const glow = ctx.createRadialGradient(ball.x, ball.y, 1, ball.x, ball.y, ball.r + 5);
-        glow.addColorStop(0, "rgba(242, 242, 242, 0.95)");
-        glow.addColorStop(0.7, "rgba(0, 208, 255, 0.72)");
-        glow.addColorStop(1, "rgba(0, 208, 255, 0)");
+        glow.addColorStop(0, palette.ballCore);
+        glow.addColorStop(0.7, palette.ballGlow);
+        glow.addColorStop(1, "rgba(20, 215, 255, 0)");
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
         ctx.fillStyle = glow;
         ctx.fill();
         ctx.beginPath();
         ctx.arc(ball.x - 2, ball.y - 2, 2, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(242, 242, 242, 0.72)";
+        ctx.fillStyle = palette.ballSpark;
         ctx.fill();
     }
 
     if (world.waitingServe && world.lives > 0) {
-        ctx.fillStyle = "rgba(242, 242, 242, 0.85)";
+        const pulse = prefersReducedMotion ? 1 : 0.72 + 0.28 * (0.5 + 0.5 * Math.sin(now * 0.01));
+        ctx.save();
+        ctx.globalAlpha = pulse;
+        ctx.fillStyle = palette.promptText;
         ctx.font = "16px Trebuchet MS, sans-serif";
         ctx.fillText("PRESS SPACE", world.width / 2 - 58, world.height - 72);
+        ctx.restore();
     }
 }
 
@@ -1571,6 +1731,19 @@ window.addEventListener("keyup", event => {
 canvas.addEventListener("mousemove", event => {
     setPaddleByClientX(event.clientX);
 });
+
+canvas.addEventListener("touchstart", event => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    setPaddleByClientX(touch.clientX);
+}, { passive: true });
+
+canvas.addEventListener("touchmove", event => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    event.preventDefault();
+    setPaddleByClientX(touch.clientX);
+}, { passive: false });
 
 startBtn.addEventListener("click", () => {
     if (runtimeFailed) {
@@ -1632,7 +1805,7 @@ canvas.addEventListener("click", () => {
 });
 
 if (tilt.available) {
-    hint.innerHTML = "Controls: tilt your phone or use keyboard arrows. <strong>Space</strong> launch, <strong>R</strong> restart. <a id=\"backLink\" href=\"index.html\">Back to hub</a>.";
+    setHint("Controls: tilt your phone or use keyboard arrows. <strong>Space</strong> launch, <strong>R</strong> restart.");
     window.addEventListener("orientationchange", autoCalibrateTiltAfterRotate, { passive: true });
 }
 
@@ -1640,6 +1813,14 @@ window.addEventListener("resize", fitGameToViewport, { passive: true });
 window.addEventListener("resize", syncResponsiveButtonLabels, { passive: true });
 if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", fitGameToViewport, { passive: true });
+}
+
+if (typeof window.matchMedia === "function") {
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    prefersReducedMotion = reducedMotionQuery.matches;
+    reducedMotionQuery.addEventListener("change", event => {
+        prefersReducedMotion = event.matches;
+    });
 }
 
 buildBricks();

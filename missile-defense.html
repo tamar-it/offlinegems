@@ -29,9 +29,25 @@
 <meta name="twitter:image"      content="https://offlinegems.com/missile-defense.png">
 
 <style>
+:root {
+    --bg-0: #050810;
+    --bg-1: #0f1a30;
+    --panel-0: rgba(13, 24, 45, 0.92);
+    --panel-1: rgba(8, 15, 28, 0.94);
+    --line-soft: rgba(124, 191, 255, 0.3);
+    --line-hot: rgba(255, 131, 131, 0.45);
+    --text: #edf4ff;
+    --text-dim: rgba(231, 241, 255, 0.7);
+    --accent: #ffd93d;
+    --danger: #ff7a7a;
+}
+
 body {
     margin: 0;
-    background: #111;
+    background:
+        radial-gradient(900px 500px at 15% -10%, rgba(124, 191, 255, 0.16), transparent 64%),
+        radial-gradient(700px 430px at 90% -8%, rgba(255, 131, 131, 0.14), transparent 60%),
+        linear-gradient(165deg, var(--bg-0), var(--bg-1));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -39,17 +55,19 @@ body {
     height: 100dvh;
     width: 100vw;
     overflow: hidden;
-    font-family: sans-serif;
-    color: white;
+    font-family: "Trebuchet MS", "Verdana", sans-serif;
+    color: var(--text);
 }
 
 #appShell {
     width: min(100vw, 1200px);
     height: 100%;
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
+    animation: shell-enter 350ms ease-out both;
 }
 
 canvas {
@@ -64,8 +82,10 @@ canvas {
     justify-content: space-between;
     gap: 12px;
     padding: 10px 14px;
-    background: linear-gradient(180deg, rgba(26, 26, 46, 0.98), rgba(15, 52, 96, 0.98));
-    border-top: 1px solid rgba(255, 107, 107, 0.35);
+    background: linear-gradient(180deg, var(--panel-0), var(--panel-1));
+    border-top: 1px solid var(--line-hot);
+    box-shadow: inset 0 1px 0 rgba(230, 240, 255, 0.1);
+    backdrop-filter: blur(3px);
     min-height: 78px;
     box-sizing: border-box;
 }
@@ -73,36 +93,32 @@ canvas {
 #statsPanel {
     display: flex;
     gap: 20px;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--text-dim);
     font-size: 14px;
     flex: 1;
 }
 
-#stat {
+.stat {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-#stat-label {
+.stat-label {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(209, 225, 246, 0.65);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-#stat-value {
+.stat-value {
     font-size: 20px;
     font-weight: bold;
-    color: #ffd93d;
+    color: var(--accent);
 }
 
-#stat-health {
-    color: #ff6b6b;
-}
-
-#stat-ammo {
-    color: #4ecdc4;
+.stat-health {
+    color: var(--danger);
 }
 
 #controlButtons {
@@ -114,20 +130,32 @@ canvas {
     width: 44px;
     height: 44px;
     padding: 0;
-    border: 1px solid rgba(255, 107, 107, 0.45);
-    border-radius: 8px;
-    background: rgba(255, 107, 107, 0.12);
-    color: #ffd9d9;
+    border: 1px solid var(--line-hot);
+    border-radius: 10px;
+    background: linear-gradient(180deg, rgba(255, 131, 131, 0.2), rgba(255, 131, 131, 0.08));
+    color: #ffe3e3;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     font-size: 22px;
     line-height: 1;
+    transition: transform 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
 }
 
 .ctrl-btn:active {
     transform: scale(0.97);
+}
+
+.ctrl-btn:hover {
+    background: linear-gradient(180deg, rgba(255, 131, 131, 0.28), rgba(255, 131, 131, 0.14));
+    box-shadow: 0 0 0 2px rgba(255, 131, 131, 0.1);
+}
+
+.ctrl-btn:focus-visible,
+.btn:focus-visible {
+    outline: 2px solid rgba(124, 191, 255, 0.95);
+    outline-offset: 2px;
 }
 
 #settingsPanel {
@@ -136,8 +164,8 @@ canvas {
     left: 50%;
     transform: translate(-50%, -50%);
     width: min(90vw, 320px);
-    background: rgba(26, 26, 46, 0.96);
-    border: 1px solid rgba(255, 107, 107, 0.5);
+    background: rgba(12, 22, 39, 0.96);
+    border: 1px solid var(--line-hot);
     border-radius: 12px;
     box-shadow: 0 0 28px rgba(255, 107, 107, 0.2);
     padding: 16px;
@@ -147,7 +175,7 @@ canvas {
 
 #settingsPanel h3 {
     margin: 0 0 14px 0;
-    color: #ff6b6b;
+    color: var(--danger);
 }
 
 .setting-row {
@@ -176,8 +204,8 @@ canvas {
     left: 50%;
     transform: translate(-50%, -50%);
     width: min(92vw, 420px);
-    background: rgba(18, 24, 42, 0.97);
-    border: 1px solid rgba(125, 190, 255, 0.45);
+    background: rgba(12, 22, 39, 0.97);
+    border: 1px solid var(--line-soft);
     border-radius: 12px;
     box-shadow: 0 0 30px rgba(125, 190, 255, 0.18);
     padding: 16px;
@@ -187,12 +215,12 @@ canvas {
 
 #guidePanel h3 {
     margin: 0 0 12px 0;
-    color: #b8dcff;
+    color: #c7e3ff;
 }
 
 #guidePanel p,
 #guidePanel li {
-    color: rgba(240, 245, 255, 0.92);
+    color: rgba(240, 246, 255, 0.9);
     font-size: 14px;
     line-height: 1.35;
 }
@@ -224,19 +252,19 @@ canvas {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(26, 26, 46, 0.95);
+    background: rgba(10, 18, 34, 0.95);
     padding: 40px;
     border-radius: 16px;
     text-align: center;
-    box-shadow: 0 0 30px rgba(255, 107, 107, 0.3);
-    border: 1px solid #ff6b6b;
+    box-shadow: 0 0 30px rgba(255, 131, 131, 0.26);
+    border: 1px solid var(--danger);
     z-index: 10;
 }
 
 #uiOverlay h1 {
     margin-top: 0;
-    color: #ff6b6b;
-    text-shadow: 0 0 10px #ff6b6b;
+    color: var(--danger);
+    text-shadow: 0 0 10px rgba(255, 122, 122, 0.9);
 }
 
 #uiOverlay h2 {
@@ -253,11 +281,15 @@ canvas {
     cursor: pointer;
     color: white;
     margin: 5px;
-    transition: transform 0.1s;
+    transition: transform 120ms ease, filter 120ms ease;
 }
 
 .btn:active {
     transform: scale(0.95);
+}
+
+.btn:hover {
+    filter: brightness(1.06);
 }
 
 .btn-icon {
@@ -295,6 +327,53 @@ canvas {
 #installBtn {
     display: none;
 }
+
+@keyframes shell-enter {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 720px) {
+    #controlDock {
+        gap: 8px;
+        padding: 8px 10px;
+        min-height: 70px;
+    }
+
+    #statsPanel {
+        gap: 10px;
+        font-size: 12px;
+    }
+
+    .stat-value {
+        font-size: 16px;
+    }
+
+    #controlButtons {
+        gap: 6px;
+    }
+
+    .ctrl-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #appShell,
+    .ctrl-btn,
+    .btn {
+        animation: none;
+        transition: none;
+    }
+}
 </style>
 </head>
 
@@ -319,6 +398,7 @@ canvas {
     </div>
     <div id="controlButtons">
         <button id="newGameBtn" class="ctrl-btn" type="button" aria-label="New Game" title="New Game">♻️</button>
+        <button id="pauseBtn" class="ctrl-btn" type="button" aria-label="Pause game" title="Pause (P)">⏸️</button>
         <button id="guideBtn" class="ctrl-btn" type="button" aria-label="Game Guide" title="Game Guide">📖</button>
         <button id="volumeBtn" class="ctrl-btn" type="button" aria-label="Toggle sound" title="Toggle Sound">🔊</button>
         <button id="settingsBtn" class="ctrl-btn" type="button" aria-label="Settings" title="Settings">⚙️</button>
@@ -345,6 +425,7 @@ canvas {
         <li>Use your Iron Dome launcher to intercept missiles.</li>
         <li>Friendly F-35 jets and the carrier can help intercept threats.</li>
         <li>Complete all level missions to win the game.</li>
+        <li>Keyboard: <strong>Space</strong> shoot, <strong>P</strong> pause, <strong>N</strong> new game, <strong>M</strong> mute.</li>
     </ul>
     <button id="closeGuideBtn" class="ctrl-btn close-guide" type="button">Close Guide</button>
 </div>
@@ -390,6 +471,7 @@ const ctx = canvas.getContext("2d");
 const appShell = document.getElementById("appShell");
 const controlDock = document.getElementById("controlDock");
 const newGameBtn = document.getElementById("newGameBtn");
+const pauseBtn = document.getElementById("pauseBtn");
 const guideBtn = document.getElementById("guideBtn");
 const volumeBtn = document.getElementById("volumeBtn");
 const settingsBtn = document.getElementById("settingsBtn");
@@ -495,11 +577,49 @@ const EXPLOSION_EMOJI = "💥";
 const CARRIER_EMOJI = "🛳️";
 const COMPACT_LAYOUT_MAX_WIDTH = 768;
 
+function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function drawEmoji(x, y, emoji, size = 32) {
+    ctx.font = size + "px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(emoji, x, y);
+}
+
+function drawOrientedEmoji(x, y, emoji, angle = 0, scaleX = 1, size = 32) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.scale(scaleX, 1);
+    ctx.font = size + "px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(emoji, 0, 0);
+    ctx.restore();
+}
+
+function drawHostile(missile) {
+    if (missile.type === "drone") {
+        const face = missile.vx < 0 ? -1 : 1;
+        drawOrientedEmoji(missile.x, missile.y, missile.typeData.emoji, 0, face, 32);
+        return;
+    }
+
+    // Rocket/ballistic emoji points diagonally by default, so offset by +45deg.
+    const headingAngle = Math.atan2(missile.vy, missile.vx) + Math.PI / 4;
+    drawOrientedEmoji(missile.x, missile.y, missile.typeData.emoji, headingAngle, 1, 32);
+}
+
+function getCanvasPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
 function useCompactCoastLayout() {
     return canvas.width <= COMPACT_LAYOUT_MAX_WIDTH;
 }
 
-function getCarrierMetrics() {
+function _computeCarrierMetrics() {
     if (useCompactCoastLayout()) {
         return {
             fontSize: 50,
@@ -530,26 +650,29 @@ function getCarrierMetrics() {
         flagHeight: 12
     };
 }
+let cachedCarrierMetrics = null;
+function getCarrierMetrics() { return cachedCarrierMetrics; }
 
-function getSeaCityBoundaryX() {
+function _computeSeaCityBoundaryX() {
     if (useCompactCoastLayout()) {
-        const carrierMetrics = getCarrierMetrics();
         const maxCompactSeaWidth = canvas.width / 3;
-        const desiredSeaWidth = carrierMetrics.bodyWidth + 18;
+        const desiredSeaWidth = cachedCarrierMetrics.bodyWidth + 18;
         return Math.min(maxCompactSeaWidth, desiredSeaWidth);
     }
 
     return Math.max(220, canvas.width * 0.24);
 }
+let cachedSeaCityBoundaryX = 0;
+function getSeaCityBoundaryX() { return cachedSeaCityBoundaryX; }
 
 function smoothStep01(t) {
     const clamped = Math.max(0, Math.min(1, t));
     return clamped * clamped * (3 - 2 * clamped);
 }
 
-function getGroundYAt(x) {
+function _rawGroundYAt(x) {
     const seaTop = canvas.height - 56;
-    const boundaryX = getSeaCityBoundaryX();
+    const boundaryX = cachedSeaCityBoundaryX;
     const coastFlatY = seaTop - 24;
     const peakY = seaTop - 84;
     const farRightFlatY = seaTop - 30;
@@ -576,12 +699,22 @@ function getGroundYAt(x) {
     return farRightFlatY;
 }
 
+let groundYCache = null;
+function buildGroundCache() {
+    const w = canvas.width | 0;
+    groundYCache = new Float32Array(w + 2);
+    for (let i = 0; i <= w + 1; i++) groundYCache[i] = _rawGroundYAt(i);
+}
+function getGroundYAt(x) {
+    const xi = x < 0 ? 0 : x > canvas.width ? canvas.width | 0 : x | 0;
+    return groundYCache ? groundYCache[xi] : _rawGroundYAt(x);
+}
+
 let gameOver = false;
 let score = 0;
 let kills = 0;
 let health = INITIAL_HEALTH;
 let wave = 1;
-let enemiesKilled = 0;
 let frameCount = 0;
 let levelKills = 0;
 let toastQueue = [];
@@ -600,6 +733,11 @@ let mouseY = 0;
 let isTouchDevice = false;
 let touchAimActive = false;
 let installPromptEvent = null;
+let manifestObjectUrl = null;
+let isPaused = false;
+let pauseLockedByPanel = false;
+let screenShake = 0;
+let impactFlash = 0;
 
 function loadSettings() {
     try {
@@ -613,7 +751,11 @@ function loadSettings() {
 }
 
 function saveSettings() {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch (_error) {
+        // Ignore storage failures (private browsing, quota, etc.).
+    }
 }
 
 function syncSettingsUi() {
@@ -624,22 +766,102 @@ function syncSettingsUi() {
 }
 
 function openSettings() {
-    guidePanel.style.display = "none";
+    if (!isPaused && !gameOver) {
+        togglePause(true);
+        pauseLockedByPanel = true;
+    }
+    setPanelVisibility("settings");
     syncSettingsUi();
-    settingsBackdrop.style.display = "block";
-    settingsPanel.style.display = "block";
 }
 
 function openGuide() {
-    settingsPanel.style.display = "none";
-    settingsBackdrop.style.display = "block";
-    guidePanel.style.display = "block";
+    if (!isPaused && !gameOver) {
+        togglePause(true);
+        pauseLockedByPanel = true;
+    }
+    setPanelVisibility("guide");
 }
 
 function closeSettings() {
-    settingsBackdrop.style.display = "none";
-    settingsPanel.style.display = "none";
-    guidePanel.style.display = "none";
+    setPanelVisibility("none");
+    if (pauseLockedByPanel && !gameOver) {
+        togglePause(false);
+    }
+    pauseLockedByPanel = false;
+}
+
+function setPanelVisibility(panel) {
+    const showSettings = panel === "settings";
+    const showGuide = panel === "guide";
+    settingsBackdrop.style.display = showSettings || showGuide ? "block" : "none";
+    settingsPanel.style.display = showSettings ? "block" : "none";
+    guidePanel.style.display = showGuide ? "block" : "none";
+}
+
+function buildShareUrl(platform, text, encodedUrl) {
+    if (platform === "x") {
+        return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodedUrl}`;
+    }
+    if (platform === "wa") {
+        return `https://wa.me/?text=${encodeURIComponent(`${location.href}\n${text}`)}`;
+    }
+    if (platform === "tg") {
+        return `https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent(text)}`;
+    }
+    return "";
+}
+
+function announceInstallHelp() {
+    alert("To save this game as a web app on iPhone or iPad, open the browser share menu and choose Add to Home Screen.");
+}
+
+function isBlockingUiOpen() {
+    return settingsPanel.style.display === "block" ||
+        guidePanel.style.display === "block" ||
+        uiOverlay.style.display === "block";
+}
+
+function updatePauseButtonUi() {
+    pauseBtn.textContent = isPaused ? "▶️" : "⏸️";
+    pauseBtn.title = isPaused ? "Resume (P)" : "Pause (P)";
+    pauseBtn.setAttribute("aria-label", isPaused ? "Resume game" : "Pause game");
+    pauseBtn.setAttribute("aria-pressed", String(isPaused));
+}
+
+function togglePause(forceState) {
+    if (gameOver) return;
+    const next = typeof forceState === "boolean" ? forceState : !isPaused;
+    if (next === isPaused) return;
+    isPaused = next;
+    updatePauseButtonUi();
+    enqueueToast(isPaused ? "Paused" : "Resumed", isPaused ? "#ffd9a3" : "#b8dcff", 72);
+}
+
+function triggerHitFeedback(intensity = 1) {
+    const clamped = Math.max(0, Math.min(2.5, intensity));
+    screenShake = Math.min(10, screenShake + clamped * 2.4);
+    impactFlash = Math.min(0.4, impactFlash + clamped * 0.08);
+}
+
+function getShakeOffset() {
+    if (screenShake < 0.2) return { x: 0, y: 0 };
+    return {
+        x: (Math.random() * 2 - 1) * screenShake,
+        y: (Math.random() * 2 - 1) * screenShake
+    };
+}
+
+function decayFeedback(frameScale) {
+    const s = Math.max(0.1, frameScale);
+    impactFlash = Math.max(0, impactFlash - 0.012 * s);
+    screenShake *= Math.pow(0.84, s);
+}
+
+function revokeOldManifestUrl() {
+    if (manifestObjectUrl) {
+        URL.revokeObjectURL(manifestObjectUrl);
+        manifestObjectUrl = null;
+    }
 }
 
 function getCurrentMissionGoal() {
@@ -702,7 +924,6 @@ function drawMissionToast() {
 function handleMissionProgress(pointsAwarded) {
     score += pointsAwarded;
     kills++;
-    enemiesKilled++;
     levelKills++;
 
     if (levelKills < getCurrentMissionGoal()) return;
@@ -727,7 +948,7 @@ function ensureAudioContext() {
         audioContext = new AudioCtx();
     }
     if (audioContext.state === "suspended") {
-        audioContext.resume();
+        audioContext.resume().catch(() => {});
     }
     return audioContext;
 }
@@ -784,7 +1005,9 @@ function buildWebAppManifest() {
         ]
     };
     const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
-    manifestLink.href = URL.createObjectURL(blob);
+    revokeOldManifestUrl();
+    manifestObjectUrl = URL.createObjectURL(blob);
+    manifestLink.href = manifestObjectUrl;
 }
 
 function updateInstallButton() {
@@ -821,12 +1044,53 @@ async function registerWebAppSupport() {
     updateInstallButton();
 }
 
+let cachedSeaGradient = null, cachedLandGradient = null, cachedSandGradient = null, cachedRockGradient = null, cachedHaze = null;
+let cachedSandEnd = 0, cachedRockyStart = 0, cachedRockyEnd = 0;
+function buildCachedGradients() {
+    const seaTop = canvas.height - 56;
+    const bx = cachedSeaCityBoundaryX;
+    cachedSandEnd = Math.min(canvas.width * 0.5, bx + 230);
+    cachedRockyStart = canvas.width * 0.64;
+    cachedRockyEnd = canvas.width * 0.9;
+    const sandEnd = cachedSandEnd;
+    const rockyStart = cachedRockyStart;
+    const rockyEnd = cachedRockyEnd;
+
+    cachedSeaGradient = ctx.createLinearGradient(0, seaTop, 0, canvas.height);
+    cachedSeaGradient.addColorStop(0, "rgba(27, 86, 140, 0.45)");
+    cachedSeaGradient.addColorStop(1, "rgba(15, 58, 102, 0.85)");
+
+    cachedLandGradient = ctx.createLinearGradient(bx, seaTop - 120, canvas.width, canvas.height);
+    cachedLandGradient.addColorStop(0, "#b8a77a");
+    cachedLandGradient.addColorStop(0.42, "#9d8d68");
+    cachedLandGradient.addColorStop(0.76, "#7f7c70");
+    cachedLandGradient.addColorStop(1, "#9d916f");
+
+    cachedSandGradient = ctx.createLinearGradient(bx, seaTop - 40, sandEnd, seaTop + 20);
+    cachedSandGradient.addColorStop(0, "rgba(221, 199, 143, 0.95)");
+    cachedSandGradient.addColorStop(1, "rgba(194, 165, 106, 0.85)");
+
+    cachedRockGradient = ctx.createLinearGradient(rockyStart, seaTop - 120, rockyEnd, seaTop + 10);
+    cachedRockGradient.addColorStop(0, "rgba(110, 108, 103, 0.84)");
+    cachedRockGradient.addColorStop(0.5, "rgba(86, 84, 80, 0.9)");
+    cachedRockGradient.addColorStop(1, "rgba(125, 119, 108, 0.78)");
+
+    cachedHaze = ctx.createLinearGradient(bx, seaTop - 130, canvas.width, seaTop + 18);
+    cachedHaze.addColorStop(0, "rgba(255, 236, 196, 0.08)");
+    cachedHaze.addColorStop(0.5, "rgba(255, 221, 168, 0.05)");
+    cachedHaze.addColorStop(1, "rgba(220, 216, 205, 0.04)");
+}
+
 function resizeCanvas() {
     const shellWidth = Math.min(window.innerWidth, 1200);
     appShell.style.width = shellWidth + "px";
     const dockHeight = controlDock.offsetHeight || 78;
     canvas.height = Math.max(320, window.innerHeight - dockHeight);
     canvas.width = shellWidth;
+    cachedCarrierMetrics = _computeCarrierMetrics();
+    cachedSeaCityBoundaryX = _computeSeaCityBoundaryX();
+    buildGroundCache();
+    buildCachedGradients();
     launcher.x = canvas.width / 2;
     launcher.y = canvas.height - 40;
     mouseX = launcher.x;
@@ -866,7 +1130,7 @@ function initializeBuildings() {
                 width: buildingWidth,
                 height: buildingHeight,
                 health: 1,
-                emoji: BUILDING_EMOJIS[Math.floor(Math.random() * BUILDING_EMOJIS.length)]
+                emoji: randomFrom(BUILDING_EMOJIS)
             });
         }
 
@@ -880,7 +1144,7 @@ function initializeBuildings() {
                 width: buildingWidth,
                 height: buildingHeight,
                 health: 1,
-                emoji: BUILDING_EMOJIS[Math.floor(Math.random() * BUILDING_EMOJIS.length)]
+                emoji: randomFrom(BUILDING_EMOJIS)
             });
         }
         
@@ -890,25 +1154,12 @@ function initializeBuildings() {
     }
 }
 
-function isHitOnBuilding(x, y) {
-    for (let b of buildings) {
-        if (x >= b.x && x <= b.x + b.width && 
-            y >= b.y && y <= b.y + b.height) {
-            return true;
-        }
+function findHitBuilding(x, y) {
+    for (let i = 0; i < buildings.length; i++) {
+        const b = buildings[i];
+        if (x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height) return b;
     }
-    return false;
-}
-
-function damageBuilding(x, y) {
-    for (let b of buildings) {
-        if (x >= b.x && x <= b.x + b.width && 
-            y >= b.y && y <= b.y + b.height) {
-            b.health--;
-            return true;
-        }
-    }
-    return false;
+    return null;
 }
 
 function spawnFriendlyJet() {
@@ -922,8 +1173,7 @@ function spawnFriendlyJet() {
         vx: Math.random() > 0.5 ? jetSpeed : -jetSpeed,
         age: 0,
         maxAge: 400,
-        target: null,
-        shotRange: shotRange,
+        shotRange,
         shotCooldown: 0,
         maxCooldown: 15
     });
@@ -938,7 +1188,6 @@ function initializeCarrier() {
         x: carrierX,
         y: seaY,
         vx: 0,
-        deckX: 0,
         targetX: carrierX,
         shotCooldown: 45,
         maxCooldown: 45,
@@ -1068,13 +1317,17 @@ function startNewGame() {
     kills = 0;
     health = INITIAL_HEALTH;
     wave = 1;
-    enemiesKilled = 0;
     levelKills = 0;
     frameCount = 0;
+    isPaused = false;
+    pauseLockedByPanel = false;
+    screenShake = 0;
+    impactFlash = 0;
     toastQueue = [];
     activeToast = null;
     gameOver = false;
     initializeCarrier();
+    updatePauseButtonUi();
     enqueueToast(`Mission 1 started: ${getCurrentMissionGoal()} intercepts`, "#b8dcff", 170);
     uiOverlay.style.display = "none";
     updateUI();
@@ -1103,59 +1356,81 @@ installBtn.addEventListener("click", async () => {
         return;
     }
     if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
-        alert("To save this game as a web app on iPhone or iPad, open the browser share menu and choose Add to Home Screen.");
+        announceInstallHelp();
     }
 });
 
-newGameBtn.addEventListener("click", () => {
-    startNewGame();
-});
+newGameBtn.addEventListener("click", startNewGame);
+pauseBtn.addEventListener("click", () => togglePause());
 
-volumeBtn.addEventListener("click", () => {
-    settings.soundEnabled = !settings.soundEnabled;
+function applySoundEnabled(val) {
+    settings.soundEnabled = val;
     saveSettings();
     syncSettingsUi();
-    if (settings.soundEnabled) {
-        ensureAudioContext();
-        playShootSound();
+    if (val) { ensureAudioContext(); playShootSound(); }
+}
+
+volumeBtn.addEventListener("click", () => applySoundEnabled(!settings.soundEnabled));
+guideBtn.addEventListener("click", openGuide);
+settingsBtn.addEventListener("click", openSettings);
+closeSettingsBtn.addEventListener("click", closeSettings);
+closeGuideBtn.addEventListener("click", closeSettings);
+settingsBackdrop.addEventListener("click", closeSettings);
+soundToggle.addEventListener("change", () => applySoundEnabled(soundToggle.checked));
+
+window.addEventListener("keydown", event => {
+    if (event.repeat) return;
+    const key = event.key.toLowerCase();
+
+    if (key === "escape") {
+        closeSettings();
+        return;
     }
-});
 
-guideBtn.addEventListener("click", () => {
-    openGuide();
-});
+    if (key === "p") {
+        event.preventDefault();
+        if (!isBlockingUiOpen()) togglePause();
+        return;
+    }
 
-settingsBtn.addEventListener("click", () => {
-    openSettings();
-});
+    if (key === "n") {
+        event.preventDefault();
+        startNewGame();
+        return;
+    }
 
-closeSettingsBtn.addEventListener("click", () => {
-    closeSettings();
-});
+    if (key === "m") {
+        event.preventDefault();
+        applySoundEnabled(!settings.soundEnabled);
+        return;
+    }
 
-closeGuideBtn.addEventListener("click", () => {
-    closeSettings();
-});
+    if (key === "g") {
+        event.preventDefault();
+        if (guidePanel.style.display === "block") closeSettings();
+        else openGuide();
+        return;
+    }
 
-settingsBackdrop.addEventListener("click", () => {
-    closeSettings();
-});
+    if (key === "s") {
+        event.preventDefault();
+        if (settingsPanel.style.display === "block") closeSettings();
+        else openSettings();
+        return;
+    }
 
-soundToggle.addEventListener("change", () => {
-    settings.soundEnabled = soundToggle.checked;
-    saveSettings();
-    syncSettingsUi();
-    if (settings.soundEnabled) {
+    if ((event.key === " " || event.code === "Space") && !isBlockingUiOpen() && !isPaused) {
+        event.preventDefault();
         ensureAudioContext();
-        playShootSound();
+        shoot();
     }
 });
 
 canvas.addEventListener("mousemove", e => {
     isTouchDevice = false;
-    let rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
+    const pos = getCanvasPos(e);
+    mouseX = pos.x;
+    mouseY = pos.y;
     launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
 });
 
@@ -1168,9 +1443,9 @@ canvas.addEventListener("touchmove", e => {
     isTouchDevice = true;
     touchAimActive = true;
     e.preventDefault();
-    let rect = canvas.getBoundingClientRect();
-    mouseX = e.touches[0].clientX - rect.left;
-    mouseY = e.touches[0].clientY - rect.top;
+    const pos = getCanvasPos(e.touches[0]);
+    mouseX = pos.x;
+    mouseY = pos.y;
     launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
 }, { passive: false });
 
@@ -1179,18 +1454,18 @@ canvas.addEventListener("touchstart", e => {
     isTouchDevice = true;
     touchAimActive = true;
     e.preventDefault();
-    let rect = canvas.getBoundingClientRect();
-    mouseX = e.touches[0].clientX - rect.left;
-    mouseY = e.touches[0].clientY - rect.top;
+    const pos = getCanvasPos(e.touches[0]);
+    mouseX = pos.x;
+    mouseY = pos.y;
 }, { passive: false });
 
 canvas.addEventListener("touchend", e => {
     if (!touchAimActive) return;
     e.preventDefault();
     if (e.changedTouches.length > 0) {
-        let rect = canvas.getBoundingClientRect();
-        mouseX = e.changedTouches[0].clientX - rect.left;
-        mouseY = e.changedTouches[0].clientY - rect.top;
+        const pos = getCanvasPos(e.changedTouches[0]);
+        mouseX = pos.x;
+        mouseY = pos.y;
         launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
     }
     touchAimActive = false;
@@ -1198,7 +1473,7 @@ canvas.addEventListener("touchend", e => {
 }, { passive: false });
 
 function shoot() {
-    if (gameOver) return;
+    if (gameOver || isPaused) return;
     let dx = mouseX - launcher.x;
     let dy = mouseY - launcher.y;
     let l = Math.hypot(dx, dy);
@@ -1220,7 +1495,7 @@ function shoot() {
 function spawnMissile() {
     const levelIndex = Math.min(wave - 1, LEVEL_CONFIGS.length - 1);
     const levelConfig = LEVEL_CONFIGS[levelIndex];
-    const typeKey = levelConfig.enemyTypes[Math.floor(Math.random() * levelConfig.enemyTypes.length)];
+    const typeKey = randomFrom(levelConfig.enemyTypes);
     const type = MISSILE_TYPES[typeKey];
     
     let x, y, vx, vy;
@@ -1239,16 +1514,7 @@ function spawnMissile() {
         vy = type.speed;
     }
     
-    missiles.push({
-        x: x,
-        y: y,
-        vx: vx,
-        vy: vy,
-        type: typeKey,
-        typeData: type,
-        health: type.health,
-        age: 0
-    });
+    missiles.push({ x, y, vx, vy, type: typeKey, typeData: type, health: type.health, age: 0 });
 }
 
 function createExplosion(x, y) {
@@ -1310,10 +1576,11 @@ function update(deltaSeconds) {
         
         // Check if missile reached ground
         if (m.y > canvas.height - 85) {
-            // Check if it hits a building
-            if (isHitOnBuilding(m.x, m.y)) {
-                damageBuilding(m.x, m.y);
+            const hitBuilding = findHitBuilding(m.x, m.y);
+            if (hitBuilding) {
+                hitBuilding.health--;
                 createExplosion(m.x, m.y);
+                triggerHitFeedback(1.1);
                 score = Math.max(0, score - BUILDING_HIT_PENALTY);
                 missiles.splice(i, 1);
             }
@@ -1328,6 +1595,7 @@ function update(deltaSeconds) {
             if (dist < 30) {
                 createExplosion((m.x + inter.x) / 2, (m.y + inter.y) / 2);
                 playHitSound();
+                triggerHitFeedback(0.7);
                 
                 m.health--;
                 if (m.health <= 0) {
@@ -1348,6 +1616,7 @@ function update(deltaSeconds) {
             if (dist < 35) {
                 createExplosion((m.x + jet.x) / 2, (m.y + jet.y) / 2);
                 playHitSound();
+                triggerHitFeedback(0.55);
                 
                 m.health--;
                 if (m.health <= 0) {
@@ -1449,13 +1718,6 @@ function update(deltaSeconds) {
     updateUI();
 }
 
-function drawMissile(x, y, emoji) {
-    ctx.font = "32px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(emoji, x, y);
-}
-
 function drawLauncher() {
     // Draw aim line
     if (!gameOver && (isTouchDevice ? touchAimActive : true)) {
@@ -1508,17 +1770,15 @@ function drawLauncher() {
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const shake = getShakeOffset();
+    ctx.save();
+    ctx.translate(shake.x, shake.y);
 
     // Sea strip where the carrier lands and operates.
     const seaTop = canvas.height - 56;
-    const seaCityBoundaryX = getSeaCityBoundaryX();
-    const seaGradient = ctx.createLinearGradient(0, seaTop, 0, canvas.height);
-    seaGradient.addColorStop(0, "rgba(27, 86, 140, 0.45)");
-    seaGradient.addColorStop(1, "rgba(15, 58, 102, 0.85)");
-    ctx.fillStyle = seaGradient;
+    const seaCityBoundaryX = cachedSeaCityBoundaryX;
+    ctx.fillStyle = cachedSeaGradient;
     ctx.fillRect(0, seaTop, canvas.width, canvas.height - seaTop);
-
-    // Keep sea color clean to avoid a boxed blue patch near the ground.
 
     // Curved land mass: flat near coast, climbs to the right, then drops to far-right flat.
     ctx.beginPath();
@@ -1529,18 +1789,13 @@ function draw() {
     }
     ctx.lineTo(canvas.width, canvas.height);
     ctx.closePath();
-    const landGradient = ctx.createLinearGradient(seaCityBoundaryX, seaTop - 120, canvas.width, canvas.height);
-    landGradient.addColorStop(0, "#b8a77a");
-    landGradient.addColorStop(0.42, "#9d8d68");
-    landGradient.addColorStop(0.76, "#7f7c70");
-    landGradient.addColorStop(1, "#9d916f");
-    ctx.fillStyle = landGradient;
+    ctx.fillStyle = cachedLandGradient;
     ctx.fill();
 
     const sandStart = seaCityBoundaryX;
-    const sandEnd = Math.min(canvas.width * 0.5, sandStart + 230);
-    const rockyStart = canvas.width * 0.64;
-    const rockyEnd = canvas.width * 0.9;
+    const sandEnd = cachedSandEnd;
+    const rockyStart = cachedRockyStart;
+    const rockyEnd = cachedRockyEnd;
 
     // Sandy coastal cap following the same curve.
     ctx.beginPath();
@@ -1552,10 +1807,7 @@ function draw() {
         ctx.lineTo(x, getGroundYAt(x) + 16);
     }
     ctx.closePath();
-    const sandGradient = ctx.createLinearGradient(sandStart, seaTop - 40, sandEnd, seaTop + 20);
-    sandGradient.addColorStop(0, "rgba(221, 199, 143, 0.95)");
-    sandGradient.addColorStop(1, "rgba(194, 165, 106, 0.85)");
-    ctx.fillStyle = sandGradient;
+    ctx.fillStyle = cachedSandGradient;
     ctx.fill();
 
     // Rocky mountain cap on the right highlands.
@@ -1569,19 +1821,11 @@ function draw() {
         ctx.lineTo(x, getGroundYAt(x) + 18);
     }
     ctx.closePath();
-    const rockGradient = ctx.createLinearGradient(rockyStart, seaTop - 120, rockyEnd, seaTop + 10);
-    rockGradient.addColorStop(0, "rgba(110, 108, 103, 0.84)");
-    rockGradient.addColorStop(0.5, "rgba(86, 84, 80, 0.9)");
-    rockGradient.addColorStop(1, "rgba(125, 119, 108, 0.78)");
-    ctx.fillStyle = rockGradient;
+    ctx.fillStyle = cachedRockGradient;
     ctx.fill();
 
     // Curved atmospheric blend so no rectangular patch appears over ground/buildings.
-    const haze = ctx.createLinearGradient(seaCityBoundaryX, seaTop - 130, canvas.width, seaTop + 18);
-    haze.addColorStop(0, "rgba(255, 236, 196, 0.08)");
-    haze.addColorStop(0.5, "rgba(255, 221, 168, 0.05)");
-    haze.addColorStop(1, "rgba(220, 216, 205, 0.04)");
-    ctx.fillStyle = haze;
+    ctx.fillStyle = cachedHaze;
     ctx.beginPath();
     for (let x = seaCityBoundaryX; x <= canvas.width; x += 6) {
         ctx.lineTo(x, getGroundYAt(x) - 64);
@@ -1591,13 +1835,10 @@ function draw() {
     }
     ctx.closePath();
     ctx.fill();
-    
+
     // Draw buildings
     buildings.forEach(b => {
-        ctx.font = "32px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(b.emoji, b.x + b.width / 2, b.y + b.height / 2);
+        drawEmoji(b.x + b.width / 2, b.y + b.height / 2, b.emoji);
         
         // Draw health indicator
         if (b.health < 1) {
@@ -1609,13 +1850,8 @@ function draw() {
     });
     
     // Draw game objects
-    missiles.forEach(m => {
-        drawMissile(m.x, m.y, m.typeData.emoji);
-    });
-    
-    interceptors.forEach(inter => {
-        drawMissile(inter.x, inter.y, INTERCEPTOR_EMOJI);
-    });
+    missiles.forEach(drawHostile);
+    interceptors.forEach(inter => drawEmoji(inter.x, inter.y, INTERCEPTOR_EMOJI));
 
     drawCarrier();
     
@@ -1635,9 +1871,8 @@ function draw() {
     });
     
     explosions.forEach(exp => {
-        const opacity = 1 - (exp.age / exp.maxAge);
-        ctx.globalAlpha = opacity;
-        drawMissile(exp.x, exp.y, EXPLOSION_EMOJI);
+        ctx.globalAlpha = 1 - (exp.age / exp.maxAge);
+        drawEmoji(exp.x, exp.y, EXPLOSION_EMOJI);
         ctx.globalAlpha = 1;
     });
     
@@ -1654,6 +1889,26 @@ function draw() {
     ctx.shadowBlur = 10;
     ctx.fillText("Score: " + score, 20, 20);
     ctx.restore();
+
+    ctx.restore();
+
+    if (impactFlash > 0.001) {
+        ctx.fillStyle = `rgba(255, 90, 90, ${impactFlash})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    if (isPaused && !gameOver) {
+        ctx.fillStyle = "rgba(5, 10, 20, 0.55)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#d2e7ff";
+        ctx.font = "bold 40px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2 - 8);
+        ctx.font = "16px sans-serif";
+        ctx.fillStyle = "rgba(225, 237, 255, 0.9)";
+        ctx.fillText("Press P to resume", canvas.width / 2, canvas.height / 2 + 26);
+    }
 }
 
 let lastFrameTime = performance.now();
@@ -1661,41 +1916,43 @@ let lastFrameTime = performance.now();
 function loop(timestamp) {
     const deltaSeconds = Math.min((timestamp - lastFrameTime) / 1000, 0.05);
     lastFrameTime = timestamp;
-    update(deltaSeconds);
+    const frameScale = deltaSeconds * REFERENCE_FPS;
+    if (!isPaused) {
+        update(deltaSeconds);
+    }
+    decayFeedback(frameScale);
     draw();
     requestAnimationFrame(loop);
 }
 
 function showOverlay(title, message) {
+    isPaused = false;
+    pauseLockedByPanel = false;
+    updatePauseButtonUi();
     uiTitle.innerText = title;
     uiScore.innerText = message;
     uiOverlay.style.display = "block";
 }
 
 function shareScore(platform) {
-    let text = `Iron Dome Defense score: ${score} points, Wave ${wave}, ${kills} kills. Can you survive longer? 🚀💥`;
-    let url = encodeURIComponent(location.href);
-    let shareUrl = "";
-    
+    const text = `Iron Dome Defense score: ${score} points, Wave ${wave}, ${kills} kills. Can you survive longer? 🚀💥`;
+    const encodedUrl = encodeURIComponent(location.href);
+
     if (platform === 'copy') {
-        const copyText = `${text}\n${location.href}`;
-        navigator.clipboard.writeText(copyText).then(() => {
+        navigator.clipboard.writeText(`${text}\n${location.href}`).then(() => {
             alert("Score copied to clipboard!");
-        }).catch(err => {
-            console.error("Failed to copy:", err);
+        }).catch(() => {
             alert("Failed to copy to clipboard");
         });
         return;
     }
-    if (platform === 'x') shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
-    if (platform === 'wa') {
-        const waText = `${location.href}\n${text}`;
-        shareUrl = `https://wa.me/?text=${encodeURIComponent(waText)}`;
-    }
-    if (platform === 'tg') shareUrl = `https://t.me/share/url?url=${url}&text=${encodeURIComponent(text)}`;
-    
-    window.open(shareUrl, '_blank');
+
+    const shareUrl = buildShareUrl(platform, text, encodedUrl);
+
+    if (shareUrl) window.open(shareUrl, "_blank");
 }
+
+window.addEventListener("beforeunload", revokeOldManifestUrl);
 
 requestAnimationFrame(loop);
 </script>
