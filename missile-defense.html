@@ -52,8 +52,12 @@ body {
     align-items: center;
     justify-content: center;
     height: 100vh;
+    height: 100svh;
     height: 100dvh;
     width: 100vw;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
     overflow: hidden;
     font-family: "Trebuchet MS", "Verdana", sans-serif;
     color: var(--text);
@@ -82,7 +86,7 @@ canvas {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px 14px;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
     background: linear-gradient(180deg, var(--panel-0), var(--panel-1));
     border-top: 1px solid var(--line-hot);
     box-shadow: inset 0 1px 0 rgba(230, 240, 255, 0.1);
@@ -344,7 +348,7 @@ canvas {
 @media (max-width: 720px) {
     #controlDock {
         gap: 8px;
-        padding: 8px 10px;
+        padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
         min-height: 70px;
     }
 
@@ -1084,11 +1088,15 @@ function buildCachedGradients() {
 }
 
 function resizeCanvas() {
-    const shellWidth = Math.min(window.innerWidth, 1200);
+    const viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    const shellWidth = Math.min(viewportWidth, 1200);
     appShell.style.width = shellWidth + "px";
-    // Read the height CSS flex has already allocated to the canvas (avoids
-    // window.innerHeight vs dvh mismatch on mobile that pushes the dock off-screen)
-    const canvasHeight = Math.max(320, canvas.offsetHeight || (window.innerHeight - (controlDock.offsetHeight || 78)));
+    appShell.style.height = Math.max(320, Math.floor(viewportHeight)) + "px";
+
+    const dockHeight = controlDock.getBoundingClientRect().height || 78;
+    const availableCanvasHeight = Math.floor(viewportHeight - dockHeight);
+    const canvasHeight = Math.max(240, availableCanvasHeight);
     canvas.height = canvasHeight;
     canvas.width = shellWidth;
     cachedCarrierMetrics = _computeCarrierMetrics();
@@ -1106,6 +1114,9 @@ function resizeCanvas() {
 }
 
 window.addEventListener("resize", resizeCanvas);
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", resizeCanvas);
+}
 resizeCanvas();
 syncSettingsUi();
 
