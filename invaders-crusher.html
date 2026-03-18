@@ -2791,6 +2791,7 @@ input[type="checkbox"] {
         const listStartY = panelY + (compact ? 136 : 220);
         const rowStep = compact ? 18 : 24;
         const rowHeight = compact ? 17 : 22;
+        const levelScore = Math.max(0, world.score - world.levelBaseScore);
 
         ctx.save();
         const panelGradient = ctx.createLinearGradient(panelX, panelY, panelX, panelY + panelH);
@@ -2811,7 +2812,7 @@ input[type="checkbox"] {
 
         ctx.fillStyle = "rgba(188, 228, 255, 0.84)";
         ctx.font = compact ? "12px Trebuchet MS" : "14px Trebuchet MS";
-        ctx.fillText("Target: " + world.targetScore + "  |  Shuffles: " + world.shufflesLeft, panelX + pad, lineY);
+        ctx.fillText("Target: " + levelScore + "/" + world.targetScore + "  |  Shuffles: " + world.shufflesLeft, panelX + pad, lineY);
         if (!compact) {
             ctx.fillText("Match 3+ invaders before moves run out.", panelX + pad, lineY + 18);
         }
