@@ -368,9 +368,14 @@ let installPromptEvent = null;
 let currentMissile;
 let nextMissile;
 
+function getMissileScale() {
+    // Match the scale used when drawing the moving missile.
+    return Math.max(0.95, R / 18);
+}
+
 function getMissileCollisionRadius() {
-    // Missile threading should only happen through openings roughly the size of a drone.
-    return R * 0.95;
+    // Use the missile body half-width so it can pass through gaps as wide as its own body.
+    return (18 * getMissileScale()) * 0.5;
 }
 
 function distancePointToSegmentSquared(px, py, x1, y1, x2, y2) {
