@@ -1,4 +1,4 @@
-const CACHE_VERSION = "offline-games-v6";
+const CACHE_VERSION = "offline-games-v7";
 const CORE_ASSETS = [
     "./",
     "./index.html",

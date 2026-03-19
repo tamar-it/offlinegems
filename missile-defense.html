@@ -483,6 +483,8 @@ const defaultSettings = { soundEnabled: false };
 let settings = loadSettings();
 let audioContext = null;
 
+const toRadians = (degrees) => degrees * (Math.PI / 180);
+
 // Game parameters
 const REFERENCE_FPS = 60;
 const SPEED = 15;
@@ -502,49 +504,49 @@ const LEVEL_CONFIGS = [
     },
     { // Level 2
         name: "Missile Threats",
-        enemyTypes: ["rocket", "ballistic"],
+        enemyTypes: ["rocket", "commet"],
         spawnRate: 0.012,
         goalKills: 8,
-        message: "Ballistic missiles incoming!"
+        message: "commet missiles incoming!"
     },
     { // Level 3
         name: "Full Assault",
-        enemyTypes: ["rocket", "ballistic", "drone"],
+        enemyTypes: ["rocket", "commet", "drone"],
         spawnRate: 0.014,
         goalKills: 10,
         message: "All threats detected!"
     },
     { // Level 4
         name: "Coastal Raid",
-        enemyTypes: ["rocket", "ballistic", "drone"],
+        enemyTypes: ["rocket", "commet", "drone"],
         spawnRate: 0.016,
         goalKills: 12,
         message: "Drones are flanking from the horizon!"
     },
     { // Level 5
         name: "Saturation Attack",
-        enemyTypes: ["rocket", "ballistic", "drone"],
+        enemyTypes: ["rocket", "commet", "drone"],
         spawnRate: 0.018,
         goalKills: 14,
         message: "Sustained hostile pressure!"
     },
     { // Level 6
         name: "Heavy Barrage",
-        enemyTypes: ["rocket", "ballistic", "drone"],
+        enemyTypes: ["rocket", "commet", "drone"],
         spawnRate: 0.02,
         goalKills: 16,
         message: "High-density missile waves!"
     },
     { // Level 7
         name: "Airspace Collapse",
-        enemyTypes: ["rocket", "ballistic", "drone"],
+        enemyTypes: ["rocket", "commet", "drone"],
         spawnRate: 0.022,
         goalKills: 18,
         message: "Maintain intercept lock at all costs!"
     },
     { // Level 8+
         name: "Extreme Defense",
-        enemyTypes: ["rocket", "ballistic", "drone"],
+        enemyTypes: ["rocket", "commet", "drone"],
         spawnRate: 0.024,
         goalKills: 20,
         message: "Maximum intensity!"
@@ -553,47 +555,104 @@ const LEVEL_CONFIGS = [
 
 // Emojis for game objects
 const MISSILE_TYPES = {
-    rocket: { emoji: "🚀", speed: 2, health: 1, score: 10 },
-    ballistic: { emoji: "🎯", speed: 3, health: 1, score: 15 },
-    drone: { emoji: "🛩️", speed: 2.5, health: 2, score: 25, horizontal: true }
+    // Rockets and commets spawn from the top and fall downward.
+    // Provide a base head angle so missiles can be rotated to align with their
+    // velocity direction automatically.
+    rocket: {
+        emoji: "🚀",
+        speed: 2,
+        health: 1,
+        score: 10,
+        size: 34,
+        headAngle: toRadians(-45)
+    },
+    commet: {
+        emoji: "☄️",
+        speed: 3,
+        health: 1,
+        score: 15,
+        size: 36,
+        headAngle: toRadians(135)
+    },
+    drone: { emoji: "🛩️", speed: 2.5, health: 2, score: 25, size: 32, horizontal: true, headAngle: 0 }
 };
 const BUILDING_EMOJIS = ["🏭", "🏚️", "🏘️", "🏡", "🏠", "🏩", "🏫", "🏪", "🏨", "🏤", "🏣", "🏬", "🏢"];
-const INTERCEPTOR_EMOJI = "🔥";  // Iron Dome missile
+
+// Interceptor types by source. Each has a base emoji, size, and a base head angle
+// that is used along with the interceptor's velocity to calculate its rotation.
+const INTERCEPTOR_TYPES = {
+    battery: {
+        emoji: "🪄",
+        size: 34,
+        headAngle: toRadians(135)
+    },
+    carrier: {
+        emoji: "🪄",
+        size: 38,
+        headAngle: toRadians(-45)
+    },
+    jet: {
+        emoji: "⚡",
+        size: 32,
+        headAngle: toRadians(-45)
+    }
+};
+
 const EXPLOSION_EMOJI = "💥";
 const CARRIER_EMOJI = "🛳️";
-const COMPACT_LAYOUT_MAX_WIDTH = 768;
+const COMPACT_LAYOUT_MAX_WIDTH = 768;   
+
+const emojiSpriteCache = new Map();
+const f35SpriteCache = new Map();
 
 function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
+function getEmojiSprite(emoji, size) {
+    const key = `${emoji}|${size}`;
+    let sprite = emojiSpriteCache.get(key);
+    if (sprite) return sprite;
+
+    // Pre-render the emoji into an offscreen canvas for faster repeated drawing.
+    const padding = Math.ceil(size * 0.2);
+    const canvas = document.createElement("canvas");
+    canvas.width = size + padding * 2;
+    canvas.height = size + padding * 2;
+    const ctx2 = canvas.getContext("2d");
+    ctx2.font = `${size}px Arial`;
+    ctx2.textAlign = "center";
+    ctx2.textBaseline = "middle";
+    ctx2.fillText(emoji, canvas.width / 2, canvas.height / 2);
+
+    emojiSpriteCache.set(key, canvas);
+    return canvas;
+}
+
 function drawEmoji(x, y, emoji, size = 32) {
-    ctx.font = size + "px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(emoji, x, y);
+    const sprite = getEmojiSprite(emoji, size);
+    ctx.drawImage(sprite, x - sprite.width / 2, y - sprite.height / 2);
 }
 
 function drawOrientedEmoji(x, y, emoji, angle = 0, scaleX = 1, size = 32) {
+    const sprite = getEmojiSprite(emoji, size);
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
     ctx.scale(scaleX, 1);
-    ctx.font = size + "px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(emoji, 0, 0);
+    ctx.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
     ctx.restore();
 }
 
 function drawHostile(missile) {
-    if (missile.type === "drone") {
-        const face = missile.vx < 0 ? -1 : 1;
-        drawOrientedEmoji(missile.x, missile.y, missile.typeData.emoji, 0, face, 32);
-        return;
-    }
+    const size = missile.typeData.size || 32;
 
-    // Rocket/ballistic emoji points diagonally by default, so offset by +45deg.
-    const headingAngle = Math.atan2(missile.vy, missile.vx) + Math.PI / 4;
-    drawOrientedEmoji(missile.x, missile.y, missile.typeData.emoji, headingAngle, 1, 32);
+    // If the missile has a head angle defined, use it to rotate the emoji to match
+    // the direction of travel. This allows the emoji's original orientation to be
+    // expressed as a headAngle and the rest to be computed automatically.
+    const velocityAngle = Math.atan2(missile.vy, missile.vx);
+    const headAngle = missile.headAngle ?? missile.typeData.headAngle ?? 0;
+    const headingAngle = velocityAngle - headAngle;
+
+    drawOrientedEmoji(missile.x, missile.y, missile.typeData.emoji, headingAngle, 1, size);
 }
 
 function getCanvasPos(e) {
@@ -1030,7 +1089,7 @@ async function registerWebAppSupport() {
     updateInstallButton();
 }
 
-let cachedSeaGradient = null, cachedLandGradient = null, cachedSandGradient = null, cachedRockGradient = null, cachedHaze = null;
+let cachedSeaGradient = null, cachedLandGradient = null, cachedSandGradient = null, cachedRockGradient = null;
 let cachedSandEnd = 0, cachedRockyStart = 0, cachedRockyEnd = 0;
 function buildCachedGradients() {
     const seaTop = canvas.height - 56;
@@ -1060,11 +1119,6 @@ function buildCachedGradients() {
     cachedRockGradient.addColorStop(0, "rgba(110, 108, 103, 0.84)");
     cachedRockGradient.addColorStop(0.5, "rgba(86, 84, 80, 0.9)");
     cachedRockGradient.addColorStop(1, "rgba(125, 119, 108, 0.78)");
-
-    cachedHaze = ctx.createLinearGradient(bx, seaTop - 130, canvas.width, seaTop + 18);
-    cachedHaze.addColorStop(0, "rgba(255, 236, 196, 0.08)");
-    cachedHaze.addColorStop(0.5, "rgba(255, 221, 168, 0.05)");
-    cachedHaze.addColorStop(1, "rgba(220, 216, 205, 0.04)");
 }
 
 function resizeCanvas() {
@@ -1231,51 +1285,122 @@ function updateCarrier(frameScale) {
         vx: (dx / len) * (INTERCEPTOR_SPEED + 1.5),
         vy: (dy / len) * (INTERCEPTOR_SPEED + 1.5),
         age: 0,
-        fromCarrier: true
+        source: "carrier",
+        headAngle: INTERCEPTOR_TYPES.carrier.headAngle || 0
     });
     carrier.shotCooldown = carrier.maxCooldown;
 }
 
+function getF35Sprite(scale) {
+    const key = `f35|${scale}`;
+    let sprite = f35SpriteCache.get(key);
+    if (sprite) return sprite;
+
+    const size = Math.ceil(80 * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx2 = canvas.getContext("2d");
+
+    ctx2.translate(size / 2, size / 2);
+
+    ctx2.fillStyle = "#a8afb9";
+    ctx2.beginPath();
+    ctx2.moveTo(17 * scale, -1 * scale);
+    ctx2.lineTo(12 * scale, -4 * scale);
+    ctx2.lineTo(6 * scale, -5 * scale);
+    ctx2.lineTo(0, -6 * scale);
+    ctx2.lineTo(-6 * scale, -6 * scale);
+    ctx2.lineTo(-12 * scale, -3 * scale);
+    ctx2.lineTo(-17 * scale, 0);
+    ctx2.lineTo(-13 * scale, 3 * scale);
+    ctx2.lineTo(-7 * scale, 6 * scale);
+    ctx2.lineTo(0, 7 * scale);
+    ctx2.lineTo(7 * scale, 5 * scale);
+    ctx2.lineTo(13 * scale, 2 * scale);
+    ctx2.closePath();
+    ctx2.fill();
+
+    // Main wing (near side): straighter trailing edge, moderate sweep.
+    ctx2.beginPath();
+    ctx2.moveTo(2 * scale, -2 * scale);
+    ctx2.lineTo(-2 * scale, -12 * scale);
+    ctx2.lineTo(-15 * scale, -11 * scale);
+    ctx2.lineTo(-8 * scale, -3 * scale);
+    ctx2.closePath();
+    ctx2.fill();
+
+    // Main wing (far side): compressed by perspective.
+    ctx2.beginPath();
+    ctx2.moveTo(2 * scale, 2 * scale);
+    ctx2.lineTo(-1 * scale, 7 * scale);
+    ctx2.lineTo(-11 * scale, 9 * scale);
+    ctx2.lineTo(-6 * scale, 4 * scale);
+    ctx2.closePath();
+    ctx2.fill();
+
+    // Horizontal tailplanes.
+    ctx2.beginPath();
+    ctx2.moveTo(-8 * scale, -2 * scale);
+    ctx2.lineTo(-14 * scale, -6 * scale);
+    ctx2.lineTo(-13 * scale, -3 * scale);
+    ctx2.lineTo(-8 * scale, 0);
+    ctx2.closePath();
+    ctx2.fill();
+
+    ctx2.beginPath();
+    ctx2.moveTo(-8 * scale, 2 * scale);
+    ctx2.lineTo(-14 * scale, 6 * scale);
+    ctx2.lineTo(-13 * scale, 3 * scale);
+    ctx2.lineTo(-8 * scale, 0);
+    ctx2.closePath();
+    ctx2.fill();
+
+    // Single tall fin with slight rake (F-4 characteristic).
+    ctx2.beginPath();
+    ctx2.moveTo(-9 * scale, -3 * scale);
+    ctx2.lineTo(-12 * scale, -12 * scale);
+    ctx2.lineTo(-8 * scale, -11 * scale);
+    ctx2.lineTo(-6 * scale, -3 * scale);
+    ctx2.closePath();
+    ctx2.fill();
+
+    // Twin exhaust blocks at rear.
+    ctx2.beginPath();
+    ctx2.moveTo(-17 * scale, -2.4 * scale);
+    ctx2.lineTo(-13.4 * scale, -2.4 * scale);
+    ctx2.lineTo(-13.4 * scale, -0.3 * scale);
+    ctx2.lineTo(-17 * scale, -0.3 * scale);
+    ctx2.closePath();
+    ctx2.fill();
+
+    ctx2.beginPath();
+    ctx2.moveTo(-17 * scale, 0.3 * scale);
+    ctx2.lineTo(-13.4 * scale, 0.3 * scale);
+    ctx2.lineTo(-13.4 * scale, 2.4 * scale);
+    ctx2.lineTo(-17 * scale, 2.4 * scale);
+    ctx2.closePath();
+    ctx2.fill();
+
+    // Cockpit canopy hump.
+    ctx2.beginPath();
+    ctx2.moveTo(7 * scale, -3 * scale);
+    ctx2.lineTo(0, -3 * scale);
+    ctx2.lineTo(-2 * scale, -1 * scale);
+    ctx2.lineTo(5 * scale, -1 * scale);
+    ctx2.closePath();
+    ctx2.fill();
+
+    f35SpriteCache.set(key, canvas);
+    return canvas;
+}
+
 function drawF35(x, y, scale, headingRight) {
-    const dir = headingRight ? 1 : -1;
+    const sprite = getF35Sprite(scale);
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(dir, 1);
-
-    // Main body
-    ctx.fillStyle = "#a8afb9";
-    ctx.beginPath();
-    ctx.moveTo(22 * scale, 0);
-    ctx.lineTo(5 * scale, -6 * scale);
-    ctx.lineTo(-14 * scale, -4 * scale);
-    ctx.lineTo(-20 * scale, 0);
-    ctx.lineTo(-14 * scale, 4 * scale);
-    ctx.lineTo(5 * scale, 6 * scale);
-    ctx.closePath();
-    ctx.fill();
-
-    // Wing block
-    ctx.fillStyle = "#8f98a3";
-    ctx.beginPath();
-    ctx.moveTo(0, -12 * scale);
-    ctx.lineTo(-10 * scale, -3 * scale);
-    ctx.lineTo(-10 * scale, 3 * scale);
-    ctx.lineTo(0, 12 * scale);
-    ctx.lineTo(8 * scale, 0);
-    ctx.closePath();
-    ctx.fill();
-
-    // Canopy
-    ctx.fillStyle = "#5f85a6";
-    ctx.beginPath();
-    ctx.ellipse(7 * scale, 0, 4 * scale, 2.5 * scale, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Engine glow
-    ctx.fillStyle = "rgba(255, 155, 66, 0.8)";
-    ctx.beginPath();
-    ctx.arc(-20 * scale, 0, 2.2 * scale, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.scale(headingRight ? 1 : -1, 1);
+    ctx.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
     ctx.restore();
 }
 
@@ -1487,7 +1612,9 @@ function shoot() {
         y: launcher.y,
         vx: dx * INTERCEPTOR_SPEED,
         vy: dy * INTERCEPTOR_SPEED,
-        age: 0
+        age: 0,
+        source: "battery",
+        headAngle: INTERCEPTOR_TYPES.battery.headAngle || 0
     });
     
     playShootSound();
@@ -1515,7 +1642,7 @@ function spawnMissile() {
         vy = type.speed;
     }
     
-    missiles.push({ x, y, vx, vy, type: typeKey, typeData: type, health: type.health, age: 0 });
+    missiles.push({ x, y, vx, vy, type: typeKey, typeData: type, headAngle: type.headAngle || 0, health: type.health, age: 0 });
 }
 
 function createExplosion(x, y) {
@@ -1675,7 +1802,8 @@ function update(deltaSeconds) {
                 vx: (dx / len) * INTERCEPTOR_SPEED,
                 vy: (dy / len) * INTERCEPTOR_SPEED,
                 age: 0,
-                fromJet: true
+                source: "jet",
+                headAngle: INTERCEPTOR_TYPES.jet.headAngle || 0
             });
             
             jet.shotCooldown = jet.maxCooldown;
@@ -1825,18 +1953,6 @@ function draw() {
     ctx.fillStyle = cachedRockGradient;
     ctx.fill();
 
-    // Curved atmospheric blend so no rectangular patch appears over ground/buildings.
-    ctx.fillStyle = cachedHaze;
-    ctx.beginPath();
-    for (let x = seaCityBoundaryX; x <= canvas.width; x += 6) {
-        ctx.lineTo(x, getGroundYAt(x) - 64);
-    }
-    for (let x = canvas.width; x >= seaCityBoundaryX; x -= 6) {
-        ctx.lineTo(x, getGroundYAt(x) + 10);
-    }
-    ctx.closePath();
-    ctx.fill();
-
     // Draw buildings
     buildings.forEach(b => {
         drawEmoji(b.x + b.width / 2, b.y + b.height / 2, b.emoji);
@@ -1852,7 +1968,16 @@ function draw() {
     
     // Draw game objects
     missiles.forEach(drawHostile);
-    interceptors.forEach(inter => drawEmoji(inter.x, inter.y, INTERCEPTOR_EMOJI));
+    interceptors.forEach(inter => {
+        const typeData = INTERCEPTOR_TYPES[inter.source] || INTERCEPTOR_TYPES.battery;
+        const size = typeData.size || 32;
+
+        const velocityAngle = Math.atan2(inter.vy, inter.vx);
+        const headAngle = inter.headAngle ?? typeData.headAngle ?? 0;
+        const headingAngle = velocityAngle - headAngle;
+
+        drawOrientedEmoji(inter.x, inter.y, typeData.emoji, headingAngle, 1, size);
+    });
 
     drawCarrier();
     
