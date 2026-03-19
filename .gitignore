@@ -3,3 +3,4 @@ venv
 .venv
 *.md
 !README.md
+*.sh
