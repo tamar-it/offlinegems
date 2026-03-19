@@ -2113,8 +2113,9 @@ function update(deltaSeconds) {
     // Remove destroyed buildings
     buildings = buildings.filter(b => b.health > 0);
     
-    // Check game over condition - all buildings destroyed
-    if (buildings.length === 0) {
+    // Check game over condition - all buildings destroyed, or all defenses destroyed
+    const defensesDown = launcher.health <= 0 && (wave < 3 || laserLauncher.health <= 0);
+    if (buildings.length === 0 || defensesDown) {
         gameOver = true;
         showOverlay("DEFENSES DOWN!", `Final Score: ${score}\nWave: ${wave}\nKills: ${kills}`);
     }
