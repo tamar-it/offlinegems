@@ -574,7 +574,7 @@ const MISSILE_TYPES = {
         size: 36,
         headAngle: toRadians(135)
     },
-    drone: { emoji: "🛩️", speed: 2.5, health: 2, score: 25, size: 32, horizontal: true, headAngle: 0 }
+    drone: { emoji: "🛩️", speed: 2.5, health: 2, score: 25, size: 32, horizontal: true, headAngle: toRadians(22.5) }
 };
 const BUILDING_EMOJIS = ["🏭", "🏚️", "🏘️", "🏡", "🏠", "🏩", "🏫", "🏪", "🏨", "🏤", "🏣", "🏬", "🏢"];
 
@@ -583,7 +583,7 @@ const BUILDING_EMOJIS = ["🏭", "🏚️", "🏘️", "🏡", "🏠", "🏩", "
 const INTERCEPTOR_TYPES = {
     battery: {
         emoji: "🪄",
-        size: 34,
+        size: 25,
         headAngle: toRadians(135)
     },
     carrier: {
