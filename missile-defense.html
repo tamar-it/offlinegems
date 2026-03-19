@@ -40,7 +40,6 @@
     --text-dim: rgba(231, 241, 255, 0.7);
     --accent: #ffd93d;
     --danger: #ff7a7a;
-    --runtime-bottom-inset: 0px;
 }
 
 body {
@@ -53,11 +52,9 @@ body {
     align-items: center;
     justify-content: center;
     height: 100vh;
-    height: 100svh;
     height: 100dvh;
+    height: 100svh;
     width: 100vw;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: calc(env(safe-area-inset-bottom) + var(--runtime-bottom-inset));
     box-sizing: border-box;
     overflow: hidden;
     font-family: "Trebuchet MS", "Verdana", sans-serif;
@@ -87,7 +84,7 @@ canvas {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
     background: linear-gradient(180deg, var(--panel-0), var(--panel-1));
     border-top: 1px solid var(--line-hot);
     box-shadow: inset 0 1px 0 rgba(230, 240, 255, 0.1);
@@ -1121,23 +1118,25 @@ function buildCachedGradients() {
     cachedRockGradient.addColorStop(1, "rgba(125, 119, 108, 0.78)");
 }
 
+function getViewportHeight() {
+    if (window.visualViewport && Number.isFinite(window.visualViewport.height)) {
+        // Prefer the smaller of the two heights to avoid extending under the browser nav bar.
+        return Math.floor(Math.min(window.innerHeight, window.visualViewport.height));
+    }
+    return window.innerHeight;
+}
+
 function resizeCanvas() {
-    const viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
-    const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    const runtimeBottomInset = window.visualViewport
-        ? Math.max(0, Math.round(window.innerHeight - (window.visualViewport.height + window.visualViewport.offsetTop)))
-        : 0;
-    document.documentElement.style.setProperty("--runtime-bottom-inset", runtimeBottomInset + "px");
+    const viewportHeight = getViewportHeight();
+    const shellWidth = Math.min(window.innerWidth, 1200);
 
-    const shellWidth = Math.min(viewportWidth, 1200);
     appShell.style.width = shellWidth + "px";
-    appShell.style.height = Math.max(320, Math.floor(viewportHeight)) + "px";
+    appShell.style.height = viewportHeight + "px";
 
-    const dockHeight = controlDock.getBoundingClientRect().height || 78;
-    const availableCanvasHeight = Math.floor(viewportHeight - dockHeight);
-    const canvasHeight = Math.max(240, availableCanvasHeight);
-    canvas.height = canvasHeight;
+    const dockHeight = controlDock.offsetHeight || 78;
+    canvas.height = Math.max(240, viewportHeight - dockHeight);
     canvas.width = shellWidth;
+
     cachedCarrierMetrics = _computeCarrierMetrics();
     cachedSeaCityBoundaryX = _computeSeaCityBoundaryX();
     buildGroundCache();
