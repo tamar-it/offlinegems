@@ -125,6 +125,10 @@ canvas {
     color: var(--danger);
 }
 
+.stat-ammo {
+    color: #8cffc1;
+}
+
 #controlButtons {
     display: flex;
     gap: 10px;
@@ -396,8 +400,8 @@ canvas {
             <span id="stat-value2" class="stat-value">1</span>
         </div>
         <div id="stat3" class="stat">
-            <span id="stat-label3" class="stat-label">Health</span>
-            <span id="stat-value3" class="stat-value stat-health">3</span>
+            <span id="stat-label3" class="stat-label">Ammo</span>
+            <span id="stat-value3" class="stat-value stat-ammo">30</span>
         </div>
     </div>
     <div id="controlButtons">
@@ -418,6 +422,10 @@ canvas {
         <label for="soundToggle">Sound Effects</label>
         <input id="soundToggle" type="checkbox">
     </div>
+    <div class="setting-row">
+        <label for="aimGuideToggle">Aim Guide</label>
+        <input id="aimGuideToggle" type="checkbox">
+    </div>
     <button id="closeSettingsBtn" class="ctrl-btn close-settings" type="button">Close</button>
 </div>
 
@@ -427,8 +435,8 @@ canvas {
     <ul>
         <li>Protect all city buildings. If buildings are destroyed, you lose.</li>
         <li>Use your Iron Dome launcher to intercept missiles.</li>
+        <li>Starting Wave 3, a Laser Dome unlocks. Click the battery or press Tab/1/2 to switch active weapons.</li>
         <li>Friendly F-35 jets and the carrier can help intercept threats.</li>
-        <li>Complete all level missions to win the game.</li>
         <li>Keyboard: <strong>Space</strong> shoot, <strong>P</strong> pause, <strong>N</strong> new game, <strong>M</strong> mute.</li>
     </ul>
     <button id="closeGuideBtn" class="ctrl-btn close-guide" type="button">Close Guide</button>
@@ -464,6 +472,7 @@ const settingsBackdrop = document.getElementById("settingsBackdrop");
 const closeSettingsBtn = document.getElementById("closeSettingsBtn");
 const closeGuideBtn = document.getElementById("closeGuideBtn");
 const soundToggle = document.getElementById("soundToggle");
+const aimGuideToggle = document.getElementById("aimGuideToggle");
 const uiOverlay = document.getElementById("uiOverlay");
 const uiTitle = document.getElementById("uiTitle");
 const uiScore = document.getElementById("uiScore");
@@ -476,7 +485,7 @@ const statValue3 = document.getElementById("stat-value3");
 const statLabel2 = document.getElementById("stat-label2");
 
 const SETTINGS_KEY = "missileDefenseSettings";
-const defaultSettings = { soundEnabled: false };
+const defaultSettings = { soundEnabled: false, aimGuide: false };
 let settings = loadSettings();
 let audioContext = null;
 
@@ -495,57 +504,49 @@ const LEVEL_CONFIGS = [
     { // Level 1
         name: "Rocket Barrage",
         enemyTypes: ["rocket"],
-        spawnRate: 0.01,
-        goalKills: 6,
+        spawnRate: 0.005,
         message: "Defend against rockets!"
     },
     { // Level 2
         name: "Missile Threats",
         enemyTypes: ["rocket", "commet"],
-        spawnRate: 0.012,
-        goalKills: 8,
+        spawnRate: 0.006,
         message: "commet missiles incoming!"
     },
     { // Level 3
         name: "Full Assault",
         enemyTypes: ["rocket", "commet", "drone"],
-        spawnRate: 0.014,
-        goalKills: 10,
+        spawnRate: 0.007,
         message: "All threats detected!"
     },
     { // Level 4
         name: "Coastal Raid",
         enemyTypes: ["rocket", "commet", "drone"],
-        spawnRate: 0.016,
-        goalKills: 12,
+        spawnRate: 0.008,
         message: "Drones are flanking from the horizon!"
     },
     { // Level 5
         name: "Saturation Attack",
         enemyTypes: ["rocket", "commet", "drone"],
-        spawnRate: 0.018,
-        goalKills: 14,
+        spawnRate: 0.009,
         message: "Sustained hostile pressure!"
     },
     { // Level 6
         name: "Heavy Barrage",
         enemyTypes: ["rocket", "commet", "drone"],
-        spawnRate: 0.02,
-        goalKills: 16,
+        spawnRate: 0.010,
         message: "High-density missile waves!"
     },
     { // Level 7
         name: "Airspace Collapse",
         enemyTypes: ["rocket", "commet", "drone"],
-        spawnRate: 0.022,
-        goalKills: 18,
+        spawnRate: 0.011,
         message: "Maintain intercept lock at all costs!"
     },
     { // Level 8+
         name: "Extreme Defense",
         enemyTypes: ["rocket", "commet", "drone"],
-        spawnRate: 0.024,
-        goalKills: 20,
+        spawnRate: 0.012,
         message: "Maximum intensity!"
     }
 ];
@@ -561,6 +562,7 @@ const MISSILE_TYPES = {
         health: 1,
         score: 10,
         size: 34,
+        damage: 2,
         headAngle: toRadians(-45)
     },
     commet: {
@@ -569,9 +571,19 @@ const MISSILE_TYPES = {
         health: 1,
         score: 15,
         size: 36,
+        damage: 2,
         headAngle: toRadians(135)
     },
-    drone: { emoji: "🛩️", speed: 2.5, health: 2, score: 25, size: 32, horizontal: true, headAngle: toRadians(22.5) }
+    drone: { emoji: "🛩️", speed: 1.2, health: 2, score: 25, size: 32, damage: 2, horizontal: true, headAngle: toRadians(22.5) },
+    miniRocket: {
+        emoji: "🚀",
+        speed: 2.2,
+        health: 1,
+        score: 5,
+        size: 20,
+        damage: 1,
+        headAngle: toRadians(-45)
+    }
 };
 const BUILDING_EMOJIS = ["🏭", "🏚️", "🏘️", "🏡", "🏠", "🏩", "🏫", "🏪", "🏨", "🏤", "🏣", "🏬", "🏢"];
 
@@ -755,10 +767,12 @@ function getGroundYAt(x) {
 let gameOver = false;
 let score = 0;
 let kills = 0;
-let health = INITIAL_HEALTH;
+let maxAmmo = 30;
+let ammo = maxAmmo;
 let wave = 1;
 let frameCount = 0;
 let levelKills = 0;
+let levelGoalKills = 15;
 let toastQueue = [];
 let activeToast = null;
 
@@ -768,7 +782,13 @@ let explosions = []; // Explosion particles
 let friendlyJets = []; // Friendly interceptor jets
 let buildings = []; // Ground buildings/camps
 let carrier = null; // US aircraft carrier that launches long-range interceptors
-let launcher = { x: 0, y: 0, angle: 0 };
+let launcher = { x: 0, y: 0, angle: 0, health: 4, maxHealth: 4 };
+let activeWeapon = "ironDome"; 
+let laserLauncher = { x: 0, y: 0, active: false, health: 4, maxHealth: 4 };
+let lasers = []; // Laser Dome beams
+let laserDomeCooldown = 0;
+let flares = [];
+let shrapnels = [];
 
 let mouseX = 0;
 let mouseY = 0;
@@ -786,7 +806,7 @@ function loadSettings() {
         const raw = localStorage.getItem(SETTINGS_KEY);
         if (!raw) return { ...defaultSettings };
         const parsed = JSON.parse(raw);
-        return { soundEnabled: parsed.soundEnabled === true };
+        return { soundEnabled: parsed.soundEnabled === true, aimGuide: parsed.aimGuide === true };
     } catch {
         return { ...defaultSettings };
     }
@@ -805,6 +825,7 @@ function syncSettingsUi() {
     volumeBtn.setAttribute("aria-pressed", String(settings.soundEnabled));
     volumeBtn.setAttribute("title", settings.soundEnabled ? "Sound On" : "Sound Off");
     volumeBtn.textContent = settings.soundEnabled ? "🔊" : "🔇";
+    if (aimGuideToggle) aimGuideToggle.checked = settings.aimGuide;
 }
 
 function openSettings() {
@@ -907,8 +928,7 @@ function revokeOldManifestUrl() {
 }
 
 function getCurrentMissionGoal() {
-    const idx = Math.min(wave - 1, LEVEL_CONFIGS.length - 1);
-    return LEVEL_CONFIGS[idx].goalKills;
+    return levelGoalKills;
 }
 
 function enqueueToast(text, color = "#b8dcff", duration = 140) {
@@ -972,14 +992,11 @@ function handleMissionProgress(pointsAwarded) {
 
     enqueueToast(`Mission ${wave} complete`, "#8cffc1", 110);
 
-    if (wave >= LEVEL_CONFIGS.length) {
-        gameOver = true;
-        showOverlay("MISSION COMPLETE!", `Final Score: ${score}\nAll ${LEVEL_CONFIGS.length} missions cleared\nTotal Kills: ${kills}`);
-        return;
-    }
-
     wave++;
     levelKills = 0;
+    maxAmmo += 5;
+    ammo = maxAmmo;
+    levelGoalKills = Math.floor(Math.random() * 8) + 12 + Math.floor(wave * 1.5);
     enqueueToast(`Mission ${wave} started: ${getCurrentMissionGoal()} intercepts`, "#b8dcff", 150);
 }
 
@@ -1141,8 +1158,12 @@ function resizeCanvas() {
     cachedSeaCityBoundaryX = _computeSeaCityBoundaryX();
     buildGroundCache();
     buildCachedGradients();
-    launcher.x = canvas.width / 2;
+    launcher.x = canvas.width * 0.35;
     launcher.y = canvas.height - 40;
+    
+    laserLauncher.x = canvas.width * 0.65;
+    laserLauncher.y = canvas.height - 40;
+    
     mouseX = launcher.x;
     mouseY = launcher.y - 100;
     
@@ -1183,7 +1204,8 @@ function initializeBuildings() {
                 y: Math.max(64, frontGroundY - buildingHeight - 6),
                 width: buildingWidth,
                 height: buildingHeight,
-                health: 1,
+                health: 2,
+                maxHealth: 2,
                 emoji: randomFrom(BUILDING_EMOJIS)
             });
         }
@@ -1197,7 +1219,8 @@ function initializeBuildings() {
                 y: Math.max(72, frontGroundY - buildingHeight + 14),
                 width: buildingWidth,
                 height: buildingHeight,
-                health: 1,
+                health: 2,
+                maxHealth: 2,
                 emoji: randomFrom(BUILDING_EMOJIS)
             });
         }
@@ -1440,10 +1463,19 @@ function startNewGame() {
     carrier = null;
     score = 0;
     kills = 0;
-    health = INITIAL_HEALTH;
+    maxAmmo = 30;
+    ammo = maxAmmo;
     wave = 1;
     levelKills = 0;
+    levelGoalKills = Math.floor(Math.random() * 8) + 12;
     frameCount = 0;
+    lasers = [];
+    laserDomeCooldown = 0;
+    activeWeapon = "ironDome";
+    launcher.health = launcher.maxHealth;
+    laserLauncher.health = laserLauncher.maxHealth;
+    flares = [];
+    shrapnels = [];
     isPaused = false;
     pauseLockedByPanel = false;
     screenShake = 0;
@@ -1495,6 +1527,12 @@ function applySoundEnabled(val) {
     if (val) { ensureAudioContext(); playShootSound(); }
 }
 
+function applyAimGuideEnabled(val) {
+    settings.aimGuide = val;
+    saveSettings();
+    syncSettingsUi();
+}
+
 volumeBtn.addEventListener("click", () => applySoundEnabled(!settings.soundEnabled));
 guideBtn.addEventListener("click", openGuide);
 settingsBtn.addEventListener("click", openSettings);
@@ -1502,6 +1540,7 @@ closeSettingsBtn.addEventListener("click", closeSettings);
 closeGuideBtn.addEventListener("click", closeSettings);
 settingsBackdrop.addEventListener("click", closeSettings);
 soundToggle.addEventListener("change", () => applySoundEnabled(soundToggle.checked));
+if (aimGuideToggle) aimGuideToggle.addEventListener("change", () => applyAimGuideEnabled(aimGuideToggle.checked));
 
 window.addEventListener("keydown", event => {
     if (event.repeat) return;
@@ -1543,6 +1582,15 @@ window.addEventListener("keydown", event => {
         else openSettings();
         return;
     }
+    
+    if (key === "tab" || key === "1" || key === "2" || key === "q" || key === "e") {
+        event.preventDefault();
+        if (wave >= 3) {
+            activeWeapon = activeWeapon === "ironDome" ? "laserDome" : "ironDome";
+            enqueueToast(`Active Weapon: ${activeWeapon === "ironDome" ? "Iron Dome" : "Laser Dome"}`, "#b8dcff", 60);
+        }
+        return;
+    }
 
     if ((event.key === " " || event.code === "Space") && !isBlockingUiOpen() && !isPaused) {
         event.preventDefault();
@@ -1550,6 +1598,23 @@ window.addEventListener("keydown", event => {
         shoot();
     }
 });
+
+function trySelectBattery(tx, ty) {
+    if (wave < 3) return false;
+    const distIron = Math.hypot(tx - launcher.x, ty - launcher.y);
+    const distLaser = Math.hypot(tx - laserLauncher.x, ty - laserLauncher.y);
+    if (distIron < 50) { 
+        activeWeapon = "ironDome"; 
+        enqueueToast(`Active Weapon: Iron Dome`, "#b8dcff", 60);
+        return true; 
+    }
+    if (distLaser < 50) { 
+        activeWeapon = "laserDome"; 
+        enqueueToast(`Active Weapon: Laser Dome`, "#b8dcff", 60);
+        return true; 
+    }
+    return false;
+}
 
 canvas.addEventListener("mousemove", e => {
     isTouchDevice = false;
@@ -1559,9 +1624,13 @@ canvas.addEventListener("mousemove", e => {
     launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
 });
 
-canvas.addEventListener("click", () => {
+canvas.addEventListener("click", e => {
     ensureAudioContext();
-    if (!isTouchDevice) shoot();
+    if (!isTouchDevice) {
+        const pos = getCanvasPos(e);
+        if (trySelectBattery(pos.x, pos.y)) return;
+        shoot();
+    }
 });
 
 canvas.addEventListener("touchmove", e => {
@@ -1594,29 +1663,96 @@ canvas.addEventListener("touchend", e => {
         launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
     }
     touchAimActive = false;
+    if (trySelectBattery(mouseX, mouseY)) return;
     shoot();
 }, { passive: false });
 
+function spawnShrapnel(x, y) {
+    const count = Math.floor(Math.random() * 3) + 1;
+    for(let i = 0; i < count; i++) {
+        shrapnels.push({
+            x: x, y: y,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 2,
+            age: 0
+        });
+    }
+}
+
 function shoot() {
     if (gameOver || isPaused) return;
-    let dx = mouseX - launcher.x;
-    let dy = mouseY - launcher.y;
-    let l = Math.hypot(dx, dy);
-    if (l < 1) return;
-    dx /= l;
-    dy /= l;
     
-    interceptors.push({
-        x: launcher.x,
-        y: launcher.y,
-        vx: dx * INTERCEPTOR_SPEED,
-        vy: dy * INTERCEPTOR_SPEED,
-        age: 0,
-        source: "battery",
-        headAngle: INTERCEPTOR_TYPES.battery.headAngle || 0
-    });
+    let target = null;
+    let bestDist = Infinity;
     
-    playShootSound();
+    if (activeWeapon === "ironDome") {
+        if (ammo <= 0 || launcher.health <= 0) return;
+        ammo--;
+        let dx = mouseX - launcher.x;
+        let dy = mouseY - launcher.y;
+        let l = Math.hypot(dx, dy);
+        if (l < 1) return;
+        dx /= l;
+        dy /= l;
+        
+        for (const m of missiles) {
+            let dist = Math.hypot(m.x - mouseX, m.y - mouseY);
+            if (dist < bestDist) {
+                bestDist = dist;
+                target = m;
+            }
+        }
+        for (const jet of friendlyJets) {
+            let dist = Math.hypot(jet.x - mouseX, jet.y - mouseY);
+            if (dist < bestDist) {
+                bestDist = dist;
+                target = jet;
+            }
+        }
+        
+        let targetRef = target;
+        if (target && friendlyJets.includes(target)) {
+            targetRef = { x: target.x, y: target.y, vx: 0, vy: 1.5, type: 'flare', health: 1 };
+            flares.push(targetRef);
+            enqueueToast("Friendly Fire! Flares deployed", "#ffb8b8", 80);
+        }
+        
+        interceptors.push({
+            x: launcher.x,
+            y: launcher.y,
+            vx: dx * INTERCEPTOR_SPEED,
+            vy: dy * INTERCEPTOR_SPEED,
+            age: 0,
+            source: "battery",
+            headAngle: INTERCEPTOR_TYPES.battery.headAngle || 0,
+            target: targetRef
+        });
+        
+        playShootSound();
+    } else if (activeWeapon === "laserDome") {
+        if (laserDomeCooldown > 0 || wave < 3 || laserLauncher.health <= 0) return;
+        for (const m of missiles) {
+            if (m.type !== "drone") continue;
+            let dist = Math.hypot(m.x - mouseX, m.y - mouseY);
+            if (dist < bestDist) {
+                bestDist = dist;
+                target = m;
+            }
+        }
+        if (target) {
+            target.health -= 2;
+            lasers.push({ startX: laserLauncher.x, startY: laserLauncher.y - 12, endX: target.x, endY: target.y, age: 0, maxAge: 15 });
+            if (target.health <= 0) {
+                const idx = missiles.indexOf(target);
+                if (idx !== -1) missiles.splice(idx, 1);
+                handleMissionProgress(target.typeData.score);
+                createExplosion(target.x, target.y);
+                spawnShrapnel(target.x, target.y);
+            }
+            laserDomeCooldown = 45; // 0.75 seconds cooldown
+            playTone("square", { startFreq: 800, endFreq: 200, attack: 0.01, duration: 0.15, peak: 0.15 });
+        }
+    }
 }
 
 function spawnMissile() {
@@ -1627,12 +1763,31 @@ function spawnMissile() {
     
     let x, y, vx, vy;
     
+    let targetBuilding = null;
+    let targetPoint = null;
     if (type.horizontal) {
-        // Drone - moves horizontally
+        // Drone - moves horizontally initially
         x = Math.random() > 0.5 ? -30 : canvas.width + 30;
-        y = Math.random() * (canvas.height * 0.6);
+        y = Math.random() * (canvas.height * 0.4);
         vx = x < canvas.width / 2 ? type.speed : -type.speed;
         vy = (Math.random() - 0.5) * 0.5;
+        
+        let rn = Math.random();
+        if (rn < 0.6) {
+            const validBuildings = buildings.filter(b => b.health > 0);
+            if (validBuildings.length > 0) {
+                let b = randomFrom(validBuildings);
+                targetPoint = { x: b.x + b.width/2, y: b.y + b.height/2, type: 'building', ref: b };
+            }
+        } else if (rn < 0.8 && wave >= 3 && laserLauncher.health > 0) {
+            targetPoint = { x: laserLauncher.x, y: laserLauncher.y, type: 'battery', ref: laserLauncher };
+        } else if (rn < 0.9 && launcher.health > 0) {
+            targetPoint = { x: launcher.x, y: launcher.y, type: 'battery', ref: launcher };
+        }
+        if (!targetPoint) {
+            let tx = Math.random() * canvas.width;
+            targetPoint = { x: tx, y: getGroundYAt(tx), type: 'ground' };
+        }
     } else {
         // Missiles - move downward
         x = Math.random() * (canvas.width - 60) + 30;
@@ -1641,7 +1796,7 @@ function spawnMissile() {
         vy = type.speed;
     }
     
-    missiles.push({ x, y, vx, vy, type: typeKey, typeData: type, headAngle: type.headAngle || 0, health: type.health, age: 0 });
+    missiles.push({ x, y, vx, vy, type: typeKey, typeData: type, headAngle: type.headAngle || 0, health: type.health, age: 0, targetPoint: targetPoint });
 }
 
 function createExplosion(x, y) {
@@ -1657,7 +1812,7 @@ function updateUI() {
     statValue1.textContent = kills;
     statLabel2.textContent = "Mission";
     statValue2.textContent = `${wave}: ${levelKills}/${getCurrentMissionGoal()}`;
-    statValue3.textContent = health;
+    statValue3.textContent = ammo;
 }
 
 function update(deltaSeconds) {
@@ -1672,10 +1827,12 @@ function update(deltaSeconds) {
     const levelIndex = Math.min(wave - 1, LEVEL_CONFIGS.length - 1);
     const levelConfig = LEVEL_CONFIGS[levelIndex];
     
-    // Spawn missiles
-    const spawnChance = 1 - Math.pow(1 - levelConfig.spawnRate, frameScale);
-    if (Math.random() < spawnChance) {
-        spawnMissile();
+    // Spawn chance
+    if (missiles.length < 6) {
+        const spawnChance = 1 - Math.pow(1 - levelConfig.spawnRate, frameScale);
+        if (Math.random() < spawnChance) {
+            spawnMissile();
+        }
     }
     
     // Spawn friendly jets occasionally (bonus feature)
@@ -1691,6 +1848,58 @@ function update(deltaSeconds) {
     // Update missiles
     for (let i = missiles.length - 1; i >= 0; i--) {
         const m = missiles[i];
+        
+        if (m.type === "commet" && wave >= 4 && m.y > canvas.height * 0.35 && !m.split) {
+            m.split = true;
+            m.health = 0;
+            for(let k=0; k<3; k++) {
+                missiles.push({
+                    x: m.x, y: m.y,
+                    vx: m.vx + (k - 1) * 1.5,
+                    vy: m.vy * 0.9,
+                    type: "miniRocket",
+                    typeData: MISSILE_TYPES.miniRocket,
+                    health: MISSILE_TYPES.miniRocket.health,
+                    age: 0,
+                    headAngle: MISSILE_TYPES.miniRocket.headAngle || 0
+                });
+            }
+            createExplosion(m.x, m.y);
+            spawnShrapnel(m.x, m.y);
+            missiles.splice(i, 1);
+            continue;
+        }
+
+        if (m.type === "drone" && m.targetPoint) {
+            const dx = m.targetPoint.x - m.x;
+            const dy = m.targetPoint.y - m.y;
+            const len = Math.max(1, Math.hypot(dx, dy));
+            
+            if (len < 10) {
+                if (m.targetPoint.type === 'building' && m.targetPoint.ref.health > 0) {
+                    m.targetPoint.ref.health -= m.typeData.damage;
+                    score = Math.max(0, score - BUILDING_HIT_PENALTY);
+                } else if (m.targetPoint.type === 'battery' && m.targetPoint.ref.health > 0) {
+                    m.targetPoint.ref.health -= m.typeData.damage;
+                    score = Math.max(0, score - BUILDING_HIT_PENALTY);
+                }
+                createExplosion(m.x, m.y);
+                triggerHitFeedback(1.5);
+                missiles.splice(i, 1);
+                continue;
+            } else {
+                m.vx += (dx / len) * 0.05 * frameScale;
+                m.vy += (dy / len) * 0.05 * frameScale;
+                const currentSpeed = Math.hypot(m.vx, m.vy);
+                if (currentSpeed > m.typeData.speed) {
+                    m.vx = (m.vx / currentSpeed) * m.typeData.speed;
+                    m.vy = (m.vy / currentSpeed) * m.typeData.speed;
+                }
+            }
+        } else if (m.type !== "drone") {
+            m.vy += 0.015 * frameScale;
+        }
+
         m.x += m.vx * frameScale;
         m.y += m.vy * frameScale;
         m.age += frameScale;
@@ -1702,15 +1911,18 @@ function update(deltaSeconds) {
         }
         
         // Check if missile reached ground
-        if (m.y > canvas.height - 85) {
+        if (m.y >= getGroundYAt(m.x)) {
             const hitBuilding = findHitBuilding(m.x, m.y);
             if (hitBuilding) {
-                hitBuilding.health--;
-                createExplosion(m.x, m.y);
-                triggerHitFeedback(1.1);
+                hitBuilding.health -= m.typeData.damage;
                 score = Math.max(0, score - BUILDING_HIT_PENALTY);
-                missiles.splice(i, 1);
+            } else {
+                if (Math.abs(m.x - launcher.x) < 30) launcher.health -= m.typeData.damage;
+                else if (Math.abs(m.x - laserLauncher.x) < 30) laserLauncher.health -= m.typeData.damage;
             }
+            createExplosion(m.x, m.y);
+            triggerHitFeedback(1.1);
+            missiles.splice(i, 1);
             continue;
         }
         
@@ -1721,6 +1933,7 @@ function update(deltaSeconds) {
             
             if (dist < 30) {
                 createExplosion((m.x + inter.x) / 2, (m.y + inter.y) / 2);
+                spawnShrapnel((m.x + inter.x) / 2, (m.y + inter.y) / 2);
                 playHitSound();
                 triggerHitFeedback(0.7);
                 
@@ -1742,6 +1955,7 @@ function update(deltaSeconds) {
             
             if (dist < 35) {
                 createExplosion((m.x + jet.x) / 2, (m.y + jet.y) / 2);
+                spawnShrapnel((m.x + jet.x) / 2, (m.y + jet.y) / 2);
                 playHitSound();
                 triggerHitFeedback(0.55);
                 
@@ -1758,6 +1972,33 @@ function update(deltaSeconds) {
     // Update interceptors
     for (let i = interceptors.length - 1; i >= 0; i--) {
         const inter = interceptors[i];
+        
+        let hitFlare = false;
+        for (let j = 0; j < flares.length; j++) {
+            if (Math.hypot(inter.x - flares[j].x, inter.y - flares[j].y) < 30) {
+                createExplosion((inter.x + flares[j].x) / 2, (inter.y + flares[j].y) / 2);
+                flares.splice(j, 1);
+                interceptors.splice(i, 1);
+                hitFlare = true;
+                break;
+            }
+        }
+        if (hitFlare) continue;
+        
+        const hasValidTarget = inter.target && inter.target.health > 0 && (missiles.includes(inter.target) || flares.includes(inter.target));
+        if (inter.source === "battery" && hasValidTarget) {
+            const dx = inter.target.x - inter.x;
+            const dy = inter.target.y - inter.y;
+            const len = Math.max(1, Math.hypot(dx, dy));
+            
+            const dot = (inter.vx * dx + inter.vy * dy) / (INTERCEPTOR_SPEED * len);
+            if (dot < -0.1) {
+                inter.target = null; // Drop lock if overshot
+            } else {
+                inter.vx = (dx / len) * INTERCEPTOR_SPEED;
+                inter.vy = (dy / len) * INTERCEPTOR_SPEED;
+            }
+        }
         inter.x += inter.vx * frameScale;
         inter.y += inter.vy * frameScale;
         inter.age += frameScale;
@@ -1834,6 +2075,41 @@ function update(deltaSeconds) {
         }
     }
     
+    // Update flares
+    for (let i = flares.length - 1; i >= 0; i--) {
+        flares[i].x += flares[i].vx * frameScale;
+        flares[i].y += flares[i].vy * frameScale;
+        if (flares[i].y > canvas.height || flares[i].health <= 0) flares.splice(i, 1);
+    }
+    
+    // Update shrapnels
+    for (let i = shrapnels.length - 1; i >= 0; i--) {
+        let s = shrapnels[i];
+        s.vy += 0.05 * frameScale;
+        s.x += s.vx * frameScale;
+        s.y += s.vy * frameScale;
+        s.age += frameScale;
+        if (s.y >= getGroundYAt(s.x) || s.age > 200) {
+            const hitBuilding = findHitBuilding(s.x, s.y);
+            if (hitBuilding) hitBuilding.health -= 1;
+            else if (Math.abs(s.x - launcher.x) < 30) launcher.health -= 1;
+            else if (Math.abs(s.x - laserLauncher.x) < 30) laserLauncher.health -= 1;
+            shrapnels.splice(i, 1);
+        }
+    }
+    
+    // Update lasers
+    for (let i = lasers.length - 1; i >= 0; i--) {
+        lasers[i].age += frameScale;
+        if (lasers[i].age > lasers[i].maxAge) {
+            lasers.splice(i, 1);
+        }
+    }
+    
+    if (wave >= 3) {
+        laserDomeCooldown -= frameScale;
+    }
+    
     // Remove destroyed buildings
     buildings = buildings.filter(b => b.health > 0);
     
@@ -1847,19 +2123,34 @@ function update(deltaSeconds) {
 }
 
 function drawLauncher() {
-    // Draw aim line
-    if (!gameOver && (isTouchDevice ? touchAimActive : true)) {
-        const len = 100;
-        const endX = launcher.x + Math.cos(launcher.angle) * len;
-        const endY = launcher.y + Math.sin(launcher.angle) * len;
-        ctx.strokeStyle = "rgba(255, 107, 107, 0.3)";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([8, 4]);
+    if (launcher.health <= 0) {
+        ctx.globalAlpha = 0.5;
+        drawEmoji(launcher.x, launcher.y, "🪨", 40);
+        ctx.globalAlpha = 1;
+        return;
+    }
+    
+    // iron dome active highlight
+    if (!gameOver && activeWeapon === "ironDome") {
+        ctx.strokeStyle = "rgba(255, 107, 107, 0.4)";
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(launcher.x, launcher.y);
-        ctx.lineTo(endX, endY);
+        ctx.arc(launcher.x, launcher.y - 10, 35, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.setLineDash([]);
+        
+        if (isTouchDevice ? touchAimActive : true) {
+            const len = 100;
+            const endX = launcher.x + Math.cos(launcher.angle) * len;
+            const endY = launcher.y + Math.sin(launcher.angle) * len;
+            ctx.strokeStyle = "rgba(255, 107, 107, 0.3)";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 4]);
+            ctx.beginPath();
+            ctx.moveTo(launcher.x, launcher.y);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
     }
 
     // Iron Dome launcher platform
@@ -1893,6 +2184,48 @@ function drawLauncher() {
     ctx.fillRect(-2, -32, 12, 3);
     ctx.fillRect(14, -28, 12, 3);
 
+    ctx.restore();
+}
+
+function drawLaserLauncher() {
+    if (wave < 3) return;
+    
+    if (laserLauncher.health <= 0) {
+        ctx.globalAlpha = 0.5;
+        drawEmoji(laserLauncher.x, laserLauncher.y, "🪨", 40);
+        ctx.globalAlpha = 1;
+        return;
+    }
+    
+    if (!gameOver && activeWeapon === "laserDome") {
+        ctx.strokeStyle = "rgba(100, 200, 255, 0.4)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(laserLauncher.x, laserLauncher.y - 10, 35, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    
+    ctx.save();
+    ctx.translate(laserLauncher.x, laserLauncher.y);
+    
+    // laser base
+    ctx.fillStyle = "#2a4b66";
+    ctx.fillRect(-24, 6, 48, 14);
+    ctx.fillStyle = "#1e354a";
+    ctx.fillRect(-18, 0, 36, 6);
+    
+    // laser emitter ball
+    ctx.fillStyle = "#5c9bbd";
+    ctx.beginPath();
+    ctx.arc(0, -6, 12, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // laser barrel pointed at aim
+    const aimAngle = Math.atan2(mouseY - laserLauncher.y, mouseX - laserLauncher.x);
+    ctx.rotate(aimAngle);
+    ctx.fillStyle = "#b8dcf2";
+    ctx.fillRect(8, -4, 16, 8);
+    
     ctx.restore();
 }
 
@@ -1957,7 +2290,7 @@ function draw() {
         drawEmoji(b.x + b.width / 2, b.y + b.height / 2, b.emoji);
         
         // Draw health indicator
-        if (b.health < 1) {
+        if (b.health < b.maxHealth) {
             ctx.fillStyle = "rgba(255, 100, 100, 0.5)";
             ctx.globalAlpha = 0.5;
             ctx.fillRect(b.x, b.y, b.width, b.height);
@@ -1966,6 +2299,21 @@ function draw() {
     });
     
     // Draw game objects
+    shrapnels.forEach(s => {
+        ctx.fillStyle = "#ffaa00";
+        ctx.fillRect(s.x, s.y, 4, 4);
+    });
+    
+    flares.forEach(f => {
+        ctx.fillStyle = "#ffffff";
+        ctx.shadowColor = "#ffddaa";
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    });
+
     missiles.forEach(drawHostile);
     interceptors.forEach(inter => {
         const typeData = INTERCEPTOR_TYPES[inter.source] || INTERCEPTOR_TYPES.battery;
@@ -1995,13 +2343,53 @@ function draw() {
         }
     });
     
+    if (settings.aimGuide && missiles.length > 0 && !gameOver && !isPaused) {
+        let bestDist = Infinity;
+        let aimTarget = null;
+        for (const m of missiles) {
+            let dist = Math.hypot(m.x - mouseX, m.y - mouseY);
+            if (dist < bestDist) {
+                bestDist = dist;
+                aimTarget = m;
+            }
+        }
+        if (aimTarget) {
+            ctx.strokeStyle = activeWeapon === "laserDome" ? "rgba(100, 200, 255, 0.8)" : "rgba(255, 100, 100, 0.8)";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const sz = 16;
+            ctx.moveTo(aimTarget.x - sz, aimTarget.y);
+            ctx.lineTo(aimTarget.x + sz, aimTarget.y);
+            ctx.moveTo(aimTarget.x, aimTarget.y - sz);
+            ctx.lineTo(aimTarget.x, aimTarget.y + sz);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(aimTarget.x, aimTarget.y, sz * 0.7, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+    }
+    
     explosions.forEach(exp => {
         ctx.globalAlpha = 1 - (exp.age / exp.maxAge);
         drawEmoji(exp.x, exp.y, EXPLOSION_EMOJI);
         ctx.globalAlpha = 1;
     });
     
+    lasers.forEach(laser => {
+        const alpha = 1 - (laser.age / laser.maxAge);
+        ctx.strokeStyle = `rgba(100, 200, 255, ${alpha})`;
+        ctx.lineWidth = 4;
+        ctx.shadowColor = "rgba(100, 200, 255, 0.8)";
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(laser.startX, laser.startY);
+        ctx.lineTo(laser.endX, laser.endY);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+    });
+    
     drawLauncher();
+    drawLaserLauncher();
     drawMissionToast();
     
     // Draw score
