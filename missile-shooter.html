@@ -278,7 +278,7 @@ canvas {
         <button class="share-btn share-copy" type="button" onclick="shareScore('copy')" aria-label="Copy score" title="Copy score"><img alt="" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M8%203h10a2%202%200%200%201%202%202v11h-2V5H8z'/%3E%3Cpath%20fill='white'%20d='M4%207h11a2%202%200%200%201%202%202v10a2%202%200%200%201-2%202H4a2%202%200%200%201-2-2V9a2%202%200%200%201%202-2zm0%202v10h11V9z'/%3E%3C/svg%3E"></button>
     </div>
 
-    <button class="btn btn-new" onclick="startNewGame()">Launch New Mission</button>
+    <button class="btn btn-new" onclick="game.startNewGame()">Launch New Mission</button>
 </div>
 
 <script>
@@ -303,74 +303,228 @@ const uiScore = document.getElementById("uiScore");
 const installBtn = document.getElementById("installBtn");
 const manifestLink = document.getElementById("manifestLink");
 
-const SETTINGS_KEY = "missileShooterSettings";
-const defaultSettings = { soundEnabled: false, showAimGuide: true };
-let settings = loadSettings();
-let audioContext = null;
+const game = {
+    constants: {
+        SETTINGS_KEY: "missileShooterSettings",
+        defaultSettings: { soundEnabled: false, showAimGuide: true },
 
-const REFERENCE_FPS = 60;
-const SPEED = 30;
-const SHOT_EVENT_EPSILON = 0.0001;
-const SHOT_POSITION_EPSILON = 0.01;
-const MAX_SHOT_EVENTS_PER_FRAME = 8;
-const MAX_TRAJECTORY_EVENTS = 24;
-let COLS = 1;
-let R = 18;
-const START_ROWS = 7;
-const ARMOR_TYPES = [
-    { id: "ceramic", color: "#f5f7ff", accent: "#d2dcff" },
-    { id: "reactive", color: "#3fd5ff", accent: "#b5f2ff" },
-    { id: "titan", color: "#8fa5ff", accent: "#d8e2ff" },
-    { id: "carbon", color: "#4de389", accent: "#b6ffd4" },
-    { id: "plasma", color: "#ff7a5c", accent: "#ffd5cb" },
-    { id: "obsidian", color: "#9072ff", accent: "#e0d7ff" },
-    { id: "ember", color: "#ffbe3b", accent: "#ffe5ad" },
-    { id: "shadow", color: "#8f9bb3", accent: "#e4e9f2" }
-];
+        REFERENCE_FPS: 60,
+        SPEED: 30,
+        SHOT_EVENT_EPSILON: 0.0001,
+        SHOT_POSITION_EPSILON: 0.01,
+        MAX_SHOT_EVENTS_PER_FRAME: 8,
+        MAX_TRAJECTORY_EVENTS: 24,
+        COLS: 1,
+        R: 18,
+        START_ROWS: 7,
+        ARMOR_TYPES: [
+            { id: "ceramic", color: "#f5f7ff", accent: "#d2dcff" },
+            { id: "reactive", color: "#3fd5ff", accent: "#b5f2ff" },
+            { id: "titan", color: "#8fa5ff", accent: "#d8e2ff" },
+            { id: "carbon", color: "#4de389", accent: "#b6ffd4" },
+            { id: "plasma", color: "#ff7a5c", accent: "#ffd5cb" },
+            { id: "obsidian", color: "#9072ff", accent: "#e0d7ff" },
+            { id: "ember", color: "#ffbe3b", accent: "#ffe5ad" },
+            { id: "shadow", color: "#8f9bb3", accent: "#e4e9f2" }
+        ],
 
-let grid = new Map();
-let score = 0;
-let combo = 0;
-let clearedArmor = new Set();
-const BASE_MISSES_PER_DROP = 3;
-const MIN_MISSES_PER_DROP = 2;
-const SHOTS_PER_LEVEL = 30;
-const BASE_ARMOR_COUNT = 5;
-const LEVELS_PER_ROOF_LOWER = 3;
-const ROOF_LOWER_STEP_ROWS = 0.5;
-let maxMissesForCycle = BASE_MISSES_PER_DROP;
-let currentMissesLeft = BASE_MISSES_PER_DROP;
-let dropShiftLeftNext = false;
-let level = 1;
-let shotsFired = 0;
-let unlockedArmorCount = BASE_ARMOR_COUNT;
-let ceilingY = 40 - R;
-let gameOver = false;
-let win = false;
-let shotMissile = null;
-let explosionTimer = 0;
-let islandTimer = 0;
-let pendingExplosion = null;
-let explosionClouds = [];
+        BASE_MISSES_PER_DROP: 3,
+        MIN_MISSES_PER_DROP: 2,
+        SHOTS_PER_LEVEL: 30,
+        BASE_ARMOR_COUNT: 5,
+        LEVELS_PER_ROOF_LOWER: 3,
+        ROOF_LOWER_STEP_ROWS: 0.5,
 
-const MATCH_SCORE = 10;
-const FLOATING_SCORE = 20;
-const ARMOR_CLEAR_BONUS = 150;
-const BOARD_CLEAR_BONUS = 1000;
+        MATCH_SCORE: 10,
+        FLOATING_SCORE: 20,
+        ARMOR_CLEAR_BONUS: 150,
+        BOARD_CLEAR_BONUS: 1000
+    },
 
-let launcher = { x: 0, y: 0, angle: 0 };
-let mouseX = 0;
-let mouseY = 0;
-let isTouchDevice = false;
-let touchAimActive = false;
-let installPromptEvent = null;
+    state: {
+        grid: new Map(),
+        score: 0,
+        combo: 0,
+        clearedArmor: new Set(),
 
-let currentMissile;
-let nextMissile;
+        maxMissesForCycle: 3,
+        currentMissesLeft: 3,
+        dropShiftLeftNext: false,
+        level: 1,
+        shotsFired: 0,
+        unlockedArmorCount: 5,
+        ceilingY: 22,
+        gameOver: false,
+        win: false,
+        shotMissile: null,
+        explosionTimer: 0,
+        islandTimer: 0,
+        pendingExplosion: null,
+        explosionClouds: []
+    },
+
+    runtime: {
+        audioContext: null,
+        launcher: { x: 0, y: 0, angle: 0 },
+        mouseX: 0,
+        mouseY: 0,
+        isTouchDevice: false,
+        touchAimActive: false,
+        installPromptEvent: null,
+        currentMissile: null,
+        nextMissile: null
+    },
+
+    settings: { ...{ soundEnabled: false, showAimGuide: true } }
+};
+
+Object.defineProperties(game, {
+    SETTINGS_KEY: { get() { return this.constants.SETTINGS_KEY; } },
+    defaultSettings: { get() { return this.constants.defaultSettings; } },
+    REFERENCE_FPS: { get() { return this.constants.REFERENCE_FPS; } },
+    SPEED: { get() { return this.constants.SPEED; } },
+    SHOT_EVENT_EPSILON: { get() { return this.constants.SHOT_EVENT_EPSILON; } },
+    SHOT_POSITION_EPSILON: { get() { return this.constants.SHOT_POSITION_EPSILON; } },
+    MAX_SHOT_EVENTS_PER_FRAME: { get() { return this.constants.MAX_SHOT_EVENTS_PER_FRAME; } },
+    MAX_TRAJECTORY_EVENTS: { get() { return this.constants.MAX_TRAJECTORY_EVENTS; } },
+    COLS: {
+        get() { return this.constants.COLS; },
+        set(value) { this.constants.COLS = value; }
+    },
+    R: {
+        get() { return this.constants.R; },
+        set(value) { this.constants.R = value; }
+    },
+    START_ROWS: { get() { return this.constants.START_ROWS; } },
+    ARMOR_TYPES: { get() { return this.constants.ARMOR_TYPES; } },
+
+    BASE_MISSES_PER_DROP: { get() { return this.constants.BASE_MISSES_PER_DROP; } },
+    MIN_MISSES_PER_DROP: { get() { return this.constants.MIN_MISSES_PER_DROP; } },
+    SHOTS_PER_LEVEL: { get() { return this.constants.SHOTS_PER_LEVEL; } },
+    BASE_ARMOR_COUNT: { get() { return this.constants.BASE_ARMOR_COUNT; } },
+    LEVELS_PER_ROOF_LOWER: { get() { return this.constants.LEVELS_PER_ROOF_LOWER; } },
+    ROOF_LOWER_STEP_ROWS: { get() { return this.constants.ROOF_LOWER_STEP_ROWS; } },
+
+    MATCH_SCORE: { get() { return this.constants.MATCH_SCORE; } },
+    FLOATING_SCORE: { get() { return this.constants.FLOATING_SCORE; } },
+    ARMOR_CLEAR_BONUS: { get() { return this.constants.ARMOR_CLEAR_BONUS; } },
+    BOARD_CLEAR_BONUS: { get() { return this.constants.BOARD_CLEAR_BONUS; } },
+
+    grid: {
+        get() { return this.state.grid; },
+        set(value) { this.state.grid = value; }
+    },
+    score: {
+        get() { return this.state.score; },
+        set(value) { this.state.score = value; }
+    },
+    combo: {
+        get() { return this.state.combo; },
+        set(value) { this.state.combo = value; }
+    },
+    clearedArmor: {
+        get() { return this.state.clearedArmor; },
+        set(value) { this.state.clearedArmor = value; }
+    },
+
+    maxMissesForCycle: {
+        get() { return this.state.maxMissesForCycle; },
+        set(value) { this.state.maxMissesForCycle = value; }
+    },
+    currentMissesLeft: {
+        get() { return this.state.currentMissesLeft; },
+        set(value) { this.state.currentMissesLeft = value; }
+    },
+    dropShiftLeftNext: {
+        get() { return this.state.dropShiftLeftNext; },
+        set(value) { this.state.dropShiftLeftNext = value; }
+    },
+    level: {
+        get() { return this.state.level; },
+        set(value) { this.state.level = value; }
+    },
+    shotsFired: {
+        get() { return this.state.shotsFired; },
+        set(value) { this.state.shotsFired = value; }
+    },
+    unlockedArmorCount: {
+        get() { return this.state.unlockedArmorCount; },
+        set(value) { this.state.unlockedArmorCount = value; }
+    },
+    ceilingY: {
+        get() { return this.state.ceilingY; },
+        set(value) { this.state.ceilingY = value; }
+    },
+    gameOver: {
+        get() { return this.state.gameOver; },
+        set(value) { this.state.gameOver = value; }
+    },
+    win: {
+        get() { return this.state.win; },
+        set(value) { this.state.win = value; }
+    },
+    shotMissile: {
+        get() { return this.state.shotMissile; },
+        set(value) { this.state.shotMissile = value; }
+    },
+    explosionTimer: {
+        get() { return this.state.explosionTimer; },
+        set(value) { this.state.explosionTimer = value; }
+    },
+    islandTimer: {
+        get() { return this.state.islandTimer; },
+        set(value) { this.state.islandTimer = value; }
+    },
+    pendingExplosion: {
+        get() { return this.state.pendingExplosion; },
+        set(value) { this.state.pendingExplosion = value; }
+    },
+    explosionClouds: {
+        get() { return this.state.explosionClouds; },
+        set(value) { this.state.explosionClouds = value; }
+    },
+
+    audioContext: {
+        get() { return this.runtime.audioContext; },
+        set(value) { this.runtime.audioContext = value; }
+    },
+    launcher: {
+        get() { return this.runtime.launcher; },
+        set(value) { this.runtime.launcher = value; }
+    },
+    mouseX: {
+        get() { return this.runtime.mouseX; },
+        set(value) { this.runtime.mouseX = value; }
+    },
+    mouseY: {
+        get() { return this.runtime.mouseY; },
+        set(value) { this.runtime.mouseY = value; }
+    },
+    isTouchDevice: {
+        get() { return this.runtime.isTouchDevice; },
+        set(value) { this.runtime.isTouchDevice = value; }
+    },
+    touchAimActive: {
+        get() { return this.runtime.touchAimActive; },
+        set(value) { this.runtime.touchAimActive = value; }
+    },
+    installPromptEvent: {
+        get() { return this.runtime.installPromptEvent; },
+        set(value) { this.runtime.installPromptEvent = value; }
+    },
+    currentMissile: {
+        get() { return this.runtime.currentMissile; },
+        set(value) { this.runtime.currentMissile = value; }
+    },
+    nextMissile: {
+        get() { return this.runtime.nextMissile; },
+        set(value) { this.runtime.nextMissile = value; }
+    }
+});
 
 function getMissileScale() {
     // Match the scale used when drawing the moving missile.
-    return Math.max(0.95, R / 18);
+    return Math.max(0.95, game.R / 18);
 }
 
 function getMissileCollisionRadius() {
@@ -405,33 +559,33 @@ function isIosBrowser() {
 
 function loadSettings() {
     try {
-        const raw = localStorage.getItem(SETTINGS_KEY);
-        if (!raw) return { ...defaultSettings };
+        const raw = localStorage.getItem(game.SETTINGS_KEY);
+        if (!raw) return { ...game.defaultSettings };
         const parsed = JSON.parse(raw);
         return {
             soundEnabled: parsed.soundEnabled === true,
             showAimGuide: parsed.showAimGuide !== false
         };
     } catch {
-        return { ...defaultSettings };
+        return { ...game.defaultSettings };
     }
 }
 
 function saveSettings() {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    localStorage.setItem(game.SETTINGS_KEY, JSON.stringify(game.settings));
 }
 
 function syncSettingsUi() {
-    soundToggle.checked = settings.soundEnabled;
-    guideToggle.checked = settings.showAimGuide;
+    soundToggle.checked = game.settings.soundEnabled;
+    guideToggle.checked = game.settings.showAimGuide;
 
-    aimBtn.setAttribute("aria-pressed", String(settings.showAimGuide));
-    aimBtn.setAttribute("title", settings.showAimGuide ? "Aim Guide On" : "Aim Guide Off");
-    aimBtn.textContent = settings.showAimGuide ? "🎯" : "🚫";
+    aimBtn.setAttribute("aria-pressed", String(game.settings.showAimGuide));
+    aimBtn.setAttribute("title", game.settings.showAimGuide ? "Aim Guide On" : "Aim Guide Off");
+    aimBtn.textContent = game.settings.showAimGuide ? "🎯" : "🚫";
 
-    volumeBtn.setAttribute("aria-pressed", String(settings.soundEnabled));
-    volumeBtn.setAttribute("title", settings.soundEnabled ? "Sound On" : "Sound Off");
-    volumeBtn.textContent = settings.soundEnabled ? "🔊" : "🔇";
+    volumeBtn.setAttribute("aria-pressed", String(game.settings.soundEnabled));
+    volumeBtn.setAttribute("title", game.settings.soundEnabled ? "Sound On" : "Sound Off");
+    volumeBtn.textContent = game.settings.soundEnabled ? "🔊" : "🔇";
 }
 
 function openSettings() {
@@ -446,19 +600,22 @@ function closeSettings() {
 }
 
 function ensureAudioContext() {
-    if (!audioContext) {
+    if (!game.audioContext) {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return null;
-        audioContext = new AudioCtx();
+        game.audioContext = new AudioCtx();
     }
-    if (audioContext.state === "suspended") {
-        audioContext.resume();
+    if (game.audioContext.state === "suspended") {
+        game.audioContext.resume();
     }
-    return audioContext;
+    return game.audioContext;
 }
 
 function playTone(type, options) {
-    if (!settings.soundEnabled) return;
+    if (!game.settings) {
+        game.settings = { ...game.defaultSettings };
+    }
+    if (!game.settings.soundEnabled) return;
     const ctxAudio = ensureAudioContext();
     if (!ctxAudio) return;
 
@@ -521,7 +678,7 @@ function updateInstallButton() {
         installBtn.style.display = "none";
         return;
     }
-    if (installPromptEvent) {
+    if (game.installPromptEvent) {
         installBtn.textContent = "📲";
         installBtn.title = "Install App";
         installBtn.style.display = "inline-flex";
@@ -551,16 +708,16 @@ async function registerWebAppSupport() {
 }
 
 function getRowHeight() {
-    return R * 1.5;
+    return game.R * 1.5;
 }
 
 function getBaseCeilingY() {
-    return 40 - R;
+    return 40 - game.R;
 }
 
 function updateRoofHeight() {
-    const roofLowerSteps = Math.floor((level - 1) / LEVELS_PER_ROOF_LOWER);
-    ceilingY = getBaseCeilingY() + roofLowerSteps * getRowHeight() * ROOF_LOWER_STEP_ROWS;
+    const roofLowerSteps = Math.floor((game.level - 1) / game.LEVELS_PER_ROOF_LOWER);
+    game.ceilingY = getBaseCeilingY() + roofLowerSteps * getRowHeight() * game.ROOF_LOWER_STEP_ROWS;
 }
 
 function resizeCanvas() {
@@ -568,14 +725,14 @@ function resizeCanvas() {
     appShell.style.width = shellWidth + "px";
     const dockHeight = controlDock.offsetHeight || 78;
     canvas.height = Math.max(320, window.innerHeight - dockHeight);
-    R = Math.floor(canvas.height / 40);
+    game.R = Math.floor(canvas.height / 40);
     canvas.width = shellWidth;
-    COLS = Math.floor(canvas.width / (R * Math.sqrt(3)));
+    game.COLS = Math.floor(canvas.width / (game.R * Math.sqrt(3)));
     updateRoofHeight();
-    launcher.x = canvas.width / 2;
-    launcher.y = canvas.height - Math.max(54, R * 3);
-    mouseX = launcher.x;
-    mouseY = launcher.y - 100;
+    game.launcher.x = canvas.width / 2;
+    game.launcher.y = canvas.height - Math.max(54, game.R * 3);
+    game.mouseX = game.launcher.x;
+    game.mouseY = game.launcher.y - 100;
 }
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
@@ -590,13 +747,13 @@ function neighbors(q, r) {
 }
 
 function hexToPixel(q, r) {
-    return { x: R * Math.sqrt(3) * (q + r / 2) + canvas.width / 2, y: R * 1.5 * r + ceilingY + R };
+    return { x: game.R * Math.sqrt(3) * (q + r / 2) + canvas.width / 2, y: game.R * 1.5 * r + game.ceilingY + game.R };
 }
 
 function pixelToHex(x, y) {
     x -= canvas.width / 2;
-    y -= ceilingY + R;
-    return hexRound((Math.sqrt(3) / 3 * x - y / 3) / R, (2 / 3 * y) / R);
+    y -= game.ceilingY + game.R;
+    return hexRound((Math.sqrt(3) / 3 * x - y / 3) / game.R, (2 / 3 * y) / game.R);
 }
 
 function hexRound(q, r) {
@@ -619,23 +776,23 @@ function hexRound(q, r) {
 
 function activeArmorIds() {
     const set = new Set();
-    grid.forEach(v => set.add(v.armorId));
+    game.grid.forEach(v => set.add(v.armorId));
     return [...set];
 }
 
 function unlockedArmorList() {
-    return ARMOR_TYPES.slice(0, unlockedArmorCount);
+    return game.ARMOR_TYPES.slice(0, game.unlockedArmorCount);
 }
 
 function armorFromId(id) {
-    return ARMOR_TYPES.find(a => a.id === id) || ARMOR_TYPES[0];
+    return game.ARMOR_TYPES.find(a => a.id === id) || game.ARMOR_TYPES[0];
 }
 
 function randomArmor(source = "shot") {
     const activeIds = activeArmorIds();
     const unlocked = unlockedArmorList();
-    const available = unlocked.filter(a => !clearedArmor.has(a.id));
-    if (available.length === 0) return ARMOR_TYPES[0];
+    const available = unlocked.filter(a => !game.clearedArmor.has(a.id));
+    if (available.length === 0) return game.ARMOR_TYPES[0];
 
     let preferActiveChance = source === "ceiling" ? 0.55 : 0.8;
     if (activeIds.length <= 2) preferActiveChance = source === "ceiling" ? 0.25 : 0.45;
@@ -648,20 +805,20 @@ function randomArmor(source = "shot") {
 }
 
 function createMissile(armor) {
-    return { x: launcher.x, y: launcher.y, vx: 0, vy: 0, armorId: armor.id, moving: false };
+    return { x: game.launcher.x, y: game.launcher.y, vx: 0, vy: 0, armorId: armor.id, moving: false };
 }
 
 function initBoard() {
-    grid.clear();
-    for (let r = 0; r < START_ROWS; r++) {
-        const startQ = -Math.floor((COLS + 4) / 2);
-        for (let i = 0; i <= COLS + 4; i++) {
+    game.grid.clear();
+    for (let r = 0; r < game.START_ROWS; r++) {
+        const startQ = -Math.floor((game.COLS + 4) / 2);
+        for (let i = 0; i <= game.COLS + 4; i++) {
             const q = startQ + i;
             const p = hexToPixel(q, r);
-            if (p.x >= R && p.x <= canvas.width - R && Math.random() < 0.9) {
+            if (p.x >= game.R && p.x <= canvas.width - game.R && Math.random() < 0.9) {
                 const armor = unlockedArmorList();
                 const pick = armor[Math.floor(Math.random() * armor.length)];
-                grid.set(key(q, r), { armorId: pick.id });
+                game.grid.set(key(q, r), { armorId: pick.id });
             }
         }
     }
@@ -669,60 +826,74 @@ function initBoard() {
 
 function injectUnlockedArmor(armor) {
     const topKeys = [];
-    grid.forEach((v, k) => {
+    game.grid.forEach((v, k) => {
         const parts = k.split(",").map(Number);
         if (parts[1] === 0) topKeys.push(k);
     });
 
     if (topKeys.length > 0) {
         const picked = topKeys[Math.floor(Math.random() * topKeys.length)];
-        grid.set(picked, { armorId: armor.id });
+        game.grid.set(picked, { armorId: armor.id });
         return;
     }
 
-    grid.set(key(0, 0), { armorId: armor.id });
+    game.grid.set(key(0, 0), { armorId: armor.id });
 }
 
-function startNewGame() {
+game.startNewGame = function() {
     resizeCanvas();
-    initBoard();
-    score = 0;
-    combo = 0;
-    shotsFired = 0;
-    unlockedArmorCount = BASE_ARMOR_COUNT;
-    maxMissesForCycle = BASE_MISSES_PER_DROP;
-    currentMissesLeft = maxMissesForCycle;
-    dropShiftLeftNext = false;
-    level = 1;
+    game.score = 0;
+    game.combo = 0;
+    game.clearedArmor = new Set();
+    game.shotsFired = 0;
+    game.unlockedArmorCount = game.BASE_ARMOR_COUNT;
+    game.maxMissesForCycle = game.BASE_MISSES_PER_DROP;
+    game.currentMissesLeft = game.maxMissesForCycle;
+    game.dropShiftLeftNext = false;
+    game.level = 1;
     updateRoofHeight();
-    gameOver = false;
-    win = false;
-    shotMissile = null;
-    pendingExplosion = null;
-    currentMissile = createMissile(randomArmor("shot"));
-    nextMissile = createMissile(randomArmor("shot"));
+    initBoard();
+    game.gameOver = false;
+    game.win = false;
+    game.shotMissile = null;
+    game.pendingExplosion = null;
+    game.currentMissile = createMissile(randomArmor("shot"));
+    game.nextMissile = createMissile(randomArmor("shot"));
     uiOverlay.style.display = "none";
-}
+};
 
-startNewGame();
-registerWebAppSupport();
+game.restartGame = function() {
+    this.startNewGame();
+};
+
+game.init = function() {
+    this.settings = loadSettings();
+    if (!this.settings) {
+        this.settings = { ...this.defaultSettings };
+    }
+    syncSettingsUi();
+    this.startNewGame();
+    registerWebAppSupport();
+};
+
+game.init();
 
 window.addEventListener("beforeinstallprompt", event => {
     event.preventDefault();
-    installPromptEvent = event;
+    game.installPromptEvent = event;
     updateInstallButton();
 });
 
 window.addEventListener("appinstalled", () => {
-    installPromptEvent = null;
+    game.installPromptEvent = null;
     updateInstallButton();
 });
 
 installBtn.addEventListener("click", async () => {
-    if (installPromptEvent) {
-        installPromptEvent.prompt();
-        await installPromptEvent.userChoice;
-        installPromptEvent = null;
+    if (game.installPromptEvent) {
+        game.installPromptEvent.prompt();
+        await game.installPromptEvent.userChoice;
+        game.installPromptEvent = null;
         updateInstallButton();
         return;
     }
@@ -732,20 +903,20 @@ installBtn.addEventListener("click", async () => {
 });
 
 aimBtn.addEventListener("click", () => {
-    settings.showAimGuide = !settings.showAimGuide;
+    game.settings.showAimGuide = !game.settings.showAimGuide;
     saveSettings();
     syncSettingsUi();
 });
 
 newGameBtn.addEventListener("click", () => {
-    startNewGame();
+    game.startNewGame();
 });
 
 volumeBtn.addEventListener("click", () => {
-    settings.soundEnabled = !settings.soundEnabled;
+    game.settings.soundEnabled = !game.settings.soundEnabled;
     saveSettings();
     syncSettingsUi();
-    if (settings.soundEnabled) {
+    if (game.settings.soundEnabled) {
         ensureAudioContext();
         playCrashSound();
     }
@@ -764,89 +935,89 @@ settingsBackdrop.addEventListener("click", () => {
 });
 
 soundToggle.addEventListener("change", () => {
-    settings.soundEnabled = soundToggle.checked;
+    game.settings.soundEnabled = soundToggle.checked;
     saveSettings();
     syncSettingsUi();
-    if (settings.soundEnabled) {
+    if (game.settings.soundEnabled) {
         ensureAudioContext();
         playCrashSound();
     }
 });
 
 guideToggle.addEventListener("change", () => {
-    settings.showAimGuide = guideToggle.checked;
+    game.settings.showAimGuide = guideToggle.checked;
     saveSettings();
 });
 
 canvas.addEventListener("mousemove", e => {
-    isTouchDevice = false;
+    game.isTouchDevice = false;
     const rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
-    launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+    game.mouseX = e.clientX - rect.left;
+    game.mouseY = e.clientY - rect.top;
+    game.launcher.angle = Math.atan2(game.mouseY - game.launcher.y, game.mouseX - game.launcher.x);
 });
 
 canvas.addEventListener("touchmove", e => {
-    isTouchDevice = true;
-    touchAimActive = true;
+    game.isTouchDevice = true;
+    game.touchAimActive = true;
     e.preventDefault();
     const rect = canvas.getBoundingClientRect();
-    mouseX = e.touches[0].clientX - rect.left;
-    mouseY = e.touches[0].clientY - rect.top;
-    launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+    game.mouseX = e.touches[0].clientX - rect.left;
+    game.mouseY = e.touches[0].clientY - rect.top;
+    game.launcher.angle = Math.atan2(game.mouseY - game.launcher.y, game.mouseX - game.launcher.x);
 }, { passive: false });
 
 canvas.addEventListener("click", () => {
     ensureAudioContext();
-    if (!isTouchDevice) fireMissile();
+    if (!game.isTouchDevice) fireMissile();
 });
 
 canvas.addEventListener("touchstart", e => {
     ensureAudioContext();
-    isTouchDevice = true;
-    touchAimActive = true;
+    game.isTouchDevice = true;
+    game.touchAimActive = true;
     e.preventDefault();
     const rect = canvas.getBoundingClientRect();
-    mouseX = e.touches[0].clientX - rect.left;
-    mouseY = e.touches[0].clientY - rect.top;
+    game.mouseX = e.touches[0].clientX - rect.left;
+    game.mouseY = e.touches[0].clientY - rect.top;
 }, { passive: false });
 
 canvas.addEventListener("touchend", e => {
-    if (!touchAimActive) return;
+    if (!game.touchAimActive) return;
     e.preventDefault();
     if (e.changedTouches.length > 0) {
         const rect = canvas.getBoundingClientRect();
-        mouseX = e.changedTouches[0].clientX - rect.left;
-        mouseY = e.changedTouches[0].clientY - rect.top;
-        launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+        game.mouseX = e.changedTouches[0].clientX - rect.left;
+        game.mouseY = e.changedTouches[0].clientY - rect.top;
+        game.launcher.angle = Math.atan2(game.mouseY - game.launcher.y, game.mouseX - game.launcher.x);
     }
-    touchAimActive = false;
+    game.touchAimActive = false;
     fireMissile();
 }, { passive: false });
 
 canvas.addEventListener("touchcancel", () => {
-    touchAimActive = false;
+    game.touchAimActive = false;
 }, { passive: true });
 
 function fireMissile() {
-    if (shotMissile || gameOver || win) return;
-    let dx = mouseX - launcher.x;
-    let dy = mouseY - launcher.y;
+    if (game.shotMissile || game.gameOver || game.win) return;
+    let dx = game.mouseX - game.launcher.x;
+    let dy = game.mouseY - game.launcher.y;
     const length = Math.hypot(dx, dy);
     if (dy > -10 || length < 0.001) return;
 
     dx /= length;
     dy /= length;
-    currentMissile.vx = dx * SPEED;
-    currentMissile.vy = dy * SPEED;
-    currentMissile.moving = true;
-    shotMissile = currentMissile;
-    shotsFired++;
+    game.currentMissile.vx = dx * game.SPEED;
+    game.currentMissile.vy = dy * game.SPEED;
+    game.currentMissile.moving = true;
+    game.shotMissile = game.currentMissile;
+    game.shotsFired++;
     updateLevelFromShots();
     playLaunchSound();
 
-    currentMissile = createMissile(armorFromId(nextMissile.armorId));
-    nextMissile = createMissile(randomArmor("shot"));
+    game.currentMissile = createMissile(armorFromId(game.nextMissile.armorId));
+    game.nextMissile = createMissile(randomArmor("shot"));
 }
 
 function findSegmentDroneCollision(startX, startY, endX, endY) {
@@ -855,11 +1026,11 @@ function findSegmentDroneCollision(startX, startY, endX, endY) {
     const segmentLengthSq = dx * dx + dy * dy;
     if (segmentLengthSq === 0) return null;
 
-    const collisionDistance = getMissileCollisionRadius() + R * 0.95 - 1;
+    const collisionDistance = getMissileCollisionRadius() + game.R * 0.95 - 1;
     const collisionDistanceSq = collisionDistance * collisionDistance;
     let earliestHit = null;
 
-    for (const [k] of grid) {
+    for (const [k] of game.grid) {
         const [q, r] = k.split(",").map(Number);
         const center = hexToPixel(q, r);
         const relX = startX - center.x;
@@ -873,7 +1044,7 @@ function findSegmentDroneCollision(startX, startY, endX, endY) {
         const root = Math.sqrt(discriminant);
         const candidateTs = [(-b - root) / (2 * a), (-b + root) / (2 * a)];
         for (const t of candidateTs) {
-            if (t < SHOT_EVENT_EPSILON || t > 1) continue;
+            if (t < game.SHOT_EVENT_EPSILON || t > 1) continue;
             if (!earliestHit || t < earliestHit.t) {
                 earliestHit = {
                     t,
@@ -911,21 +1082,21 @@ function getNextMissileEvent(startX, startY, vx, vy, maxTime) {
         }
     }
 
-    if (vy < -SHOT_EVENT_EPSILON) {
-        const ceilingTime = (ceilingY + missileRadius - startY) / vy;
-        if (ceilingTime >= SHOT_EVENT_EPSILON && ceilingTime < bestEvent.time) {
+    if (vy < -game.SHOT_EVENT_EPSILON) {
+        const ceilingTime = (game.ceilingY + missileRadius - startY) / vy;
+        if (ceilingTime >= game.SHOT_EVENT_EPSILON && ceilingTime < bestEvent.time) {
             bestEvent = {
                 type: "ceiling",
                 time: ceilingTime,
                 x: startX + vx * ceilingTime,
-                y: ceilingY + missileRadius
+                y: game.ceilingY + missileRadius
             };
         }
     }
 
-    if (vx > SHOT_EVENT_EPSILON) {
+    if (vx > game.SHOT_EVENT_EPSILON) {
         const rightWallTime = (canvas.width - missileRadius - startX) / vx;
-        if (rightWallTime >= SHOT_EVENT_EPSILON && rightWallTime < bestEvent.time) {
+        if (rightWallTime >= game.SHOT_EVENT_EPSILON && rightWallTime < bestEvent.time) {
             bestEvent = {
                 type: "wall",
                 time: rightWallTime,
@@ -933,9 +1104,9 @@ function getNextMissileEvent(startX, startY, vx, vy, maxTime) {
                 y: startY + vy * rightWallTime
             };
         }
-    } else if (vx < -SHOT_EVENT_EPSILON) {
+    } else if (vx < -game.SHOT_EVENT_EPSILON) {
         const leftWallTime = (missileRadius - startX) / vx;
-        if (leftWallTime >= SHOT_EVENT_EPSILON && leftWallTime < bestEvent.time) {
+        if (leftWallTime >= game.SHOT_EVENT_EPSILON && leftWallTime < bestEvent.time) {
             bestEvent = {
                 type: "wall",
                 time: leftWallTime,
@@ -953,22 +1124,22 @@ function advanceShotMissile(frameScale) {
     let remainingTime = frameScale;
     let handledEvents = 0;
 
-    while (shotMissile && shotMissile.moving && remainingTime > SHOT_EVENT_EPSILON && handledEvents < MAX_SHOT_EVENTS_PER_FRAME) {
+    while (game.shotMissile && game.shotMissile.moving && remainingTime > game.SHOT_EVENT_EPSILON && handledEvents < game.MAX_SHOT_EVENTS_PER_FRAME) {
         handledEvents++;
-        const event = getNextMissileEvent(shotMissile.x, shotMissile.y, shotMissile.vx, shotMissile.vy, remainingTime);
+        const event = getNextMissileEvent(game.shotMissile.x, game.shotMissile.y, game.shotMissile.vx, game.shotMissile.vy, remainingTime);
 
-        shotMissile.x = event.x;
-        shotMissile.y = event.y;
+        game.shotMissile.x = event.x;
+        game.shotMissile.y = event.y;
 
         if (event.type === "move") {
             break;
         }
 
         if (event.type === "wall") {
-            shotMissile.vx *= -1;
-            shotMissile.x = Math.min(
+            game.shotMissile.vx *= -1;
+            game.shotMissile.x = Math.min(
                 canvas.width - missileRadius,
-                Math.max(missileRadius, shotMissile.x + Math.sign(shotMissile.vx) * SHOT_POSITION_EPSILON)
+                Math.max(missileRadius, game.shotMissile.x + Math.sign(game.shotMissile.vx) * game.SHOT_POSITION_EPSILON)
             );
             remainingTime -= event.time;
             continue;
@@ -989,7 +1160,7 @@ function traceMissilePath(startX, startY, vx, vy, maxTime) {
     let remainingTime = maxTime;
     let handledEvents = 0;
 
-    while (remainingTime > SHOT_EVENT_EPSILON && handledEvents < MAX_TRAJECTORY_EVENTS) {
+    while (remainingTime > game.SHOT_EVENT_EPSILON && handledEvents < game.MAX_TRAJECTORY_EVENTS) {
         handledEvents++;
         const event = getNextMissileEvent(x, y, currentVx, currentVy, remainingTime);
         points.push({ x: event.x, y: event.y });
@@ -1000,7 +1171,7 @@ function traceMissilePath(startX, startY, vx, vy, maxTime) {
 
         remainingTime -= event.time;
         currentVx *= -1;
-        x = Math.min(canvas.width - missileRadius, Math.max(missileRadius, event.x + Math.sign(currentVx) * SHOT_POSITION_EPSILON));
+        x = Math.min(canvas.width - missileRadius, Math.max(missileRadius, event.x + Math.sign(currentVx) * game.SHOT_POSITION_EPSILON));
         y = event.y;
     }
 
@@ -1008,20 +1179,20 @@ function traceMissilePath(startX, startY, vx, vy, maxTime) {
 }
 
 function updateLevelFromShots() {
-    const targetLevel = 1 + Math.floor(shotsFired / SHOTS_PER_LEVEL);
-    if (targetLevel <= level) return;
+    const targetLevel = 1 + Math.floor(game.shotsFired / game.SHOTS_PER_LEVEL);
+    if (targetLevel <= game.level) return;
 
-    while (level < targetLevel) {
-        level++;
+    while (game.level < targetLevel) {
+        game.level++;
 
-        const targetUnlockedCount = Math.min(BASE_ARMOR_COUNT + Math.floor((level - 1) / 4), ARMOR_TYPES.length);
-        if (targetUnlockedCount > unlockedArmorCount) {
-            unlockedArmorCount = targetUnlockedCount;
-            injectUnlockedArmor(ARMOR_TYPES[unlockedArmorCount - 1]);
+        const targetUnlockedCount = Math.min(game.BASE_ARMOR_COUNT + Math.floor((game.level - 1) / 4), game.ARMOR_TYPES.length);
+        if (targetUnlockedCount > game.unlockedArmorCount) {
+            game.unlockedArmorCount = targetUnlockedCount;
+            injectUnlockedArmor(game.ARMOR_TYPES[game.unlockedArmorCount - 1]);
         }
 
-        maxMissesForCycle = Math.max(BASE_MISSES_PER_DROP - Math.floor((level - 1) / 3), MIN_MISSES_PER_DROP);
-        currentMissesLeft = Math.min(currentMissesLeft, maxMissesForCycle);
+        game.maxMissesForCycle = Math.max(game.BASE_MISSES_PER_DROP - Math.floor((game.level - 1) / 3), game.MIN_MISSES_PER_DROP);
+        game.currentMissesLeft = Math.min(game.currentMissesLeft, game.maxMissesForCycle);
         updateRoofHeight();
     }
 }
@@ -1031,7 +1202,7 @@ function findBestSnapCell(x, y) {
     const startQ = base[0];
     const startR = base[1];
     const startKey = key(startQ, startR);
-    if (!grid.has(startKey)) return [startQ, startR];
+    if (!game.grid.has(startKey)) return [startQ, startR];
 
     const visited = new Set([startKey]);
     let frontier = [[startQ, startR]];
@@ -1049,9 +1220,9 @@ function findBestSnapCell(x, y) {
                 if (visited.has(nk)) continue;
                 visited.add(nk);
 
-                if (!grid.has(nk)) {
+                if (!game.grid.has(nk)) {
                     const p = hexToPixel(nq, nr);
-                    if (p.x >= R && p.x <= canvas.width - R) {
+                    if (p.x >= game.R && p.x <= canvas.width - game.R) {
                         candidates.push([nq, nr]);
                     }
                 } else {
@@ -1080,47 +1251,47 @@ function findBestSnapCell(x, y) {
 }
 
 function snapMissile() {
-    if (!shotMissile) return;
-    const snapped = findBestSnapCell(shotMissile.x, shotMissile.y);
+    if (!game.shotMissile) return;
+    const snapped = findBestSnapCell(game.shotMissile.x, game.shotMissile.y);
     if (!snapped) {
-        shotMissile = null;
+        game.shotMissile = null;
         checkGameOver();
         return;
     }
 
     const q = snapped[0];
     const r = snapped[1];
-    grid.set(key(q, r), { armorId: shotMissile.armorId });
+    game.grid.set(key(q, r), { armorId: game.shotMissile.armorId });
 
     const match = findMatches(q, r);
     if (match.length >= 3) {
         playMatchBoomSound();
-        pendingExplosion = match;
-        explosionTimer = 8;
-        combo++;
+        game.pendingExplosion = match;
+        game.explosionTimer = 8;
+        game.combo++;
     } else {
         playCrashSound();
-        combo = 0;
-        islandTimer = 8;
-        currentMissesLeft--;
-        if (currentMissesLeft <= 0) {
-            const linesToDrop = level >= 8 ? 2 : 1;
+        game.combo = 0;
+        game.islandTimer = 8;
+        game.currentMissesLeft--;
+        if (game.currentMissesLeft <= 0) {
+            const linesToDrop = game.level >= 8 ? 2 : 1;
             for (let i = 0; i < linesToDrop; i++) {
                 dropCeiling();
             }
-            currentMissesLeft = maxMissesForCycle;
+            game.currentMissesLeft = game.maxMissesForCycle;
         }
     }
 
-    shotMissile = null;
-    if (!pendingExplosion) {
+    game.shotMissile = null;
+    if (!game.pendingExplosion) {
         checkGameOver();
     }
 }
 
 function findMatches(q, r) {
-    if (!grid.has(key(q, r))) return [];
-    const armorId = grid.get(key(q, r)).armorId;
+    if (!game.grid.has(key(q, r))) return [];
+    const armorId = game.grid.get(key(q, r)).armorId;
     const stack = [[q, r]];
     const visited = new Set();
     const match = [];
@@ -1133,7 +1304,7 @@ function findMatches(q, r) {
         if (visited.has(k)) continue;
         visited.add(k);
 
-        const cell = grid.get(k);
+        const cell = game.grid.get(k);
         if (!cell || cell.armorId !== armorId) continue;
 
         match.push([cq, cr]);
@@ -1150,12 +1321,12 @@ function spawnExplosionCloud(x, y, armorId) {
     for (let i = 0; i < puffCount; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = 0.8 + Math.random() * 2.4;
-        explosionClouds.push({
+        game.explosionClouds.push({
             x,
             y,
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed - 0.3,
-            r: R * (0.18 + Math.random() * 0.28),
+            r: game.R * (0.18 + Math.random() * 0.28),
             life: 24 + Math.floor(Math.random() * 18),
             maxLife: 24 + Math.floor(Math.random() * 18),
             color: armor.accent,
@@ -1165,23 +1336,23 @@ function spawnExplosionCloud(x, y, armorId) {
 }
 
 function updateExplosionClouds(frameScale) {
-    for (let i = explosionClouds.length - 1; i >= 0; i--) {
-        const p = explosionClouds[i];
+    for (let i = game.explosionClouds.length - 1; i >= 0; i--) {
+        const p = game.explosionClouds[i];
         p.x += p.vx * frameScale;
         p.y += p.vy * frameScale;
         p.vx *= Math.pow(0.96, frameScale);
         p.vy = p.vy * Math.pow(0.96, frameScale) - 0.02 * frameScale;
         p.r *= Math.pow(1.015, frameScale);
         p.life -= frameScale;
-        if (p.life <= 0 || p.r > R * 1.2) {
-            explosionClouds.splice(i, 1);
+        if (p.life <= 0 || p.r > game.R * 1.2) {
+            game.explosionClouds.splice(i, 1);
         }
     }
 }
 
 function drawExplosionClouds() {
-    for (let i = 0; i < explosionClouds.length; i++) {
-        const p = explosionClouds[i];
+    for (let i = 0; i < game.explosionClouds.length; i++) {
+        const p = game.explosionClouds[i];
         const alpha = Math.max(0, p.life / p.maxLife);
         ctx.save();
         ctx.globalAlpha = alpha * 0.55;
@@ -1196,23 +1367,23 @@ function drawExplosionClouds() {
 }
 
 function explodeMatch() {
-    if (!pendingExplosion) return;
+    if (!game.pendingExplosion) return;
     const prevArmor = activeArmorIds();
-    const comboMultiplier = Math.max(1, combo);
+    const comboMultiplier = Math.max(1, game.combo);
 
-    pendingExplosion.forEach(pair => {
+    game.pendingExplosion.forEach(pair => {
         const k = key(pair[0], pair[1]);
-        const cell = grid.get(k);
+        const cell = game.grid.get(k);
         const pos = hexToPixel(pair[0], pair[1]);
         if (cell) {
             spawnExplosionCloud(pos.x, pos.y, cell.armorId);
         }
-        grid.delete(key(pair[0], pair[1]));
-        score += MATCH_SCORE * comboMultiplier;
+        game.grid.delete(key(pair[0], pair[1]));
+        game.score += game.MATCH_SCORE * comboMultiplier;
     });
 
-    pendingExplosion = null;
-    islandTimer = 15;
+    game.pendingExplosion = null;
+    game.islandTimer = 15;
     checkArmorClears(prevArmor);
     checkWin();
     checkGameOver();
@@ -1222,7 +1393,7 @@ function removeFloating() {
     const visited = new Set();
     const stack = [];
 
-    grid.forEach((v, k) => {
+    game.grid.forEach((v, k) => {
         const parts = k.split(",").map(Number);
         if (parts[1] === 0) stack.push([parts[0], parts[1]]);
     });
@@ -1237,15 +1408,15 @@ function removeFloating() {
 
         const near = neighbors(q, r);
         for (let i = 0; i < near.length; i++) {
-            if (grid.has(key(near[i][0], near[i][1]))) stack.push(near[i]);
+            if (game.grid.has(key(near[i][0], near[i][1]))) stack.push(near[i]);
         }
     }
 
     const prevArmor = activeArmorIds();
-    grid.forEach((v, k) => {
+    game.grid.forEach((v, k) => {
         if (!visited.has(k)) {
-            grid.delete(k);
-            score += FLOATING_SCORE * Math.max(1, combo);
+            game.grid.delete(k);
+            game.score += game.FLOATING_SCORE * Math.max(1, game.combo);
         }
     });
 
@@ -1260,58 +1431,58 @@ function checkArmorClears(previousArmorList) {
     for (let i = 0; i < previousArmorList.length; i++) {
         const id = previousArmorList[i];
         if (!currentSet.has(id)) {
-            clearedArmor.add(id);
+            game.clearedArmor.add(id);
             clearedCount++;
         }
     }
 
     if (clearedCount > 0) {
-        score += ARMOR_CLEAR_BONUS * clearedCount;
+        game.score += game.ARMOR_CLEAR_BONUS * clearedCount;
     }
 }
 
 function dropCeiling() {
     const newGrid = new Map();
-    const qShift = dropShiftLeftNext ? -1 : 0;
+    const qShift = game.dropShiftLeftNext ? -1 : 0;
 
-    grid.forEach((v, k) => {
+    game.grid.forEach((v, k) => {
         const parts = k.split(",").map(Number);
         const q = parts[0];
         const r = parts[1];
         const nextQ = q + qShift;
         const p = hexToPixel(nextQ, r + 1);
-        if (p.x >= R && p.x <= canvas.width - R) {
+        if (p.x >= game.R && p.x <= canvas.width - game.R) {
             newGrid.set(key(nextQ, r + 1), v);
         }
     });
 
-    const startQ = -Math.floor((COLS + 4) / 2);
-    for (let i = 0; i <= COLS + 4; i++) {
+    const startQ = -Math.floor((game.COLS + 4) / 2);
+    for (let i = 0; i <= game.COLS + 4; i++) {
         const q = startQ + i;
         const p = hexToPixel(q, 0);
-        if (p.x >= R && p.x <= canvas.width - R) {
+        if (p.x >= game.R && p.x <= canvas.width - game.R) {
             newGrid.set(key(q, 0), { armorId: randomArmor("ceiling").id });
         }
     }
 
-    grid = newGrid;
-    dropShiftLeftNext = !dropShiftLeftNext;
+    game.grid = newGrid;
+    game.dropShiftLeftNext = !game.dropShiftLeftNext;
 }
 
 function showOverlay(title) {
     uiTitle.innerText = title;
-    uiScore.innerText = "Score: " + score;
+    uiScore.innerText = "Score: " + game.score;
     uiOverlay.style.display = "block";
 }
 
 function checkGameOver() {
-    if (gameOver || win) return;
+    if (game.gameOver || game.win) return;
 
-    for (const [k] of grid) {
+    for (const [k] of game.grid) {
         const parts = k.split(",").map(Number);
         const p = hexToPixel(parts[0], parts[1]);
-        if (p.y > launcher.y - R * 2) {
-            gameOver = true;
+        if (p.y > game.launcher.y - game.R * 2) {
+            game.gameOver = true;
             showOverlay("Mission Failed");
             return;
         }
@@ -1319,15 +1490,15 @@ function checkGameOver() {
 }
 
 function checkWin() {
-    if (grid.size === 0) {
-        score += BOARD_CLEAR_BONUS;
-        win = true;
+    if (game.grid.size === 0) {
+        game.score += game.BOARD_CLEAR_BONUS;
+        game.win = true;
         showOverlay("Sector Cleared");
     }
 }
 
 function shareScore(platform) {
-    const text = `Missile Shooter score: ${score} points, level ${level}. Match armor classes and beat this run.`;
+    const text = `Missile Shooter score: ${game.score} points, level ${game.level}. Match armor classes and beat this run.`;
     const emoji = "🚀🏹🎯";
     const url = encodeURIComponent(location.href);
     let shareUrl = "";
@@ -1357,38 +1528,38 @@ function shareScore(platform) {
 }
 
 function update(deltaSeconds) {
-    if (gameOver || win) return;
+    if (game.gameOver || game.win) return;
 
-    const frameScale = deltaSeconds * REFERENCE_FPS;
+    const frameScale = deltaSeconds * game.REFERENCE_FPS;
 
     updateExplosionClouds(frameScale);
 
-    if (explosionTimer > 0) {
-        explosionTimer = Math.max(0, explosionTimer - frameScale);
-        if (explosionTimer === 0) explodeMatch();
+    if (game.explosionTimer > 0) {
+        game.explosionTimer = Math.max(0, game.explosionTimer - frameScale);
+        if (game.explosionTimer === 0) explodeMatch();
     }
-    if (islandTimer > 0) {
-        islandTimer = Math.max(0, islandTimer - frameScale);
-        if (islandTimer === 0) removeFloating();
+    if (game.islandTimer > 0) {
+        game.islandTimer = Math.max(0, game.islandTimer - frameScale);
+        if (game.islandTimer === 0) removeFloating();
     }
 
-    if (shotMissile && shotMissile.moving) {
+    if (game.shotMissile && game.shotMissile.moving) {
         advanceShotMissile(frameScale);
     }
 }
 
 function drawTrajectory() {
-    if (!settings.showAimGuide) return;
-    if (shotMissile || gameOver || win || (isTouchDevice && !touchAimActive)) return;
+    if (!game.settings.showAimGuide) return;
+    if (game.shotMissile || game.gameOver || game.win || (game.isTouchDevice && !game.touchAimActive)) return;
 
-    let dx = mouseX - launcher.x;
-    let dy = mouseY - launcher.y;
+    let dx = game.mouseX - game.launcher.x;
+    let dy = game.mouseY - game.launcher.y;
     if (dy > -10) return;
 
     let angle = Math.atan2(dy, dx);
-    let vx = Math.cos(angle) * SPEED;
-    let vy = Math.sin(angle) * SPEED;
-    const path = traceMissilePath(launcher.x, launcher.y, vx, vy, 60 * 2.5);
+    let vx = Math.cos(angle) * game.SPEED;
+    let vy = Math.sin(angle) * game.SPEED;
+    const path = traceMissilePath(game.launcher.x, game.launcher.y, vx, vy, 60 * 2.5);
     if (path.length < 2) return;
 
     ctx.beginPath();
@@ -1410,25 +1581,25 @@ function drawDrone(x, y, armorId) {
     const armor = armorFromId(armorId);
     ctx.save();
 
-    const bodyGrad = ctx.createRadialGradient(x - R * 0.35, y - R * 0.4, R * 0.25, x, y, R * 1.1);
+    const bodyGrad = ctx.createRadialGradient(x - game.R * 0.35, y - game.R * 0.4, game.R * 0.25, x, y, game.R * 1.1);
     bodyGrad.addColorStop(0, armor.accent);
     bodyGrad.addColorStop(0.65, armor.color);
     bodyGrad.addColorStop(1, "#111827");
 
     ctx.fillStyle = bodyGrad;
     ctx.beginPath();
-    ctx.arc(x, y, R * 0.95, 0, Math.PI * 2);
+    ctx.arc(x, y, game.R * 0.95, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.strokeStyle = "rgba(255,255,255,0.4)";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.arc(x, y, R * 0.65, 0, Math.PI * 2);
+    ctx.arc(x, y, game.R * 0.65, 0, Math.PI * 2);
     ctx.stroke();
 
     ctx.fillStyle = "rgba(5, 10, 18, 0.55)";
     ctx.beginPath();
-    ctx.arc(x, y, R * 0.28, 0, Math.PI * 2);
+    ctx.arc(x, y, game.R * 0.28, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
@@ -1477,7 +1648,7 @@ function drawMissileSprite(targetCtx, x, y, armorId, scale = 1) {
 }
 
 function drawGrid() {
-    grid.forEach((v, k) => {
+    game.grid.forEach((v, k) => {
         const parts = k.split(",").map(Number);
         const p = hexToPixel(parts[0], parts[1]);
         drawDrone(p.x, p.y, v.armorId);
@@ -1487,13 +1658,13 @@ function drawGrid() {
 function drawLauncher() {
     drawTrajectory();
 
-    let aimAngle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
-    if (mouseY > launcher.y - 10) {
+    let aimAngle = Math.atan2(game.mouseY - game.launcher.y, game.mouseX - game.launcher.x);
+    if (game.mouseY > game.launcher.y - 10) {
         aimAngle = -Math.PI / 2;
     }
 
     ctx.save();
-    ctx.translate(launcher.x, launcher.y + 8);
+    ctx.translate(game.launcher.x, game.launcher.y + 8);
     ctx.fillStyle = "#1a243d";
     ctx.strokeStyle = "#ffd97a";
     ctx.lineWidth = 2;
@@ -1504,24 +1675,24 @@ function drawLauncher() {
     ctx.restore();
 
     ctx.save();
-    ctx.translate(launcher.x, launcher.y - 6);
+    ctx.translate(game.launcher.x, game.launcher.y - 6);
     ctx.rotate(aimAngle);
-    drawMissileSprite(ctx, 0, 0, currentMissile.armorId, Math.max(1, R / 16));
+    drawMissileSprite(ctx, 0, 0, game.currentMissile.armorId, Math.max(1, game.R / 16));
     ctx.restore();
 
-    if (shotMissile) {
-        const angle = Math.atan2(shotMissile.vy, shotMissile.vx);
+    if (game.shotMissile) {
+        const angle = Math.atan2(game.shotMissile.vy, game.shotMissile.vx);
         ctx.save();
-        ctx.translate(shotMissile.x, shotMissile.y);
+        ctx.translate(game.shotMissile.x, game.shotMissile.y);
         ctx.rotate(angle);
-        drawMissileSprite(ctx, 0, 0, shotMissile.armorId, Math.max(0.95, R / 18));
+        drawMissileSprite(ctx, 0, 0, game.shotMissile.armorId, Math.max(0.95, game.R / 18));
         ctx.restore();
     }
 
     const startX = 22;
     const startY = canvas.height - 24;
     const gap = 22;
-    for (let i = 0; i < currentMissesLeft; i++) {
+    for (let i = 0; i < game.currentMissesLeft; i++) {
         const x = startX + i * gap;
         ctx.save();
         ctx.translate(x, startY);
@@ -1534,8 +1705,8 @@ function drawLauncher() {
 
 function drawNextMissilePreview() {
     nextMissileCtx.clearRect(0, 0, nextMissileCanvas.width, nextMissileCanvas.height);
-    if (!nextMissile) return;
-    drawMissileSprite(nextMissileCtx, nextMissileCanvas.width / 2, nextMissileCanvas.height / 2, nextMissile.armorId, 1.1);
+    if (!game.nextMissile) return;
+    drawMissileSprite(nextMissileCtx, nextMissileCanvas.width / 2, nextMissileCanvas.height / 2, game.nextMissile.armorId, 1.1);
 }
 
 function drawScore() {
@@ -1548,21 +1719,21 @@ function drawScore() {
     ctx.shadowColor = "#ffcf44";
     ctx.shadowBlur = 26;
     ctx.fillStyle = "rgba(255, 207, 68, 0.48)";
-    ctx.fillText(score, sx, sy);
+    ctx.fillText(game.score, sx, sy);
 
     ctx.shadowBlur = 10;
     ctx.fillStyle = "rgba(255, 242, 200, 0.95)";
-    ctx.fillText(score, sx, sy);
+    ctx.fillText(game.score, sx, sy);
 
     ctx.shadowBlur = 0;
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(score, sx, sy);
+    ctx.fillText(game.score, sx, sy);
     ctx.restore();
 }
 
 function drawCeiling() {
     ctx.fillStyle = "rgba(0, 0, 0, 0.52)";
-    ctx.fillRect(0, 0, canvas.width, ceilingY - 1);
+    ctx.fillRect(0, 0, canvas.width, game.ceilingY - 1);
 
     ctx.save();
     ctx.shadowColor = "#ffcf44";
@@ -1570,15 +1741,15 @@ function drawCeiling() {
     ctx.strokeStyle = "#ffcf44";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(0, ceilingY - 1);
-    ctx.lineTo(canvas.width, ceilingY - 1);
+    ctx.moveTo(0, game.ceilingY - 1);
+    ctx.lineTo(canvas.width, game.ceilingY - 1);
     ctx.stroke();
     ctx.restore();
 
     ctx.font = "bold 13px sans-serif";
     ctx.fillStyle = "#ffcf44";
     ctx.textAlign = "left";
-    ctx.fillText("LEVEL " + level, 10, ceilingY - 5);
+    ctx.fillText("LEVEL " + game.level, 10, game.ceilingY - 5);
 }
 
 function draw() {
@@ -1591,11 +1762,11 @@ function draw() {
     drawNextMissilePreview();
 }
 
-let lastFrameTime = performance.now();
+game.lastFrameTime = performance.now();
 
 function loop(timestamp) {
-    const deltaSeconds = Math.min((timestamp - lastFrameTime) / 1000, 0.05);
-    lastFrameTime = timestamp;
+    const deltaSeconds = Math.min((timestamp - game.lastFrameTime) / 1000, 0.05);
+    game.lastFrameTime = timestamp;
     update(deltaSeconds);
     draw();
     requestAnimationFrame(loop);

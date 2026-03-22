@@ -276,7 +276,7 @@ canvas {
         <button class="share-btn share-copy" type="button" onclick="shareScore('copy')" aria-label="Copy score" title="Copy score"><img alt="" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M8%203h10a2%202%200%200%201%202%202v11h-2V5H8z'/%3E%3Cpath%20fill='white'%20d='M4%207h11a2%202%200%200%201%202%202v10a2%202%200%200%201-2%202H4a2%202%200%200%201-2-2V9a2%202%200%200%201%202-2zm0%202v10h11V9z'/%3E%3C/svg%3E"></button>
     </div>
     
-    <button class="btn btn-new" onclick="startNewGame()">Play Again</button>
+    <button class="btn btn-new" onclick="game.startNewGame()">Play Again</button>
 </div>
 
 <script>
@@ -301,54 +301,208 @@ const uiScore = document.getElementById("uiScore");
 const installBtn = document.getElementById("installBtn");
 const manifestLink = document.getElementById("manifestLink");
 
-const SETTINGS_KEY = "bubbleShooterSettings";
-const defaultSettings = { soundEnabled: false, showAimGuide: true };
-let settings = loadSettings();
-let audioContext = null;
+const game = {
+    constants: {
+        SETTINGS_KEY: "bubbleShooterSettings",
+        defaultSettings: { soundEnabled: false, showAimGuide: true },
 
-const SPEED = 960;
-const EXPLOSION_DELAY = 8 / 60;
-const ISLAND_DELAY = 8 / 60;
-const TRAJECTORY_STEP_SECONDS = 1 / 24;
-const SHOT_EVENT_EPSILON = 0.0001;
-const SHOT_POSITION_EPSILON = 0.01;
-const MAX_SHOT_EVENTS_PER_FRAME = 8;
-const MAX_TRAJECTORY_EVENTS = 24;
-let COLS = 1; 
+        SPEED: 960,
+        EXPLOSION_DELAY: 8 / 60,
+        ISLAND_DELAY: 8 / 60,
+        TRAJECTORY_STEP_SECONDS: 1 / 24,
+        SHOT_EVENT_EPSILON: 0.0001,
+        SHOT_POSITION_EPSILON: 0.01,
+        MAX_SHOT_EVENTS_PER_FRAME: 8,
+        MAX_TRAJECTORY_EVENTS: 24,
+        START_ROWS: 7,
+        COLORS: ["#FF355E", "#FFFF66", "#29FF14", "#0066FF", "#AA00FF", "#FF9900", "#FFFFFF", "#777777"],
+        BASE_MISSES_PER_DROP: 3,
+        MIN_MISSES_PER_DROP: 2,
+        SHOTS_PER_LEVEL: 30,
+        BASE_COLOR_COUNT: 5,
+        LEVELS_PER_ROOF_LOWER: 3,
+        ROOF_LOWER_STEP_ROWS: 0.5,
+        MATCH_SCORE: 10,
+        FLOATING_SCORE: 20,
+        COLOR_CLEAR_BONUS: 150,
+        BOARD_CLEAR_BONUS: 1000
+    },
 
-let R = 18; 
-const START_ROWS = 7;
-const COLORS = ["#FF355E", "#FFFF66", "#29FF14", "#0066FF", "#AA00FF", "#FF9900", "#FFFFFF", "#777777"]
-let grid = new Map();
-let score = 0, combo = 0;
-let clearedColors = new Set();
-const BASE_MISSES_PER_DROP = 3;
-const MIN_MISSES_PER_DROP = 2;
-const SHOTS_PER_LEVEL = 30;
-const BASE_COLOR_COUNT = 5;
-const LEVELS_PER_ROOF_LOWER = 3
-const ROOF_LOWER_STEP_ROWS = 0.5;
-let maxMissesForCycle = BASE_MISSES_PER_DROP;
-let currentMissesLeft = BASE_MISSES_PER_DROP;
-let dropShiftLeftNext = false;
-let level = 1;
-let shotsFired = 0;
-let unlockedColorCount = BASE_COLOR_COUNT;
-let ceilingY = 40 - R; // top border of the playfield; row 0 sits one radius below it
-let gameOver = false, win = false;
-let shotBubble = null, explosionTimer = 0, islandTimer = 0, pendingExplosion = null;
-const MATCH_SCORE = 10;
-const FLOATING_SCORE = 20;
-const COLOR_CLEAR_BONUS = 150;
-const BOARD_CLEAR_BONUS = 1000;
+    state: {
+        grid: new Map(),
+        score: 0,
+        combo: 0,
+        clearedColors: new Set(),
+        maxMissesForCycle: 3,
+        currentMissesLeft: 3,
+        dropShiftLeftNext: false,
+        level: 1,
+        shotsFired: 0,
+        unlockedColorCount: 5,
+        ceilingY: 22,
+        gameOver: false,
+        win: false,
+        shotBubble: null,
+        explosionTimer: 0,
+        islandTimer: 0,
+        pendingExplosion: null
+    },
 
-let shooter = { x: 0, y: 0, angle: 0 };
-let mouseX = 0, mouseY = 0;
-let isTouchDevice = false;
-let touchAimActive = false;
-let installPromptEvent = null;
+    runtime: {
+        audioContext: null,
+        shooter: { x: 0, y: 0, angle: 0 },
+        mouseX: 0,
+        mouseY: 0,
+        isTouchDevice: false,
+        touchAimActive: false,
+        installPromptEvent: null,
+        currentBubble: null,
+        nextBubble: null,
+        R: 18,
+        COLS: 1
+    },
 
-let currentBubble, nextBubble;
+    settings: { soundEnabled: true, showAimGuide: true }
+};
+
+Object.defineProperties(game, {
+    SETTINGS_KEY: { get() { return this.constants.SETTINGS_KEY; } },
+    defaultSettings: { get() { return this.constants.defaultSettings; } },
+    SPEED: { get() { return this.constants.SPEED; } },
+    EXPLOSION_DELAY: { get() { return this.constants.EXPLOSION_DELAY; } },
+    ISLAND_DELAY: { get() { return this.constants.ISLAND_DELAY; } },
+    TRAJECTORY_STEP_SECONDS: { get() { return this.constants.TRAJECTORY_STEP_SECONDS; } },
+    SHOT_EVENT_EPSILON: { get() { return this.constants.SHOT_EVENT_EPSILON; } },
+    SHOT_POSITION_EPSILON: { get() { return this.constants.SHOT_POSITION_EPSILON; } },
+    MAX_SHOT_EVENTS_PER_FRAME: { get() { return this.constants.MAX_SHOT_EVENTS_PER_FRAME; } },
+    MAX_TRAJECTORY_EVENTS: { get() { return this.constants.MAX_TRAJECTORY_EVENTS; } },
+    START_ROWS: { get() { return this.constants.START_ROWS; } },
+    COLORS: { get() { return this.constants.COLORS; } },
+    BASE_MISSES_PER_DROP: { get() { return this.constants.BASE_MISSES_PER_DROP; } },
+    MIN_MISSES_PER_DROP: { get() { return this.constants.MIN_MISSES_PER_DROP; } },
+    SHOTS_PER_LEVEL: { get() { return this.constants.SHOTS_PER_LEVEL; } },
+    BASE_COLOR_COUNT: { get() { return this.constants.BASE_COLOR_COUNT; } },
+    LEVELS_PER_ROOF_LOWER: { get() { return this.constants.LEVELS_PER_ROOF_LOWER; } },
+    ROOF_LOWER_STEP_ROWS: { get() { return this.constants.ROOF_LOWER_STEP_ROWS; } },
+    MATCH_SCORE: { get() { return this.constants.MATCH_SCORE; } },
+    FLOATING_SCORE: { get() { return this.constants.FLOATING_SCORE; } },
+    COLOR_CLEAR_BONUS: { get() { return this.constants.COLOR_CLEAR_BONUS; } },
+    BOARD_CLEAR_BONUS: { get() { return this.constants.BOARD_CLEAR_BONUS; } },
+
+    grid: {
+        get() { return this.state.grid; },
+        set(value) { this.state.grid = value; }
+    },
+    score: {
+        get() { return this.state.score; },
+        set(value) { this.state.score = value; }
+    },
+    combo: {
+        get() { return this.state.combo; },
+        set(value) { this.state.combo = value; }
+    },
+    clearedColors: {
+        get() { return this.state.clearedColors; },
+        set(value) { this.state.clearedColors = value; }
+    },
+    maxMissesForCycle: {
+        get() { return this.state.maxMissesForCycle; },
+        set(value) { this.state.maxMissesForCycle = value; }
+    },
+    currentMissesLeft: {
+        get() { return this.state.currentMissesLeft; },
+        set(value) { this.state.currentMissesLeft = value; }
+    },
+    dropShiftLeftNext: {
+        get() { return this.state.dropShiftLeftNext; },
+        set(value) { this.state.dropShiftLeftNext = value; }
+    },
+    level: {
+        get() { return this.state.level; },
+        set(value) { this.state.level = value; }
+    },
+    shotsFired: {
+        get() { return this.state.shotsFired; },
+        set(value) { this.state.shotsFired = value; }
+    },
+    unlockedColorCount: {
+        get() { return this.state.unlockedColorCount; },
+        set(value) { this.state.unlockedColorCount = value; }
+    },
+    ceilingY: {
+        get() { return this.state.ceilingY; },
+        set(value) { this.state.ceilingY = value; }
+    },
+    gameOver: {
+        get() { return this.state.gameOver; },
+        set(value) { this.state.gameOver = value; }
+    },
+    win: {
+        get() { return this.state.win; },
+        set(value) { this.state.win = value; }
+    },
+    shotBubble: {
+        get() { return this.state.shotBubble; },
+        set(value) { this.state.shotBubble = value; }
+    },
+    explosionTimer: {
+        get() { return this.state.explosionTimer; },
+        set(value) { this.state.explosionTimer = value; }
+    },
+    islandTimer: {
+        get() { return this.state.islandTimer; },
+        set(value) { this.state.islandTimer = value; }
+    },
+    pendingExplosion: {
+        get() { return this.state.pendingExplosion; },
+        set(value) { this.state.pendingExplosion = value; }
+    },
+
+    audioContext: {
+        get() { return this.runtime.audioContext; },
+        set(value) { this.runtime.audioContext = value; }
+    },
+    shooter: {
+        get() { return this.runtime.shooter; },
+        set(value) { this.runtime.shooter = value; }
+    },
+    mouseX: {
+        get() { return this.runtime.mouseX; },
+        set(value) { this.runtime.mouseX = value; }
+    },
+    mouseY: {
+        get() { return this.runtime.mouseY; },
+        set(value) { this.runtime.mouseY = value; }
+    },
+    isTouchDevice: {
+        get() { return this.runtime.isTouchDevice; },
+        set(value) { this.runtime.isTouchDevice = value; }
+    },
+    touchAimActive: {
+        get() { return this.runtime.touchAimActive; },
+        set(value) { this.runtime.touchAimActive = value; }
+    },
+    installPromptEvent: {
+        get() { return this.runtime.installPromptEvent; },
+        set(value) { this.runtime.installPromptEvent = value; }
+    },
+    currentBubble: {
+        get() { return this.runtime.currentBubble; },
+        set(value) { this.runtime.currentBubble = value; }
+    },
+    nextBubble: {
+        get() { return this.runtime.nextBubble; },
+        set(value) { this.runtime.nextBubble = value; }
+    },
+    R: {
+        get() { return this.runtime.R; },
+        set(value) { this.runtime.R = value; }
+    },
+    COLS: {
+        get() { return this.runtime.COLS; },
+        set(value) { this.runtime.COLS = value; }
+    }
+});
 
 function isStandaloneMode() {
     return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
@@ -360,33 +514,33 @@ function isIosBrowser() {
 
 function loadSettings() {
     try {
-        const raw = localStorage.getItem(SETTINGS_KEY);
-        if (!raw) return { ...defaultSettings };
+        const raw = localStorage.getItem(game.SETTINGS_KEY);
+        if (!raw) return { ...game.defaultSettings };
         const parsed = JSON.parse(raw);
         return {
             soundEnabled: parsed.soundEnabled === true,
             showAimGuide: parsed.showAimGuide !== false
         };
     } catch {
-        return { ...defaultSettings };
+        return { ...game.defaultSettings };
     }
 }
 
 function saveSettings() {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    localStorage.setItem(game.SETTINGS_KEY, JSON.stringify(game.settings));
 }
 
 function syncSettingsUi() {
-    soundToggle.checked = settings.soundEnabled;
-    guideToggle.checked = settings.showAimGuide;
+    soundToggle.checked = game.settings.soundEnabled;
+    guideToggle.checked = game.settings.showAimGuide;
 
-    aimBtn.setAttribute("aria-pressed", String(settings.showAimGuide));
-    aimBtn.setAttribute("title", settings.showAimGuide ? "Aim Guide On" : "Aim Guide Off");
-    aimBtn.textContent = settings.showAimGuide ? "🎯" : "🚫";
+    aimBtn.setAttribute("aria-pressed", String(game.settings.showAimGuide));
+    aimBtn.setAttribute("title", game.settings.showAimGuide ? "Aim Guide On" : "Aim Guide Off");
+    aimBtn.textContent = game.settings.showAimGuide ? "🎯" : "🚫";
 
-    volumeBtn.setAttribute("aria-pressed", String(settings.soundEnabled));
-    volumeBtn.setAttribute("title", settings.soundEnabled ? "Sound On" : "Sound Off");
-    volumeBtn.textContent = settings.soundEnabled ? "🔊" : "🔇";
+    volumeBtn.setAttribute("aria-pressed", String(game.settings.soundEnabled));
+    volumeBtn.setAttribute("title", game.settings.soundEnabled ? "Sound On" : "Sound Off");
+    volumeBtn.textContent = game.settings.soundEnabled ? "🔊" : "🔇";
 }
 
 function openSettings() {
@@ -401,19 +555,22 @@ function closeSettings() {
 }
 
 function ensureAudioContext() {
-    if (!audioContext) {
+    if (!game.audioContext) {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return null;
-        audioContext = new AudioCtx();
+        game.audioContext = new AudioCtx();
     }
-    if (audioContext.state === "suspended") {
-        audioContext.resume();
+    if (game.audioContext.state === "suspended") {
+        game.audioContext.resume();
     }
-    return audioContext;
+    return game.audioContext;
 }
 
 function playTone(type, options) {
-    if (!settings.soundEnabled) return;
+    if (!game.settings) {
+        game.settings = { ...game.defaultSettings };
+    }
+    if (!game.settings.soundEnabled) return;
     const ctxAudio = ensureAudioContext();
     if (!ctxAudio) return;
 
@@ -470,7 +627,7 @@ function updateInstallButton() {
         installBtn.style.display = "none";
         return;
     }
-    if (installPromptEvent) {
+    if (game.installPromptEvent) {
         installBtn.textContent = "📲";
         installBtn.title = "Install App";
         installBtn.style.display = "inline-flex";
@@ -500,16 +657,16 @@ async function registerWebAppSupport() {
 }
 
 function getRowHeight() {
-    return R * 1.5;
+    return game.R * 1.5;
 }
 
 function getBaseCeilingY() {
-    return 40 - R;
+    return 40 - game.R;
 }
 
 function updateRoofHeight() {
-    const roofLowerSteps = Math.floor((level - 1) / LEVELS_PER_ROOF_LOWER);
-    ceilingY = getBaseCeilingY() + roofLowerSteps * getRowHeight() * ROOF_LOWER_STEP_ROWS;
+    const roofLowerSteps = Math.floor((game.level - 1) / game.LEVELS_PER_ROOF_LOWER);
+    game.ceilingY = getBaseCeilingY() + roofLowerSteps * getRowHeight() * game.ROOF_LOWER_STEP_ROWS;
 }
 
 function getViewportHeight() {
@@ -527,14 +684,14 @@ function resizeCanvas() {
     appShell.style.height = viewportHeight + "px";
     const dockHeight = controlDock.offsetHeight || 78;
     canvas.height = Math.max(320, viewportHeight - dockHeight);
-    R = Math.floor(canvas.height / 40);//Dynamic bubble size based on height, keeping ~30 rows visible
+    game.R = Math.floor(canvas.height / 40);//Dynamic bubble size based on height, keeping ~30 rows visible
     canvas.width = shellWidth;
-    COLS = Math.floor(canvas.width / (R * Math.sqrt(3)));
+    game.COLS = Math.floor(canvas.width / (game.R * Math.sqrt(3)));
     updateRoofHeight();
-    shooter.x = canvas.width / 2;
-    shooter.y = canvas.height - Math.max(54, R * 3); // Keep launcher above the board floor area
-    mouseX = shooter.x;
-    mouseY = shooter.y - 100;
+    game.shooter.x = canvas.width / 2;
+    game.shooter.y = canvas.height - Math.max(54, game.R * 3); // Keep launcher above the board floor area
+    game.mouseX = game.shooter.x;
+    game.mouseY = game.shooter.y - 100;
 }
 window.addEventListener("resize", resizeCanvas);
 if (window.visualViewport) {
@@ -551,10 +708,10 @@ function parseKey(k) {
     return [Number(k.slice(0, comma)), Number(k.slice(comma + 1))];
 }
 function randomFrom(list) { return list[Math.floor(Math.random() * list.length)]; }
-function hexToPixel(q, r) { return { x: R * Math.sqrt(3) * (q + r/2) + canvas.width/2, y: R * 1.5 * r + ceilingY + R }; }
+function hexToPixel(q, r) { return { x: game.R * Math.sqrt(3) * (q + r/2) + canvas.width/2, y: game.R * 1.5 * r + game.ceilingY + game.R }; }
 function pixelToHex(x, y) {
-    x -= canvas.width / 2; y -= ceilingY + R;
-    return hexRound((Math.sqrt(3)/3 * x - y/3) / R, (2/3 * y) / R);
+    x -= canvas.width / 2; y -= game.ceilingY + game.R;
+    return hexRound((Math.sqrt(3)/3 * x - y/3) / game.R, (2/3 * y) / game.R);
 }
 function hexRound(q, r) {
     let x=q, z=r, y=-x-z;
@@ -564,15 +721,15 @@ function hexRound(q, r) {
     return [rx, rz];
 }
 
-function activeColors() { let s=new Set(); grid.forEach(v=>s.add(v.color)); return [...s]; }
-function unlockedColors() { return COLORS.slice(0, unlockedColorCount); }
+function activeColors() { let s=new Set(); game.grid.forEach(v=>s.add(v.color)); return [...s]; }
+function unlockedColors() { return game.COLORS.slice(0, game.unlockedColorCount); }
 function getPlayableRowSlots(row) {
     const slots = [];
-    const startQ = -Math.floor((COLS + 4) / 2);
-    for (let i = 0; i <= COLS + 4; i++) {
+    const startQ = -Math.floor((game.COLS + 4) / 2);
+    for (let i = 0; i <= game.COLS + 4; i++) {
         const q = startQ + i;
         const p = hexToPixel(q, row);
-        if (p.x >= R && p.x <= canvas.width - R) slots.push(q);
+        if (p.x >= game.R && p.x <= canvas.width - game.R) slots.push(q);
     }
     return slots;
 }
@@ -580,10 +737,10 @@ function getPlayableRowSlots(row) {
 function getColorPools(source = "shot") {
     const unlocked = unlockedColors();
     if (unlocked.length === 0) {
-        return { available: [COLORS[0]], active: [] };
+        return { available: [game.COLORS[0]], active: [] };
     }
 
-    let available = unlocked.filter(c => !clearedColors.has(c));
+    let available = unlocked.filter(c => !game.clearedColors.has(c));
 
     // Keep shots matchable: active pool should only include colors we may spawn.
     let active = activeColors().filter(c => available.includes(c));
@@ -621,7 +778,7 @@ function randomColor(source = "shot") {
 
     if (available.length === 0) {
         const boardActive = activeColors();
-        return boardActive.length > 0 ? boardActive[0] : COLORS[0];
+        return boardActive.length > 0 ? boardActive[0] : game.COLORS[0];
     }
 
     if (source === "ceiling" && active.length > 0 && active.length <= 2) {
@@ -639,11 +796,11 @@ function randomColor(source = "shot") {
 }
 
 function refreshQueuedBubbleColors() {
-    if (currentBubble && clearedColors.has(currentBubble.color)) {
-        currentBubble = createBubble(randomColor("shot"));
+    if (game.currentBubble && game.clearedColors.has(game.currentBubble.color)) {
+        game.currentBubble = createBubble(randomColor("shot"));
     }
-    if (nextBubble && clearedColors.has(nextBubble.color)) {
-        nextBubble = createBubble(randomColor("shot"));
+    if (game.nextBubble && game.clearedColors.has(game.nextBubble.color)) {
+        game.nextBubble = createBubble(randomColor("shot"));
     }
 }
 
@@ -653,17 +810,17 @@ function getLinesToDropForActiveColors() {
     return 6 - clampedActive;
 }
 
-function createBubble(color) { return { x:shooter.x, y:shooter.y, vx:0, vy:0, color:color, moving:false }; }
+function createBubble(color) { return { x:game.shooter.x, y:game.shooter.y, vx:0, vy:0, color:color, moving:false }; }
 
 function initBoard() {
-    grid.clear();
-    for (let r = 0; r < START_ROWS; r++) {
+    game.grid.clear();
+    for (let r = 0; r < game.START_ROWS; r++) {
         const rowSlots = getPlayableRowSlots(r);
         for (let i = 0; i < rowSlots.length; i++) {
             const q = rowSlots[i];
             if (Math.random() < 0.9) {
                 const pool = unlockedColors();
-                grid.set(key(q, r), { color: randomFrom(pool) });
+                game.grid.set(key(q, r), { color: randomFrom(pool) });
             }
         }
     }
@@ -671,58 +828,71 @@ function initBoard() {
 
 function injectUnlockedColor(color) {
     const topKeys = [];
-    grid.forEach((v, k) => {
+    game.grid.forEach((v, k) => {
         let [, r] = parseKey(k);
         if (r === 0) topKeys.push(k);
     });
     if (topKeys.length > 0) {
         const picked = randomFrom(topKeys);
-        grid.set(picked, { color });
+        game.grid.set(picked, { color });
         return;
     }
 
     const fallbackQ = 0;
-    grid.set(key(fallbackQ, 0), { color });
+    game.grid.set(key(fallbackQ, 0), { color });
 }
 
-function startNewGame() {
+game.startNewGame = function() {
     resizeCanvas();
-    initBoard();
-    score = 0; combo = 0; 
-    clearedColors = new Set();
-    shotsFired = 0;
-    unlockedColorCount = BASE_COLOR_COUNT;
-    maxMissesForCycle = BASE_MISSES_PER_DROP;
-    currentMissesLeft = maxMissesForCycle;
-    dropShiftLeftNext = false;
-    level = 1;
+    game.score = 0; game.combo = 0; 
+    game.clearedColors = new Set();
+    game.shotsFired = 0;
+    game.unlockedColorCount = game.BASE_COLOR_COUNT;
+    game.maxMissesForCycle = game.BASE_MISSES_PER_DROP;
+    game.currentMissesLeft = game.maxMissesForCycle;
+    game.dropShiftLeftNext = false;
+    game.level = 1;
     updateRoofHeight();
-    gameOver = false; win = false;
-    shotBubble = null; pendingExplosion = null;
-    currentBubble = createBubble(randomColor("shot"));
-    nextBubble = createBubble(randomColor("shot"));
+    initBoard();
+    game.gameOver = false; game.win = false;
+    game.shotBubble = null; game.pendingExplosion = null;
+    game.currentBubble = createBubble(randomColor("shot"));
+    game.nextBubble = createBubble(randomColor("shot"));
     uiOverlay.style.display = "none";
-}
+};
 
-startNewGame();
-registerWebAppSupport();
+game.restartGame = function() {
+    this.startNewGame();
+};
+
+game.init = function() {
+    this.settings = loadSettings();
+    if (!this.settings) {
+        this.settings = { ...this.defaultSettings };
+    }
+    syncSettingsUi();
+    this.startNewGame();
+    registerWebAppSupport();
+};
+
+game.init();
 
 window.addEventListener("beforeinstallprompt", event => {
     event.preventDefault();
-    installPromptEvent = event;
+    game.installPromptEvent = event;
     updateInstallButton();
 });
 
 window.addEventListener("appinstalled", () => {
-    installPromptEvent = null;
+    game.installPromptEvent = null;
     updateInstallButton();
 });
 
 installBtn.addEventListener("click", async () => {
-    if (installPromptEvent) {
-        installPromptEvent.prompt();
-        await installPromptEvent.userChoice;
-        installPromptEvent = null;
+    if (game.installPromptEvent) {
+        game.installPromptEvent.prompt();
+        await game.installPromptEvent.userChoice;
+        game.installPromptEvent = null;
         updateInstallButton();
         return;
     }
@@ -732,20 +902,20 @@ installBtn.addEventListener("click", async () => {
 });
 
 aimBtn.addEventListener("click", () => {
-    settings.showAimGuide = !settings.showAimGuide;
+    game.settings.showAimGuide = !game.settings.showAimGuide;
     saveSettings();
     syncSettingsUi();
 });
 
 newGameBtn.addEventListener("click", () => {
-    startNewGame();
+    game.startNewGame();
 });
 
 volumeBtn.addEventListener("click", () => {
-    settings.soundEnabled = !settings.soundEnabled;
+    game.settings.soundEnabled = !game.settings.soundEnabled;
     saveSettings();
     syncSettingsUi();
-    if (settings.soundEnabled) {
+    if (game.settings.soundEnabled) {
         ensureAudioContext();
         playTingSound();
     }
@@ -764,86 +934,86 @@ settingsBackdrop.addEventListener("click", () => {
 });
 
 soundToggle.addEventListener("change", () => {
-    settings.soundEnabled = soundToggle.checked;
+    game.settings.soundEnabled = soundToggle.checked;
     saveSettings();
     syncSettingsUi();
-    if (settings.soundEnabled) {
+    if (game.settings.soundEnabled) {
         ensureAudioContext();
         playTingSound();
     }
 });
 
 guideToggle.addEventListener("change", () => {
-    settings.showAimGuide = guideToggle.checked;
+    game.settings.showAimGuide = guideToggle.checked;
     saveSettings();
 });
 
 // Input Listeners
 canvas.addEventListener("mousemove", e => {
-    isTouchDevice = false; // Mouse in use
+    game.isTouchDevice = false; // Mouse in use
     let rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
-    shooter.angle = Math.atan2(mouseY - shooter.y, mouseX - shooter.x);
+    game.mouseX = e.clientX - rect.left;
+    game.mouseY = e.clientY - rect.top;
+    game.shooter.angle = Math.atan2(game.mouseY - game.shooter.y, game.mouseX - game.shooter.x);
 });
 
 canvas.addEventListener("touchmove", e => {
-    isTouchDevice = true; // Touch in use
-    touchAimActive = true;
+    game.isTouchDevice = true; // Touch in use
+    game.touchAimActive = true;
     e.preventDefault();
     let rect = canvas.getBoundingClientRect();
-    mouseX = e.touches[0].clientX - rect.left;
-    mouseY = e.touches[0].clientY - rect.top;
-    shooter.angle = Math.atan2(mouseY - shooter.y, mouseX - shooter.x);
+    game.mouseX = e.touches[0].clientX - rect.left;
+    game.mouseY = e.touches[0].clientY - rect.top;
+    game.shooter.angle = Math.atan2(game.mouseY - game.shooter.y, game.mouseX - game.shooter.x);
 }, { passive: false });
 
 canvas.addEventListener("click", () => {
     ensureAudioContext();
-    if (!isTouchDevice) shoot();
+    if (!game.isTouchDevice) shoot();
 });
 
 canvas.addEventListener("touchstart", e => {
     ensureAudioContext();
-    isTouchDevice = true; // Touch in use
-    touchAimActive = true;
-    e.preventDefault(); 
+    game.isTouchDevice = true; // Touch in use
+    game.touchAimActive = true;
+    e.preventDefault();
     let rect = canvas.getBoundingClientRect();
-    mouseX = e.touches[0].clientX - rect.left;
-    mouseY = e.touches[0].clientY - rect.top;
+    game.mouseX = e.touches[0].clientX - rect.left;
+    game.mouseY = e.touches[0].clientY - rect.top;
 }, { passive: false });
 
 canvas.addEventListener("touchend", e => {
-    if (!touchAimActive) return;
+    if (!game.touchAimActive) return;
     e.preventDefault();
     if (e.changedTouches.length > 0) {
         let rect = canvas.getBoundingClientRect();
-        mouseX = e.changedTouches[0].clientX - rect.left;
-        mouseY = e.changedTouches[0].clientY - rect.top;
-        shooter.angle = Math.atan2(mouseY - shooter.y, mouseX - shooter.x);
+        game.mouseX = e.changedTouches[0].clientX - rect.left;
+        game.mouseY = e.changedTouches[0].clientY - rect.top;
+        game.shooter.angle = Math.atan2(game.mouseY - game.shooter.y, game.mouseX - game.shooter.x);
     }
-    touchAimActive = false;
+    game.touchAimActive = false;
     shoot();
 }, { passive: false });
 
 canvas.addEventListener("touchcancel", () => {
-    touchAimActive = false;
+    game.touchAimActive = false;
 }, { passive: true });
 
 
 function shoot() {
-    if (shotBubble || gameOver || win) return;
-    let dx = mouseX - shooter.x, dy = mouseY - shooter.y, l = Math.hypot(dx, dy);
+    if (game.shotBubble || game.gameOver || game.win) return;
+    let dx = game.mouseX - game.shooter.x, dy = game.mouseY - game.shooter.y, l = Math.hypot(dx, dy);
     if (dy > -10) return; // Prevent shooting downward
     dx /= l; dy /= l;
-    
-    currentBubble.vx = dx * SPEED; 
-    currentBubble.vy = dy * SPEED; 
-    currentBubble.moving = true;
-    shotBubble = currentBubble;
-    shotsFired++;
+
+    game.currentBubble.vx = dx * game.SPEED;
+    game.currentBubble.vy = dy * game.SPEED;
+    game.currentBubble.moving = true;
+    game.shotBubble = game.currentBubble;
+    game.shotsFired++;
     updateLevelFromShots();
-    currentBubble = createBubble(nextBubble.color);
-    nextBubble = createBubble(randomColor("shot"));
+    game.currentBubble = createBubble(game.nextBubble.color);
+    game.nextBubble = createBubble(randomColor("shot"));
 }
 
 function findSegmentBubbleCollision(startX, startY, endX, endY) {
@@ -853,10 +1023,10 @@ function findSegmentBubbleCollision(startX, startY, endX, endY) {
     if (segmentLengthSq === 0) return null;
 
     let earliestHit = null;
-    const collisionRadius = R * 2 - 2;
+    const collisionRadius = game.R * 2 - 2;
     const collisionRadiusSq = collisionRadius * collisionRadius;
 
-    for (let [k] of grid) {
+    for (let [k] of game.grid) {
         const [q, r] = parseKey(k);
         const center = hexToPixel(q, r);
         const relX = startX - center.x;
@@ -870,7 +1040,7 @@ function findSegmentBubbleCollision(startX, startY, endX, endY) {
         const root = Math.sqrt(discriminant);
         const candidateTs = [(-b - root) / (2 * a), (-b + root) / (2 * a)];
         for (const t of candidateTs) {
-            if (t < SHOT_EVENT_EPSILON || t > 1) continue;
+            if (t < game.SHOT_EVENT_EPSILON || t > 1) continue;
             if (!earliestHit || t < earliestHit.t) {
                 earliestHit = {
                     t,
@@ -907,35 +1077,35 @@ function getNextShotEvent(startX, startY, vx, vy, maxTime) {
         }
     }
 
-    if (vy < -SHOT_EVENT_EPSILON) {
-        const ceilingTime = (ceilingY + R - startY) / vy;
-        if (ceilingTime >= SHOT_EVENT_EPSILON && ceilingTime < bestEvent.time) {
+    if (vy < -game.SHOT_EVENT_EPSILON) {
+        const ceilingTime = (game.ceilingY + game.R - startY) / vy;
+        if (ceilingTime >= game.SHOT_EVENT_EPSILON && ceilingTime < bestEvent.time) {
             bestEvent = {
                 type: "ceiling",
                 time: ceilingTime,
                 x: startX + vx * ceilingTime,
-                y: ceilingY + R
+                y: game.ceilingY + game.R
             };
         }
     }
 
-    if (vx > SHOT_EVENT_EPSILON) {
-        const rightWallTime = (canvas.width - R - startX) / vx;
-        if (rightWallTime >= SHOT_EVENT_EPSILON && rightWallTime < bestEvent.time) {
+    if (vx > game.SHOT_EVENT_EPSILON) {
+        const rightWallTime = (canvas.width - game.R - startX) / vx;
+        if (rightWallTime >= game.SHOT_EVENT_EPSILON && rightWallTime < bestEvent.time) {
             bestEvent = {
                 type: "wall",
                 time: rightWallTime,
-                x: canvas.width - R,
+                x: canvas.width - game.R,
                 y: startY + vy * rightWallTime
             };
         }
-    } else if (vx < -SHOT_EVENT_EPSILON) {
-        const leftWallTime = (R - startX) / vx;
-        if (leftWallTime >= SHOT_EVENT_EPSILON && leftWallTime < bestEvent.time) {
+    } else if (vx < -game.SHOT_EVENT_EPSILON) {
+        const leftWallTime = (game.R - startX) / vx;
+        if (leftWallTime >= game.SHOT_EVENT_EPSILON && leftWallTime < bestEvent.time) {
             bestEvent = {
                 type: "wall",
                 time: leftWallTime,
-                x: R,
+                x: game.R,
                 y: startY + vy * leftWallTime
             };
         }
@@ -948,22 +1118,22 @@ function advanceShotBubble(deltaSeconds) {
     let remainingTime = deltaSeconds;
     let handledEvents = 0;
 
-    while (shotBubble && shotBubble.moving && remainingTime > SHOT_EVENT_EPSILON && handledEvents < MAX_SHOT_EVENTS_PER_FRAME) {
+    while (game.shotBubble && game.shotBubble.moving && remainingTime > game.SHOT_EVENT_EPSILON && handledEvents < game.MAX_SHOT_EVENTS_PER_FRAME) {
         handledEvents++;
-        const event = getNextShotEvent(shotBubble.x, shotBubble.y, shotBubble.vx, shotBubble.vy, remainingTime);
+        const event = getNextShotEvent(game.shotBubble.x, game.shotBubble.y, game.shotBubble.vx, game.shotBubble.vy, remainingTime);
 
-        shotBubble.x = event.x;
-        shotBubble.y = event.y;
+        game.shotBubble.x = event.x;
+        game.shotBubble.y = event.y;
 
         if (event.type === "move") {
             break;
         }
 
         if (event.type === "wall") {
-            shotBubble.vx *= -1;
-            shotBubble.x = Math.min(
-                canvas.width - R,
-                Math.max(R, shotBubble.x + Math.sign(shotBubble.vx) * SHOT_POSITION_EPSILON)
+            game.shotBubble.vx *= -1;
+            game.shotBubble.x = Math.min(
+                canvas.width - game.R,
+                Math.max(game.R, game.shotBubble.x + Math.sign(game.shotBubble.vx) * game.SHOT_POSITION_EPSILON)
             );
             remainingTime -= event.time;
             continue;
@@ -986,7 +1156,7 @@ function traceShotPath(startX, startY, vx, vy, maxSeconds) {
     let remainingTime = maxSeconds;
     let handledEvents = 0;
 
-    while (remainingTime > SHOT_EVENT_EPSILON && handledEvents < MAX_TRAJECTORY_EVENTS) {
+    while (remainingTime > game.SHOT_EVENT_EPSILON && handledEvents < game.MAX_TRAJECTORY_EVENTS) {
         handledEvents++;
         const event = getNextShotEvent(x, y, currentVx, currentVy, remainingTime);
         points.push({ x: event.x, y: event.y });
@@ -997,7 +1167,7 @@ function traceShotPath(startX, startY, vx, vy, maxSeconds) {
 
         remainingTime -= event.time;
         currentVx *= -1;
-        x = Math.min(canvas.width - R, Math.max(R, event.x + Math.sign(currentVx) * SHOT_POSITION_EPSILON));
+        x = Math.min(canvas.width - game.R, Math.max(game.R, event.x + Math.sign(currentVx) * game.SHOT_POSITION_EPSILON));
         y = event.y;
     }
 
@@ -1005,70 +1175,70 @@ function traceShotPath(startX, startY, vx, vy, maxSeconds) {
 }
 
 function updateLevelFromShots() {
-    const targetLevel = 1 + Math.floor(shotsFired / SHOTS_PER_LEVEL);
-    if (targetLevel <= level) return;
+    const targetLevel = 1 + Math.floor(game.shotsFired / game.SHOTS_PER_LEVEL);
+    if (targetLevel <= game.level) return;
 
-    while (level < targetLevel) {
-        level++;
+    while (game.level < targetLevel) {
+        game.level++;
 
         const targetUnlockedCount = Math.min(
-            BASE_COLOR_COUNT + Math.floor((level - 1) / 4),
-            COLORS.length
+            game.BASE_COLOR_COUNT + Math.floor((game.level - 1) / 4),
+            game.COLORS.length
         );
 
-        if (targetUnlockedCount > unlockedColorCount) {
-            unlockedColorCount = targetUnlockedCount;
-            injectUnlockedColor(COLORS[unlockedColorCount - 1]);
+        if (targetUnlockedCount > game.unlockedColorCount) {
+            game.unlockedColorCount = targetUnlockedCount;
+            injectUnlockedColor(game.COLORS[game.unlockedColorCount - 1]);
         }
 
-        maxMissesForCycle = Math.max(
-            BASE_MISSES_PER_DROP - Math.floor((level - 1) / 3),
-            MIN_MISSES_PER_DROP
+        game.maxMissesForCycle = Math.max(
+            game.BASE_MISSES_PER_DROP - Math.floor((game.level - 1) / 3),
+            game.MIN_MISSES_PER_DROP
         );
-        currentMissesLeft = Math.min(currentMissesLeft, maxMissesForCycle);
+        game.currentMissesLeft = Math.min(game.currentMissesLeft, game.maxMissesForCycle);
         updateRoofHeight();
     }
 }
 
 function snapBubble() {
-    if (!shotBubble) return;
-    let [q, r] = pixelToHex(shotBubble.x, shotBubble.y), k = key(q, r);
-    if (!grid.has(k)) grid.set(k, { color: shotBubble.color });
-    
+    if (!game.shotBubble) return;
+    let [q, r] = pixelToHex(game.shotBubble.x, game.shotBubble.y), k = key(q, r);
+    if (!game.grid.has(k)) game.grid.set(k, { color: game.shotBubble.color });
+
     let match = findMatches(q, r);
-    if (match.length >= 3) { 
+    if (match.length >= 3) {
         // HIT: Ignore miss counter
         playBlopSound();
-        pendingExplosion = match; 
-        explosionTimer = EXPLOSION_DELAY; 
-        combo++; 
-    } else { 
+        game.pendingExplosion = match;
+        game.explosionTimer = game.EXPLOSION_DELAY;
+        game.combo++;
+    } else {
         // MISS
-        combo = 0; 
-        islandTimer = ISLAND_DELAY; 
+        game.combo = 0;
+        game.islandTimer = game.ISLAND_DELAY;
 
-        currentMissesLeft--;
-        if (currentMissesLeft <= 0) {
+        game.currentMissesLeft--;
+        if (game.currentMissesLeft <= 0) {
             const linesToDrop = getLinesToDropForActiveColors();
             for (let i = 0; i < linesToDrop; i++) {
                 dropCeiling();
             }
-            currentMissesLeft = maxMissesForCycle;
+            game.currentMissesLeft = game.maxMissesForCycle;
         }
     }
-    
-    shotBubble = null;
+
+    game.shotBubble = null;
     checkGameOver();
 }
 
 function findMatches(q, r) {
-    if (!grid.has(key(q, r))) return [];
-    let color = grid.get(key(q, r)).color;
+    if (!game.grid.has(key(q, r))) return [];
+    let color = game.grid.get(key(q, r)).color;
     let stack = [[q, r]], visited = new Set(), match = [];
     while (stack.length) {
         let [cq, cr] = stack.pop(), k = key(cq, cr);
         if (visited.has(k)) continue; visited.add(k);
-        let cell = grid.get(k); if (!cell || cell.color !== color) continue;
+        let cell = game.grid.get(k); if (!cell || cell.color !== color) continue;
         match.push([cq, cr]);
         const near = neighbors(cq, cr);
         for (let i = 0; i < near.length; i++) stack.push(near[i]);
@@ -1077,20 +1247,20 @@ function findMatches(q, r) {
 }
 
 function explode() {
-    if (!pendingExplosion) return;
+    if (!game.pendingExplosion) return;
     let prevColors = activeColors();
-    const comboMultiplier = Math.max(1, combo);
-    pendingExplosion.forEach(([q, r]) => {
-        grid.delete(key(q, r));
-        score += MATCH_SCORE * comboMultiplier;
+    const comboMultiplier = Math.max(1, game.combo);
+    game.pendingExplosion.forEach(([q, r]) => {
+        game.grid.delete(key(q, r));
+        game.score += game.MATCH_SCORE * comboMultiplier;
     });
-    pendingExplosion = null; islandTimer = ISLAND_DELAY;
+    game.pendingExplosion = null; game.islandTimer = game.ISLAND_DELAY;
     checkLevelUp(prevColors);
 }
 
 function removeFloating() {
     let visited = new Set(), stack = [];
-    grid.forEach((v, k) => { let [q, r] = parseKey(k); if (r === 0) stack.push([q, r]); });
+    game.grid.forEach((v, k) => { let [q, r] = parseKey(k); if (r === 0) stack.push([q, r]); });
     while (stack.length) {
         let [q, r] = stack.pop(), k = key(q, r);
         if (visited.has(k)) continue; visited.add(k);
@@ -1098,16 +1268,16 @@ function removeFloating() {
         for (let i = 0; i < near.length; i++) {
             const nq = near[i][0];
             const nr = near[i][1];
-            if (grid.has(key(nq, nr))) stack.push([nq, nr]);
+            if (game.grid.has(key(nq, nr))) stack.push([nq, nr]);
         }
     }
     let prevColors = activeColors();
     let floatingRemoved = 0;
-    grid.forEach((v, k) => {
+    game.grid.forEach((v, k) => {
         if (!visited.has(k)) {
-            grid.delete(k);
+            game.grid.delete(k);
             floatingRemoved++;
-            score += FLOATING_SCORE * Math.max(1, combo);
+            game.score += game.FLOATING_SCORE * Math.max(1, game.combo);
         }
     });
     checkLevelUp(prevColors);
@@ -1119,8 +1289,8 @@ function checkLevelUp(prevColorsList) {
     const cleared = prevColorsList.filter(c => !currentSet.has(c));
 
     if (cleared.length > 0) {
-        score += COLOR_CLEAR_BONUS * cleared.length;
-        cleared.forEach(c => clearedColors.add(c));
+        game.score += game.COLOR_CLEAR_BONUS * cleared.length;
+        cleared.forEach(c => game.clearedColors.add(c));
         refreshQueuedBubbleColors();
     }
 }
@@ -1128,12 +1298,12 @@ function checkLevelUp(prevColorsList) {
 function dropCeiling() {
     let newGrid = new Map();
     // Axial rows naturally shift right when r increases; alternate with q-1 to shift left on every other drop.
-    const qShift = dropShiftLeftNext ? -1 : 0;
-    grid.forEach((v, k) => {
+    const qShift = game.dropShiftLeftNext ? -1 : 0;
+    game.grid.forEach((v, k) => {
         let [q, r] = parseKey(k);
         const nextQ = q + qShift;
         let p = hexToPixel(nextQ, r + 1);
-        if (p.x >= R && p.x <= canvas.width - R) newGrid.set(key(nextQ, r + 1), v);
+        if (p.x >= game.R && p.x <= canvas.width - game.R) newGrid.set(key(nextQ, r + 1), v);
     });
 
     const openSlots = getPlayableRowSlots(0);
@@ -1143,35 +1313,35 @@ function dropCeiling() {
         newGrid.set(key(openSlots[i], 0), { color: rowColors[i] });
     }
 
-    grid = newGrid;
-    dropShiftLeftNext = !dropShiftLeftNext;
+    game.grid = newGrid;
+    game.dropShiftLeftNext = !game.dropShiftLeftNext;
 }
 
 function showOverlay(title) {
     uiTitle.innerText = title;
-    uiScore.innerText = "Score: " + score;
+    uiScore.innerText = "Score: " + game.score;
     uiOverlay.style.display = "block";
 }
 
 function checkGameOver() {
-    grid.forEach((v, k) => {
+    game.grid.forEach((v, k) => {
         let [q, r] = parseKey(k);
         let p = hexToPixel(q, r);
-        if (p.y > shooter.y - R * 2) { gameOver = true; showOverlay("Game Over"); }
+        if (p.y > game.shooter.y - game.R * 2) { game.gameOver = true; showOverlay("Game Over"); }
     });
 }
 
 function checkWin() {
-    if (grid.size === 0) {
-        score += BOARD_CLEAR_BONUS;
-        win = true;
+    if (game.grid.size === 0) {
+        game.score += game.BOARD_CLEAR_BONUS;
+        game.win = true;
         showOverlay("You Win!");
     }
 }
 
 function shareScore(platform) {
     // Build emoji at runtime from code points to avoid source-file encoding corruption
-    let text = `Bubble Shooter score: ${score} points, level ${level}. Can you beat this run?`;
+    let text = `Bubble Shooter score: ${game.score} points, level ${game.level}. Can you beat this run?`;
     let emoji = '🟡🟢🔵🔴🟣';
     let url = encodeURIComponent(location.href);
     let shareUrl = "";
@@ -1197,33 +1367,33 @@ function shareScore(platform) {
 }
 
 function update(deltaSeconds) {
-    if (gameOver || win) return;
-    if (explosionTimer > 0) {
-        explosionTimer = Math.max(0, explosionTimer - deltaSeconds);
-        if (explosionTimer === 0) explode();
+    if (game.gameOver || game.win) return;
+    if (game.explosionTimer > 0) {
+        game.explosionTimer = Math.max(0, game.explosionTimer - deltaSeconds);
+        if (game.explosionTimer === 0) explode();
     }
-    if (islandTimer > 0) {
-        islandTimer = Math.max(0, islandTimer - deltaSeconds);
-        if (islandTimer === 0) removeFloating();
+    if (game.islandTimer > 0) {
+        game.islandTimer = Math.max(0, game.islandTimer - deltaSeconds);
+        if (game.islandTimer === 0) removeFloating();
     }
     
-    if (shotBubble && shotBubble.moving) {
+    if (game.shotBubble && game.shotBubble.moving) {
         advanceShotBubble(deltaSeconds);
     }
 }
 
 function drawTrajectory() {
-    if (!settings.showAimGuide) return;
-    if (shotBubble || gameOver || win || (isTouchDevice && !touchAimActive)) return; 
+    if (!game.settings.showAimGuide) return;
+    if (game.shotBubble || game.gameOver || game.win || (game.isTouchDevice && !game.touchAimActive)) return; 
     
-    let dx = mouseX - shooter.x;
-    let dy = mouseY - shooter.y;
+    let dx = game.mouseX - game.shooter.x;
+    let dy = game.mouseY - game.shooter.y;
     if (dy > -10) return;
     
     let angle = Math.atan2(dy, dx);
-    let vx = Math.cos(angle) * SPEED;
-    let vy = Math.sin(angle) * SPEED;
-    const path = traceShotPath(shooter.x, shooter.y, vx, vy, TRAJECTORY_STEP_SECONDS * 60);
+    let vx = Math.cos(angle) * game.SPEED;
+    let vy = Math.sin(angle) * game.SPEED;
+    const path = traceShotPath(game.shooter.x, game.shooter.y, vx, vy, game.TRAJECTORY_STEP_SECONDS * 60);
     if (path.length < 2) return;
     
     ctx.beginPath();
@@ -1242,13 +1412,13 @@ function drawTrajectory() {
 }
 
 function drawBubble(x, y, color) {
-    let g = ctx.createRadialGradient(x - R/3, y - R/3, R/5, x, y, R);
+    let g = ctx.createRadialGradient(x - game.R/3, y - game.R/3, game.R/5, x, y, game.R);
     g.addColorStop(0, "white"); g.addColorStop(0.3, color); g.addColorStop(1, "black");
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, game.R, 0, Math.PI * 2); ctx.fill();
 }
 
 function drawGrid() {
-    grid.forEach((v, k) => {
+    game.grid.forEach((v, k) => {
         let [q, r] = parseKey(k);
         let p = hexToPixel(q, r);
         drawBubble(p.x, p.y, v.color);
@@ -1257,14 +1427,14 @@ function drawGrid() {
 
 function drawShooter() {
     drawTrajectory();
-    drawBubble(shooter.x, shooter.y, currentBubble.color);
-    if (shotBubble) drawBubble(shotBubble.x, shotBubble.y, shotBubble.color);
+    drawBubble(game.shooter.x, game.shooter.y, game.currentBubble.color);
+    if (game.shotBubble) drawBubble(game.shotBubble.x, game.shotBubble.y, game.shotBubble.color);
 
     // Draw Miss Indicators
     let indicatorR = 8;
     let startX = 20;
     let startY = canvas.height - 25;
-    for(let i = 0; i < currentMissesLeft; i++) {
+    for(let i = 0; i < game.currentMissesLeft; i++) {
         ctx.beginPath();
         ctx.arc(startX + i * (indicatorR * 2 + 6), startY, indicatorR, 0, Math.PI * 2);
         ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
@@ -1277,13 +1447,13 @@ function drawShooter() {
 
 function drawNextBubblePreview() {
     nextBubbleCtx.clearRect(0, 0, nextBubbleCanvas.width, nextBubbleCanvas.height);
-    if (!nextBubble) return;
+    if (!game.nextBubble) return;
     const cx = nextBubbleCanvas.width / 2;
     const cy = nextBubbleCanvas.height / 2;
     const previewR = Math.max(8, Math.floor(Math.min(nextBubbleCanvas.width, nextBubbleCanvas.height) / 2 - 5));
     const g = nextBubbleCtx.createRadialGradient(cx - previewR / 3, cy - previewR / 3, previewR / 5, cx, cy, previewR);
     g.addColorStop(0, "white");
-    g.addColorStop(0.3, nextBubble.color);
+    g.addColorStop(0.3, game.nextBubble.color);
     g.addColorStop(1, "black");
     nextBubbleCtx.fillStyle = g;
     nextBubbleCtx.beginPath();
@@ -1301,22 +1471,22 @@ function drawScore() {
     ctx.shadowColor = "#00f2ff";
     ctx.shadowBlur = 32;
     ctx.fillStyle = "rgba(0, 242, 255, 0.5)";
-    ctx.fillText(score, sx, sy);
+    ctx.fillText(game.score, sx, sy);
     // Mid glow
     ctx.shadowBlur = 12;
     ctx.fillStyle = "rgba(180, 248, 255, 0.9)";
-    ctx.fillText(score, sx, sy);
+    ctx.fillText(game.score, sx, sy);
     // Sharp white core
     ctx.shadowBlur = 0;
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(score, sx, sy);
+    ctx.fillText(game.score, sx, sy);
     ctx.restore();
 }
 
 function drawCeiling() {
     // Dark zone above the current ceiling
     ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
-    ctx.fillRect(0, 0, canvas.width, ceilingY - 1);
+    ctx.fillRect(0, 0, canvas.width, game.ceilingY - 1);
     // Glowing ceiling line
     ctx.save();
     ctx.shadowColor = "#00f2ff";
@@ -1324,15 +1494,15 @@ function drawCeiling() {
     ctx.strokeStyle = "#00f2ff";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(0, ceilingY - 1);
-    ctx.lineTo(canvas.width, ceilingY - 1);
+    ctx.moveTo(0, game.ceilingY - 1);
+    ctx.lineTo(canvas.width, game.ceilingY - 1);
     ctx.stroke();
     ctx.restore();
     // Level label
     ctx.font = "bold 13px sans-serif";
     ctx.fillStyle = "#5fd3ff";
     ctx.textAlign = "left";
-    ctx.fillText("LEVEL " + level, 10, ceilingY - 5);
+    ctx.fillText("LEVEL " + game.level, 10, game.ceilingY - 5);
 }
 
 function draw() {
