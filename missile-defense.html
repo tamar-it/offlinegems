@@ -1826,13 +1826,14 @@
             shoot();
         }, { passive: false });
 
-        function spawnShrapnel(x, y) {
-            const count = Math.floor(Math.random() * 3) + 1;
+        function spawnShrapnel(x, y, isGround = false) {
+            const count = isGround ? 6 : Math.floor(Math.random() * 3) + 1;
             for (let i = 0; i < count; i++) {
                 shrapnels.push({
                     x: x, y: y,
-                    vx: (Math.random() - 0.5) * 4,
-                    vy: (Math.random() - 0.5) * 2,
+                    startY: y,
+                    vx: isGround ? (Math.random() - 0.5) * 10 : (Math.random() - 0.5) * 4,
+                    vy: isGround ? -Math.random() * 4 : (Math.random() - 0.5) * 2,
                     age: 0
                 });
             }
@@ -2142,14 +2143,7 @@
                         }
                     }
                     createExplosion(m.x, m.y);
-                    if (m.type === "drone") {
-                        spawnShrapnel(m.x, m.y);
-                        for (let k = shrapnels.length - 1; k >= shrapnels.length - 4; k--) {
-                            if (shrapnels[k]) shrapnels[k].size *= 0.3;
-                        }
-                    } else {
-                        spawnShrapnel(m.x, m.y);
-                    }
+                    spawnShrapnel(m.x, m.y, true); // Ground shrapnel for all hostiles (including drones)
                     triggerHitFeedback(1.1);
                     missiles.splice(i, 1);
                     continue;
@@ -2342,6 +2336,13 @@
                 s.x += s.vx * frameScale;
                 s.y += s.vy * frameScale;
                 s.age += frameScale;
+
+                // Requirement: shrapnel lasts only 40 pixels of fall distance
+                const fallDist = Math.abs(s.y - s.startY);
+                if (fallDist > 40) {
+                    shrapnels.splice(i, 1);
+                    continue;
+                }
 
                 s.size = Math.max(0, 1 - (s.age / 150));
                 if (s.size <= 0) {
