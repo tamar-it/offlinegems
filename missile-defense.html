@@ -544,21 +544,21 @@
             { // Level 1 — tutorial pace
                 name: "First Contact",
                 enemyTypes: ["rocket"],
-                spawnRate: 0.001,
+                spawnRate: 0.003,
                 maxMissiles: 3,
                 message: "Defend against rockets!"
             },
             { // Level 2
                 name: "Missile Threats",
                 enemyTypes: ["rocket", "commet"],
-                spawnRate: 0.002,
+                spawnRate: 0.005,
                 maxMissiles: 3,
                 message: "Comet missiles incoming!"
             },
             { // Level 3
                 name: "Drone Threats",
                 enemyTypes: ["drone"],
-                spawnRate: 0.003,
+                spawnRate: 0.006,
                 maxMissiles: 4,
                 message: "Drone threats detected!"
             },
@@ -2033,17 +2033,23 @@
                 waveClearPauseTimer -= frameScale;
             } else if (missiles.length < maxMissilesThisWave) {
                 const portraitBoost = Math.max(1, canvas.height / Math.max(1, canvas.width));
-                const effectiveRate = Math.min(0.05, levelConfig.spawnRate * portraitBoost);
+                let effectiveRate = Math.min(0.05, levelConfig.spawnRate * portraitBoost);
+
+                // If no missiles are on screen, significantly boost spawn chance to keep player engaged
+                if (missiles.length === 0) {
+                    effectiveRate = Math.max(effectiveRate, 0.06);
+                }
+
                 const spawnChance = 1 - Math.pow(1 - effectiveRate, frameScale);
                 if (Math.random() < spawnChance) {
                     spawnMissile();
                 }
             }
 
-            // Spawn friendly jets occasionally (bonus feature)
+            // Spawn friendly jets occasionally (bonus feature) — unlock from level 4
             const previousBucket = Math.floor((frameCount - frameScale) / 180);
             const currentBucket = Math.floor(frameCount / 180);
-            if (currentBucket > previousBucket && Math.random() < 0.6) {
+            if (currentBucket > previousBucket && wave >= 4 && Math.random() < 0.6) {
                 spawnFriendlyJet();
             }
 
@@ -2117,6 +2123,7 @@
 
                 // Check if missile reached ground
                 if (m.y >= getGroundYAt(m.x)) {
+                    triggerHitFeedback(1.5); // Add screen shake and flash on ground impact
                     const hitBuilding = findHitBuilding(m.x, m.y);
                     if (hitBuilding) {
                         hitBuilding.health -= m.typeData.damage;
