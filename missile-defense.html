@@ -541,58 +541,67 @@
 
         // Level definitions
         const LEVEL_CONFIGS = [
-            { // Level 1
-                name: "Rocket Barrage",
+            { // Level 1 — tutorial pace
+                name: "First Contact",
                 enemyTypes: ["rocket"],
-                spawnRate: 0.003,
+                spawnRate: 0.001,
+                maxMissiles: 3,
                 message: "Defend against rockets!"
             },
             { // Level 2
                 name: "Missile Threats",
                 enemyTypes: ["rocket", "commet"],
-                spawnRate: 0.005,
-                message: "commet missiles incoming!"
+                spawnRate: 0.002,
+                maxMissiles: 3,
+                message: "Comet missiles incoming!"
             },
             { // Level 3
                 name: "Drone Threats",
                 enemyTypes: ["drone"],
                 spawnRate: 0.003,
+                maxMissiles: 4,
                 message: "Drone threats detected!"
             },
             { // Level 4
                 name: "MIRV Threats",
                 enemyTypes: ["mirv"],
-                spawnRate: 0.005,
+                spawnRate: 0.003,
+                maxMissiles: 4,
                 message: "MIRV threats detected!"
             },
             { // Level 5
                 name: "Full Assault",
                 enemyTypes: ["rocket", "commet", "drone", "mirv"],
-                spawnRate: 0.005,
+                spawnRate: 0.004,
+                maxMissiles: 6,
                 message: "All threats detected!"
             },
             { // Level 6
                 name: "Saturation Attack",
                 enemyTypes: ["rocket", "commet", "drone", "mirv", "mirv"],
-                spawnRate: 0.007,
+                spawnRate: 0.005,
+                maxMissiles: 6,
                 message: "Sustained hostile pressure!"
             },
             { // Level 7
                 name: "Heavy Barrage",
                 enemyTypes: ["rocket", "commet", "drone", "mirv", "mirv"],
-                spawnRate: 0.008,
+                spawnRate: 0.006,
+                maxMissiles: 6,
                 message: "High-density missile waves!"
             },
             { // Level 8
                 name: "Airspace Collapse",
                 enemyTypes: ["rocket", "commet", "drone", "mirv"],
-                spawnRate: 0.009,
+                spawnRate: 0.007,
+                maxMissiles: 6,
                 message: "Maintain intercept lock at all costs!"
             },
             { // Level 9+
                 name: "Extreme Defense",
                 enemyTypes: ["rocket", "commet", "drone", "mirv", "mirv"],
-                spawnRate: 0.01,
+                spawnRate: 0.008,
+                maxMissiles: 6,
                 message: "Maximum intensity!"
             }
         ];
@@ -849,6 +858,12 @@
         let floatingTexts = [];
         let activeWaveAnnouncement = { timer: 0, text: "", alpha: 0 };
 
+        // Inter-wave cease-fire and streak tracking
+        let waveClearPauseTimer = 0; // frames remaining in the post-wave cease-fire
+        let killStreak = 0;          // consecutive kills without any building taking damage
+        let autoReloadTimer = 0;     // frames until auto-reload triggers (0 = not counting)
+
+
         let mouseX = 0;
         let mouseY = 0;
         let isTouchDevice = false;
@@ -1047,20 +1062,40 @@
             kills++;
             levelKills++;
             levelScore += pointsAwarded;
+            killStreak++;
+
+            // Streak bonus: every 3 consecutive kills without building damage
+            if (killStreak > 0 && killStreak % 3 === 0) {
+                const streakBonus = 10;
+                score += streakBonus;
+                spawnFloatingText(launcher.x, launcher.y - 40, `🔥 STREAK +${streakBonus}`, "#ffd93d");
+            }
 
             if (levelKills < levelGoalKills && levelScore < levelGoalScore) return;
 
-            enqueueToast(`Mission ${wave} complete`, "#8cffc1", 110);
+            // Wave clear bonus if any buildings survived
+            const survivingBuildings = buildings.filter(b => b.health > 0).length;
+            if (survivingBuildings > 0) {
+                const clearBonus = survivingBuildings * 5;
+                score += clearBonus;
+                enqueueToast(`Wave Clear! +${clearBonus} bonus 🏅`, "#ffd93d", 140);
+            } else {
+                enqueueToast(`Mission ${wave} complete`, "#8cffc1", 110);
+            }
 
             wave++;
             levelKills = 0;
             levelScore = 0;
+            killStreak = 0;
             maxAmmo += 5;
             ammo = maxAmmo;
             levelGoalKills = Math.floor(Math.random() * 8) + 12 + Math.floor(wave * 1.5);
             levelGoalScore = levelGoalKills * 10;
             activeWaveAnnouncement = { timer: 180, text: `WAVE ${wave}`, alpha: 1 };
             enqueueToast(`Mission ${wave} started`, "#b8dcff", 150);
+
+            // 4-second cease-fire so the player can breathe
+            waveClearPauseTimer = 240;
         }
 
         function ensureAudioContext() {
@@ -1167,6 +1202,8 @@
         }
 
         let cachedSeaGradient = null, cachedLandGradient = null, cachedSandGradient = null, cachedRockGradient = null;
+        // Cached terrain Path2D objects — rebuilt on resize, filled each frame (zero getGroundYAt calls per frame)
+        let cachedTerrainPath = null, cachedSandPath = null, cachedRockyPath = null;
         let cachedSandEnd = 0, cachedRockyStart = 0, cachedRockyEnd = 0;
         function buildCachedGradients() {
             const seaTop = canvas.height - 56;
@@ -1196,6 +1233,30 @@
             cachedRockGradient.addColorStop(0, "rgba(110, 108, 103, 0.84)");
             cachedRockGradient.addColorStop(0.5, "rgba(86, 84, 80, 0.9)");
             cachedRockGradient.addColorStop(1, "rgba(125, 119, 108, 0.78)");
+            // Build cached Path2D terrain outlines — several hundred getGroundYAt calls saved per frame
+            const seaTopP = canvas.height - 56;
+
+            cachedTerrainPath = new Path2D();
+            cachedTerrainPath.moveTo(bx, canvas.height);
+            cachedTerrainPath.lineTo(bx, getGroundYAt(bx));
+            for (let x = bx; x <= canvas.width; x += 6) cachedTerrainPath.lineTo(x, getGroundYAt(x));
+            cachedTerrainPath.lineTo(canvas.width, canvas.height);
+            cachedTerrainPath.closePath();
+
+            cachedSandPath = new Path2D();
+            cachedSandPath.moveTo(sandEnd, getGroundYAt(sandEnd));
+            for (let x = sandEnd; x >= bx; x -= 6) cachedSandPath.lineTo(x, getGroundYAt(x));
+            for (let x = bx; x <= sandEnd; x += 6) cachedSandPath.lineTo(x, getGroundYAt(x) + 16);
+            cachedSandPath.closePath();
+
+            cachedRockyPath = new Path2D();
+            cachedRockyPath.moveTo(rockyStart, getGroundYAt(rockyStart));
+            for (let x = rockyStart; x <= rockyEnd; x += 6) {
+                const jag = 7 + Math.sin(x * 0.12) * 5;
+                cachedRockyPath.lineTo(x, getGroundYAt(x) - jag);
+            }
+            for (let x = rockyEnd; x >= rockyStart; x -= 6) cachedRockyPath.lineTo(x, getGroundYAt(x) + 18);
+            cachedRockyPath.closePath();
         }
 
         function getViewportHeight() {
@@ -1547,6 +1608,9 @@
             shrapnels = [];
             floatingTexts = [];
             activeWaveAnnouncement = { timer: 0, text: "", alpha: 0 };
+            waveClearPauseTimer = 0;
+            killStreak = 0;
+            autoReloadTimer = 0;
             isPaused = false;
             pauseLockedByPanel = false;
             screenShake = 0;
@@ -1758,6 +1822,7 @@
             }
             touchAimActive = false;
             if (trySelectBattery(mouseX, mouseY)) return;
+            if (tryReloadBattery(mouseX, mouseY)) return;
             shoot();
         }, { passive: false });
 
@@ -1859,6 +1924,10 @@
             const typeKey = randomFrom(levelConfig.enemyTypes);
             const type = MISSILE_TYPES[typeKey];
 
+            // Normalize speed to 600x800 reference so game feels equal on all screen sizes
+            const speedScaleH = canvas.height / 600;
+            const speedScaleW = canvas.width / 800;
+
             let x, y, vx, vy;
 
             let targetBuilding = null;
@@ -1867,8 +1936,8 @@
                 // Drone - moves horizontally initially
                 x = Math.random() > 0.5 ? -30 : canvas.width + 30;
                 y = Math.random() * (canvas.height * 0.4);
-                vx = x < canvas.width / 2 ? type.speed : -type.speed;
-                vy = (Math.random() - 0.5) * 0.5;
+                vx = x < canvas.width / 2 ? type.speed * speedScaleW : -type.speed * speedScaleW;
+                vy = (Math.random() - 0.5) * 0.5 * speedScaleH;
 
                 let rn = Math.random();
                 if (rn < 0.6) {
@@ -1887,11 +1956,11 @@
                     targetPoint = { x: tx, y: getGroundYAt(tx), type: 'ground' };
                 }
             } else {
-                // Missiles - move downward
+                // Missiles - move downward, speed scaled to screen height
                 x = Math.random() * (canvas.width - 60) + 30;
                 y = -30;
-                vx = (Math.random() - 0.5) * 1;
-                vy = type.speed;
+                vx = (Math.random() - 0.5) * 1 * speedScaleW;
+                vy = type.speed * speedScaleH;
             }
 
             missiles.push({ x, y, vx, vy, type: typeKey, typeData: type, headAngle: type.headAngle || 0, health: type.health, age: 0, targetPoint: targetPoint });
@@ -1919,9 +1988,9 @@
         }
 
         function updateUI() {
-            statValue1.textContent = kills;
+            statValue1.textContent = `${levelKills}/${levelGoalKills}`;
             statLabel2.textContent = "Mission";
-            statValue2.textContent = `${wave}: ${levelKills}/${levelGoalKills} or ${levelScore}/${levelGoalScore}`;
+            statValue2.textContent = `${levelScore}/${levelGoalScore}`;
             statValue3.textContent = ammo;
         }
 
@@ -1944,10 +2013,28 @@
             // Get current level config
             const levelIndex = Math.min(wave - 1, LEVEL_CONFIGS.length - 1);
             const levelConfig = LEVEL_CONFIGS[levelIndex];
+            const maxMissilesThisWave = levelConfig.maxMissiles ?? 6;
 
-            // Spawn chance
-            if (missiles.length < 6) {
-                const spawnChance = 1 - Math.pow(1 - levelConfig.spawnRate, frameScale);
+            // Semi-auto reload: if clip is 0 and player hasn't manually reloaded, count down
+            if (launcher.clip <= 0 && launcher.health > 0) {
+                if (autoReloadTimer <= 0) autoReloadTimer = 180; // 3 seconds at 60fps
+                autoReloadTimer -= frameScale;
+                if (autoReloadTimer <= 0) {
+                    launcher.clip = launcher.maxClip;
+                    autoReloadTimer = 0;
+                    enqueueToast("Auto-Reloaded", "#8cffc1", 60);
+                }
+            } else if (launcher.clip > 0) {
+                autoReloadTimer = 0; // reset if already has ammo
+            }
+
+            // Spawn chance — paused during inter-wave cease-fire
+            if (waveClearPauseTimer > 0) {
+                waveClearPauseTimer -= frameScale;
+            } else if (missiles.length < maxMissilesThisWave) {
+                const portraitBoost = Math.max(1, canvas.height / Math.max(1, canvas.width));
+                const effectiveRate = Math.min(0.05, levelConfig.spawnRate * portraitBoost);
+                const spawnChance = 1 - Math.pow(1 - effectiveRate, frameScale);
                 if (Math.random() < spawnChance) {
                     spawnMissile();
                 }
@@ -2034,13 +2121,16 @@
                     if (hitBuilding) {
                         hitBuilding.health -= m.typeData.damage;
                         score = Math.max(0, score - BUILDING_HIT_PENALTY);
+                        killStreak = 0; // break streak on building hit
                         spawnFloatingText(hitBuilding.x + hitBuilding.width / 2, hitBuilding.y, `-${m.typeData.damage} HP`, "#ff6b6b");
                     } else {
                         if (Math.abs(m.x - launcher.x) < 30) {
                             launcher.health -= m.typeData.damage;
+                            killStreak = 0;
                             spawnFloatingText(launcher.x, launcher.y - 20, `-${m.typeData.damage} HP`, "#ff6b6b");
                         } else if (Math.abs(m.x - laserLauncher.x) < 30) {
                             laserLauncher.health -= m.typeData.damage;
+                            killStreak = 0;
                             spawnFloatingText(laserLauncher.x, laserLauncher.y - 20, `-${m.typeData.damage} HP`, "#ff6b6b");
                         }
                     }
@@ -2058,12 +2148,12 @@
                     continue;
                 }
 
-                // Check collision with interceptors
+                // Check collision with interceptors (squared distance — avoids sqrt)
+                const INTER_DIST_SQ = 30 * 30;
                 for (let j = interceptors.length - 1; j >= 0; j--) {
                     const inter = interceptors[j];
-                    const dist = Math.hypot(m.x - inter.x, m.y - inter.y);
-
-                    if (dist < 30) {
+                    const ddx = m.x - inter.x, ddy = m.y - inter.y;
+                    if (ddx * ddx + ddy * ddy < INTER_DIST_SQ) {
                         createExplosion((m.x + inter.x) / 2, (m.y + inter.y) / 2);
                         if (m.type !== "drone") spawnShrapnel((m.x + inter.x) / 2, (m.y + inter.y) / 2);
                         playHitSound();
@@ -2081,12 +2171,12 @@
                     }
                 }
 
-                // Check collision with friendly jets
+                // Check collision with friendly jets (squared distance)
+                const JET_DIST_SQ = 35 * 35;
                 for (let j = friendlyJets.length - 1; j >= 0; j--) {
                     const jet = friendlyJets[j];
-                    const dist = Math.hypot(m.x - jet.x, m.y - jet.y);
-
-                    if (dist < 35) {
+                    const ddx2 = m.x - jet.x, ddy2 = m.y - jet.y;
+                    if (ddx2 * ddx2 + ddy2 * ddy2 < JET_DIST_SQ) {
                         createExplosion((m.x + jet.x) / 2, (m.y + jet.y) / 2);
                         if (m.type !== "drone") spawnShrapnel((m.x + jet.x) / 2, (m.y + jet.y) / 2);
                         playHitSound();
@@ -2104,13 +2194,17 @@
                 }
             }
 
-            // Update interceptors
+            // Update interceptors — build lookup Sets once per frame for O(1) target validity
+            const missileSet = new Set(missiles);
+            const flareSet = new Set(flares);
             for (let i = interceptors.length - 1; i >= 0; i--) {
                 const inter = interceptors[i];
 
                 let hitFlare = false;
+                const FLARE_DIST_SQ = 30 * 30;
                 for (let j = 0; j < flares.length; j++) {
-                    if (Math.hypot(inter.x - flares[j].x, inter.y - flares[j].y) < 30) {
+                    const fdx = inter.x - flares[j].x, fdy = inter.y - flares[j].y;
+                    if (fdx * fdx + fdy * fdy < FLARE_DIST_SQ) {
                         createExplosion((inter.x + flares[j].x) / 2, (inter.y + flares[j].y) / 2);
                         flares.splice(j, 1);
                         interceptors.splice(i, 1);
@@ -2120,7 +2214,8 @@
                 }
                 if (hitFlare) continue;
 
-                const hasValidTarget = inter.target && inter.target.health > 0 && (missiles.includes(inter.target) || flares.includes(inter.target));
+                // O(1) membership check via Sets built once per frame
+                const hasValidTarget = inter.target && inter.target.health > 0 && (missileSet.has(inter.target) || flareSet.has(inter.target));
                 if (inter.source === "battery" && hasValidTarget) {
                     const dx = inter.target.x - inter.x;
                     const dy = inter.target.y - inter.y;
@@ -2247,24 +2342,32 @@
                     continue;
                 }
 
-                if (s.y >= getGroundYAt(s.x)) {
-                    const hitBuilding = findHitBuilding(s.x, s.y);
-                    const dmg = s.size * 0.5;
+                const groundY = getGroundYAt(s.x);
+                const distToGround = groundY - s.y;
+
+                // Shrapnel is only dangerous when close to the ground (within 80px)
+                if (distToGround <= 80) {
+                    // Proximity factor: 0 at 80px above, 1 at ground level
+                    const proximityFactor = 1 - (distToGround / 80);
+                    const dmg = s.size * 0.5 * proximityFactor;
+
                     if (dmg > 0.05) {
+                        const hitBuilding = findHitBuilding(s.x, s.y);
                         const dmgLabel = `-${dmg.toFixed(1)} HP`;
                         if (hitBuilding) {
                             hitBuilding.health -= dmg;
                             spawnFloatingText(hitBuilding.x + hitBuilding.width / 2, hitBuilding.y, dmgLabel, "#ff6b6b");
-                        }
-                        else if (Math.abs(s.x - launcher.x) < 30) {
+                        } else if (Math.abs(s.x - launcher.x) < 30) {
                             launcher.health -= dmg;
                             spawnFloatingText(launcher.x, launcher.y - 20, dmgLabel, "#ff6b6b");
-                        }
-                        else if (Math.abs(s.x - laserLauncher.x) < 30) {
+                        } else if (Math.abs(s.x - laserLauncher.x) < 30) {
                             laserLauncher.health -= dmg;
                             spawnFloatingText(laserLauncher.x, laserLauncher.y - 20, dmgLabel, "#ff6b6b");
                         }
                     }
+                }
+
+                if (s.y >= groundY) {
                     shrapnels.splice(i, 1);
                 }
             }
@@ -2495,49 +2598,16 @@
             ctx.fillStyle = cachedSeaGradient;
             ctx.fillRect(0, seaTop, canvas.width, canvas.height - seaTop);
 
-            // Curved land mass: flat near coast, climbs to the right, then drops to far-right flat.
-            ctx.beginPath();
-            ctx.moveTo(seaCityBoundaryX, canvas.height);
-            ctx.lineTo(seaCityBoundaryX, getGroundYAt(seaCityBoundaryX));
-            for (let x = seaCityBoundaryX; x <= canvas.width; x += 6) {
-                ctx.lineTo(x, getGroundYAt(x));
-            }
-            ctx.lineTo(canvas.width, canvas.height);
-            ctx.closePath();
+            // Terrain using cached Path2D — no per-frame getGroundYAt calls
             ctx.fillStyle = cachedLandGradient;
-            ctx.fill();
+            ctx.fill(cachedTerrainPath);
 
-            const sandStart = seaCityBoundaryX;
-            const sandEnd = cachedSandEnd;
-            const rockyStart = cachedRockyStart;
-            const rockyEnd = cachedRockyEnd;
-
-            // Sandy coastal cap following the same curve.
-            ctx.beginPath();
-            ctx.moveTo(sandStart, getGroundYAt(sandStart));
-            for (let x = sandStart; x <= sandEnd; x += 6) {
-                ctx.lineTo(x, getGroundYAt(x));
-            }
-            for (let x = sandEnd; x >= sandStart; x -= 6) {
-                ctx.lineTo(x, getGroundYAt(x) + 16);
-            }
-            ctx.closePath();
             ctx.fillStyle = cachedSandGradient;
-            ctx.fill();
+            ctx.fill(cachedSandPath);
 
-            // Rocky mountain cap on the right highlands.
-            ctx.beginPath();
-            ctx.moveTo(rockyStart, getGroundYAt(rockyStart));
-            for (let x = rockyStart; x <= rockyEnd; x += 6) {
-                const jag = 7 + Math.sin(x * 0.12) * 5;
-                ctx.lineTo(x, getGroundYAt(x) - jag);
-            }
-            for (let x = rockyEnd; x >= rockyStart; x -= 6) {
-                ctx.lineTo(x, getGroundYAt(x) + 18);
-            }
-            ctx.closePath();
             ctx.fillStyle = cachedRockGradient;
-            ctx.fill();
+            ctx.fill(cachedRockyPath);
+
 
             // Draw buildings
             buildings.forEach(b => {
@@ -2563,15 +2633,18 @@
                 ctx.fillRect(s.x, s.y, s.size * 5, s.size * 5);
             });
 
-            flares.forEach(f => {
-                ctx.fillStyle = "#ffffff";
+            // Draw flares — batch shadow so it's set once
+            if (flares.length > 0) {
                 ctx.shadowColor = "#ffddaa";
                 ctx.shadowBlur = 10;
-                ctx.beginPath();
-                ctx.arc(f.x, f.y, 6, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.fillStyle = "#ffffff";
+                flares.forEach(f => {
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                });
                 ctx.shadowBlur = 0;
-            });
+            }
 
             missiles.forEach(drawHostile);
             interceptors.forEach(inter => {
@@ -2651,19 +2724,21 @@
             drawLaserLauncher();
             drawMissionToast();
 
-            // Draw floating texts
-            floatingTexts.forEach(ft => {
+            // Draw floating texts — single save/restore for all (was one per text)
+            if (floatingTexts.length > 0) {
                 ctx.save();
-                ctx.globalAlpha = Math.max(0, ft.age / ft.maxAge <= 0.7 ? 1 : 1 - ((ft.age - ft.maxAge * 0.7) / (ft.maxAge * 0.3)));
-                ctx.fillStyle = ft.color;
                 ctx.font = "bold 16px sans-serif";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.shadowColor = "rgba(0,0,0,0.8)";
                 ctx.shadowBlur = 4;
-                ctx.fillText(ft.text, ft.x, ft.y);
+                floatingTexts.forEach(ft => {
+                    ctx.globalAlpha = Math.max(0, ft.age / ft.maxAge <= 0.7 ? 1 : 1 - ((ft.age - ft.maxAge * 0.7) / (ft.maxAge * 0.3)));
+                    ctx.fillStyle = ft.color;
+                    ctx.fillText(ft.text, ft.x, ft.y);
+                });
                 ctx.restore();
-            });
+            }
 
             // Draw wave announcement
             if (activeWaveAnnouncement.timer > 0) {
