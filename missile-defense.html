@@ -1721,8 +1721,14 @@
             if (key === "tab" || key === "1" || key === "2" || key === "q" || key === "e") {
                 event.preventDefault();
                 if (wave >= 3) {
-                    activeWeapon = activeWeapon === "ironDome" ? "laserDome" : "ironDome";
-                    enqueueToast(`Active Weapon: ${activeWeapon === "ironDome" ? "Iron Dome" : "Laser Dome"}`, "#b8dcff", 60);
+                    const nextWeapon = activeWeapon === "ironDome" ? "laserDome" : "ironDome";
+                    const nextRef = nextWeapon === "ironDome" ? launcher : laserLauncher;
+                    if (nextRef.health > 0) {
+                        activeWeapon = nextWeapon;
+                        enqueueToast(`Active Weapon: ${activeWeapon === "ironDome" ? "Iron Dome" : "Laser Dome"}`, "#b8dcff", 60);
+                    } else {
+                        enqueueToast(`Cannot switch: ${nextWeapon === "ironDome" ? "Iron Dome" : "Laser Dome"} is destroyed!`, "#ff6b6b", 80);
+                    }
                 }
                 return;
             }
@@ -1738,12 +1744,14 @@
             if (wave < 3) return false;
             const distIron = Math.hypot(tx - launcher.x, ty - launcher.y);
             const distLaser = Math.hypot(tx - laserLauncher.x, ty - laserLauncher.y);
-            if (distIron < 50) {
+            
+            // Only select if the battery is healthy
+            if (distIron < 50 && launcher.health > 0) {
                 activeWeapon = "ironDome";
                 enqueueToast(`Active Weapon: Iron Dome`, "#b8dcff", 60);
                 return true;
             }
-            if (distLaser < 50) {
+            if (distLaser < 50 && laserLauncher.health > 0) {
                 activeWeapon = "laserDome";
                 enqueueToast(`Active Weapon: Laser Dome`, "#b8dcff", 60);
                 return true;
@@ -1755,10 +1763,17 @@
             let hx = launcher.x + 60;
             let hy = launcher.y + 10;
             if (tx >= hx - 10 && tx <= hx + 40 && ty >= hy - 10 && ty <= hy + 20) {
+                if (launcher.health <= 0) return true; // Can't reload a dead battery
+                
+                // Requirement: manually loading automatically selects it as active
+                activeWeapon = "ironDome";
+                
                 if (launcher.clip < launcher.maxClip) {
                     launcher.clip = launcher.maxClip;
                     playTone("sine", { startFreq: 400, endFreq: 600, duration: 0.1 });
                     enqueueToast("Battery Reloaded", "#8cffc1", 60);
+                } else {
+                    enqueueToast("Active Weapon: Iron Dome", "#b8dcff", 60);
                 }
                 return true;
             }
