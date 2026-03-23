@@ -631,7 +631,7 @@
             },
             mirv: {
                 emoji: "☄️",
-                speed: 1.7,
+                speed: 1,
                 health: 1,
                 score: 30,
                 size: 48,
@@ -641,7 +641,7 @@
             drone: { emoji: "🛩️", speed: 1.2, health: 2, score: 25, size: 32, damage: 2, horizontal: true, headAngle: toRadians(22.5) },
             miniRocket: {
                 emoji: "🚀",
-                speed: 1.7,
+                speed: 0.9,
                 health: 1,
                 score: 5,
                 size: 20,
@@ -2061,7 +2061,7 @@
             for (let i = missiles.length - 1; i >= 0; i--) {
                 const m = missiles[i];
 
-                if (m.type === "mirv" && m.y > canvas.height * 0.35 && !m.split) {
+                if (m.type === "mirv" && m.y > canvas.height * 0.55 && !m.split) {
                     m.split = true;
                     m.health = 0;
                     for (let k = 0; k < 3; k++) {
