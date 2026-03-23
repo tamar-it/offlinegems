@@ -1,2475 +1,2766 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Iron Dome Defense</title>
-<meta name="theme-color" content="#1a1a2e">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" id="manifestLink">
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Iron Dome Defense</title>
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" id="manifestLink">
 
-<!-- Favicon: missile shape -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20x='13'%20y='2'%20width='6'%20height='28'%20fill='%23ff6b6b'/%3E%3Cpolygon%20points='16,2%2020,8%2012,8'%20fill='%23ffd93d'/%3E%3C/svg%3E">
+    <!-- Favicon: missile shape -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20x='13'%20y='2'%20width='6'%20height='28'%20fill='%23ff6b6b'/%3E%3Cpolygon%20points='16,2%2020,8%2012,8'%20fill='%23ffd93d'/%3E%3C/svg%3E">
 
-<!-- Open Graph / WhatsApp / Social preview -->
-<meta property="og:type"        content="website">
-<meta property="og:site_name"   content="Offline Gems">
-<meta property="og:title"       content="Iron Dome Defense">
-<meta property="og:description" content="Defend against waves of hostile missiles using Iron Dome interceptors. Can you survive?">
-<meta property="og:image"       content="https://offlinegems.com/missile-defense.png">
-<meta property="og:image:width"  content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:image:alt"    content="Iron Dome Defense gameplay preview">
-<meta property="og:url"         content="https://offlinegems.com/missile-defense.html">
-<meta name="twitter:card"       content="summary_large_image">
-<meta name="twitter:title"      content="Iron Dome Defense">
-<meta name="twitter:description" content="Defend against waves of hostile missiles using Iron Dome interceptors. Can you survive?">
-<meta name="twitter:image"      content="https://offlinegems.com/missile-defense.png">
+    <!-- Open Graph / WhatsApp / Social preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Offline Gems">
+    <meta property="og:title" content="Iron Dome Defense">
+    <meta property="og:description"
+        content="Defend against waves of hostile missiles using Iron Dome interceptors. Can you survive?">
+    <meta property="og:image" content="https://offlinegems.com/missile-defense.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Iron Dome Defense gameplay preview">
+    <meta property="og:url" content="https://offlinegems.com/missile-defense.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Iron Dome Defense">
+    <meta name="twitter:description"
+        content="Defend against waves of hostile missiles using Iron Dome interceptors. Can you survive?">
+    <meta name="twitter:image" content="https://offlinegems.com/missile-defense.png">
 
-<style>
-:root {
-    --bg-0: #050810;
-    --bg-1: #0f1a30;
-    --panel-0: rgba(13, 24, 45, 0.92);
-    --panel-1: rgba(8, 15, 28, 0.94);
-    --line-soft: rgba(124, 191, 255, 0.3);
-    --line-hot: rgba(255, 131, 131, 0.45);
-    --text: #edf4ff;
-    --text-dim: rgba(231, 241, 255, 0.7);
-    --accent: #ffd93d;
-    --danger: #ff7a7a;
-}
+    <style>
+        :root {
+            --bg-0: #050810;
+            --bg-1: #0f1a30;
+            --panel-0: rgba(13, 24, 45, 0.92);
+            --panel-1: rgba(8, 15, 28, 0.94);
+            --line-soft: rgba(124, 191, 255, 0.3);
+            --line-hot: rgba(255, 131, 131, 0.45);
+            --text: #edf4ff;
+            --text-dim: rgba(231, 241, 255, 0.7);
+            --accent: #ffd93d;
+            --danger: #ff7a7a;
+        }
 
-body {
-    margin: 0;
-    background:
-        radial-gradient(900px 500px at 15% -10%, rgba(124, 191, 255, 0.16), transparent 64%),
-        radial-gradient(700px 430px at 90% -8%, rgba(255, 131, 131, 0.14), transparent 60%),
-        linear-gradient(165deg, var(--bg-0), var(--bg-1));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    height: 100dvh;
-    height: 100svh;
-    width: 100vw;
-    box-sizing: border-box;
-    overflow: hidden;
-    font-family: "Trebuchet MS", "Verdana", sans-serif;
-    color: var(--text);
-}
+        body {
+            margin: 0;
+            background:
+                radial-gradient(900px 500px at 15% -10%, rgba(124, 191, 255, 0.16), transparent 64%),
+                radial-gradient(700px 430px at 90% -8%, rgba(255, 131, 131, 0.14), transparent 60%),
+                linear-gradient(165deg, var(--bg-0), var(--bg-1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            height: 100dvh;
+            height: 100svh;
+            width: 100vw;
+            box-sizing: border-box;
+            overflow: hidden;
+            font-family: "Trebuchet MS", "Verdana", sans-serif;
+            color: var(--text);
+        }
 
-#appShell {
-    width: min(100vw, 1200px);
-    height: 100%;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: flex-start;
-    animation: shell-enter 350ms ease-out both;
-}
+        #appShell {
+            width: min(100vw, 1200px);
+            height: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+            animation: shell-enter 350ms ease-out both;
+        }
 
-canvas {
-    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    display: block;
-    flex: 1 1 0;
-    min-height: 0;
-}
+        canvas {
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: block;
+            flex: 1 1 0;
+            min-height: 0;
+        }
 
-#controlDock {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(180deg, var(--panel-0), var(--panel-1));
-    border-top: 1px solid var(--line-hot);
-    box-shadow: inset 0 1px 0 rgba(230, 240, 255, 0.1);
-    backdrop-filter: blur(3px);
-    min-height: 78px;
-    box-sizing: border-box;
-    flex-shrink: 0;
-}
+        #controlDock {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+            background: linear-gradient(180deg, var(--panel-0), var(--panel-1));
+            border-top: 1px solid var(--line-hot);
+            box-shadow: inset 0 1px 0 rgba(230, 240, 255, 0.1);
+            backdrop-filter: blur(3px);
+            min-height: 78px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
 
-#statsPanel {
-    display: flex;
-    gap: 20px;
-    color: var(--text-dim);
-    font-size: 14px;
-    flex: 1;
-}
+        #statsPanel {
+            display: flex;
+            gap: 20px;
+            color: var(--text-dim);
+            font-size: 14px;
+            flex: 1;
+        }
 
-.stat {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
 
-.stat-label {
-    font-size: 12px;
-    color: rgba(209, 225, 246, 0.65);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
+        .stat-label {
+            font-size: 12px;
+            color: rgba(209, 225, 246, 0.65);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-.stat-value {
-    font-size: 20px;
-    font-weight: bold;
-    color: var(--accent);
-}
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--accent);
+        }
 
-.stat-health {
-    color: var(--danger);
-}
+        .stat-health {
+            color: var(--danger);
+        }
 
-.stat-ammo {
-    color: #8cffc1;
-}
+        .stat-ammo {
+            color: #8cffc1;
+        }
 
-#controlButtons {
-    display: flex;
-    gap: 10px;
-}
+        #controlButtons {
+            display: flex;
+            gap: 10px;
+        }
 
-.ctrl-btn {
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border: 1px solid var(--line-hot);
-    border-radius: 10px;
-    background: linear-gradient(180deg, rgba(255, 131, 131, 0.2), rgba(255, 131, 131, 0.08));
-    color: #ffe3e3;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 22px;
-    line-height: 1;
-    transition: transform 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
-}
+        .ctrl-btn {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border: 1px solid var(--line-hot);
+            border-radius: 10px;
+            background: linear-gradient(180deg, rgba(255, 131, 131, 0.2), rgba(255, 131, 131, 0.08));
+            color: #ffe3e3;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 22px;
+            line-height: 1;
+            transition: transform 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+        }
 
-.ctrl-btn:active {
-    transform: scale(0.97);
-}
+        .ctrl-btn:active {
+            transform: scale(0.97);
+        }
 
-.ctrl-btn:hover {
-    background: linear-gradient(180deg, rgba(255, 131, 131, 0.28), rgba(255, 131, 131, 0.14));
-    box-shadow: 0 0 0 2px rgba(255, 131, 131, 0.1);
-}
+        .ctrl-btn:hover {
+            background: linear-gradient(180deg, rgba(255, 131, 131, 0.28), rgba(255, 131, 131, 0.14));
+            box-shadow: 0 0 0 2px rgba(255, 131, 131, 0.1);
+        }
 
-.ctrl-btn:focus-visible,
-.btn:focus-visible {
-    outline: 2px solid rgba(124, 191, 255, 0.95);
-    outline-offset: 2px;
-}
+        .ctrl-btn:focus-visible,
+        .btn:focus-visible {
+            outline: 2px solid rgba(124, 191, 255, 0.95);
+            outline-offset: 2px;
+        }
 
-#settingsPanel {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: min(90vw, 320px);
-    background: rgba(12, 22, 39, 0.96);
-    border: 1px solid var(--line-hot);
-    border-radius: 12px;
-    box-shadow: 0 0 28px rgba(255, 107, 107, 0.2);
-    padding: 16px;
-    z-index: 30;
-    display: none;
-}
+        #settingsPanel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(90vw, 320px);
+            background: rgba(12, 22, 39, 0.96);
+            border: 1px solid var(--line-hot);
+            border-radius: 12px;
+            box-shadow: 0 0 28px rgba(255, 107, 107, 0.2);
+            padding: 16px;
+            z-index: 30;
+            display: none;
+        }
 
-#settingsPanel h3 {
-    margin: 0 0 14px 0;
-    color: var(--danger);
-}
+        #settingsPanel h3 {
+            margin: 0 0 14px 0;
+            color: var(--danger);
+        }
 
-.setting-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 8px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-.setting-row:first-of-type {
-    border-top: none;
-}
+        .setting-row:first-of-type {
+            border-top: none;
+        }
 
-#settingsPanel .close-settings {
-    margin-top: 12px;
-    width: 100%;
-    height: 42px;
-    padding: 0 14px;
-}
+        #settingsPanel .close-settings {
+            margin-top: 12px;
+            width: 100%;
+            height: 42px;
+            padding: 0 14px;
+        }
 
-#guidePanel {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: min(92vw, 420px);
-    background: rgba(12, 22, 39, 0.97);
-    border: 1px solid var(--line-soft);
-    border-radius: 12px;
-    box-shadow: 0 0 30px rgba(125, 190, 255, 0.18);
-    padding: 16px;
-    z-index: 30;
-    display: none;
-}
+        #guidePanel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(92vw, 420px);
+            background: rgba(12, 22, 39, 0.97);
+            border: 1px solid var(--line-soft);
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(125, 190, 255, 0.18);
+            padding: 16px;
+            z-index: 30;
+            display: none;
+        }
 
-#guidePanel h3 {
-    margin: 0 0 12px 0;
-    color: #c7e3ff;
-}
+        #guidePanel h3 {
+            margin: 0 0 12px 0;
+            color: #c7e3ff;
+        }
 
-#guidePanel p,
-#guidePanel li {
-    color: rgba(240, 246, 255, 0.9);
-    font-size: 14px;
-    line-height: 1.35;
-}
+        #guidePanel p,
+        #guidePanel li {
+            color: rgba(240, 246, 255, 0.9);
+            font-size: 14px;
+            line-height: 1.35;
+        }
 
-#guidePanel ul {
-    margin: 8px 0 10px 18px;
-    padding: 0;
-}
+        #guidePanel ul {
+            margin: 8px 0 10px 18px;
+            padding: 0;
+        }
 
-#guidePanel .close-guide {
-    margin-top: 10px;
-    width: 100%;
-    height: 42px;
-    padding: 0 14px;
-}
+        #guidePanel .close-guide {
+            margin-top: 10px;
+            width: 100%;
+            height: 42px;
+            padding: 0 14px;
+        }
 
-.settings-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    z-index: 25;
-    display: none;
-}
+        .settings-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 25;
+            display: none;
+        }
 
-/* UI Overlay Styles */
-#uiOverlay {
-    display: none;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(10, 18, 34, 0.95);
-    padding: 40px;
-    border-radius: 16px;
-    text-align: center;
-    box-shadow: 0 0 30px rgba(255, 131, 131, 0.26);
-    border: 1px solid var(--danger);
-    z-index: 10;
-}
+        /* UI Overlay Styles */
+        #uiOverlay {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(10, 18, 34, 0.95);
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 131, 131, 0.26);
+            border: 1px solid var(--danger);
+            z-index: 10;
+        }
 
-#uiOverlay h1 {
-    margin-top: 0;
-    color: var(--danger);
-    text-shadow: 0 0 10px rgba(255, 122, 122, 0.9);
-}
+        #uiOverlay h1 {
+            margin-top: 0;
+            color: var(--danger);
+            text-shadow: 0 0 10px rgba(255, 122, 122, 0.9);
+        }
 
-#uiOverlay h2 {
-    margin-bottom: 30px;
-    font-size: 28px;
-}
+        #uiOverlay h2 {
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
 
-.btn {
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    color: white;
-    margin: 5px;
-    transition: transform 120ms ease, filter 120ms ease;
-}
+        .btn {
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            margin: 5px;
+            transition: transform 120ms ease, filter 120ms ease;
+        }
 
-.btn:active {
-    transform: scale(0.95);
-}
+        .btn:active {
+            transform: scale(0.95);
+        }
 
-.btn:hover {
-    filter: brightness(1.06);
-}
+        .btn:hover {
+            filter: brightness(1.06);
+        }
 
-.share-row {
-    margin-top: 12px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
+        .share-row {
+            margin-top: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
 
-.share-btn {
-    width: 48px;
-    height: 48px;
-    border: none;
-    border-radius: 12px;
-    color: white;
-    cursor: pointer;
-    display: grid;
-    place-items: center;
-    padding: 0;
-}
+        .share-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            padding: 0;
+        }
 
-.share-btn img {
-    width: 24px;
-    height: 24px;
-    display: block;
-}
+        .share-btn img {
+            width: 24px;
+            height: 24px;
+            display: block;
+        }
 
-.btn-new { background: #ff6b6b; color: #fff; width: 100%; margin: 15px 0 0 0; }
-.share-x { background: #111111; }
-.share-wa { background: #25d366; }
-.share-tg { background: #179cde; }
-.share-copy { background: #69748c; }
+        .btn-new {
+            background: #ff6b6b;
+            color: #fff;
+            width: 100%;
+            margin: 15px 0 0 0;
+        }
 
-#installBtn {
-    display: none;
-}
+        .share-x {
+            background: #111111;
+        }
 
-@keyframes shell-enter {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+        .share-wa {
+            background: #25d366;
+        }
 
-@media (max-width: 720px) {
-    #controlDock {
-        gap: 8px;
-        padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
-        min-height: 70px;
-    }
+        .share-tg {
+            background: #179cde;
+        }
 
-    #statsPanel {
-        gap: 10px;
-        font-size: 12px;
-    }
+        .share-copy {
+            background: #69748c;
+        }
 
-    .stat-value {
-        font-size: 16px;
-    }
+        #installBtn {
+            display: none;
+        }
 
-    #controlButtons {
-        gap: 6px;
-    }
+        @keyframes shell-enter {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
 
-    .ctrl-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-    }
-}
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-@media (prefers-reduced-motion: reduce) {
-    #appShell,
-    .ctrl-btn,
-    .btn {
-        animation: none;
-        transition: none;
-    }
-}
-</style>
+        @media (max-width: 720px) {
+            #controlDock {
+                gap: 8px;
+                padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+                min-height: 70px;
+            }
+
+            #statsPanel {
+                gap: 10px;
+                font-size: 12px;
+            }
+
+            .stat-value {
+                font-size: 16px;
+            }
+
+            #controlButtons {
+                gap: 6px;
+            }
+
+            .ctrl-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            #appShell,
+            .ctrl-btn,
+            .btn {
+                animation: none;
+                transition: none;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<div id="appShell">
-<canvas id="game"></canvas>
-<div id="controlDock">
-    <div id="statsPanel">
-        <div id="stat1" class="stat">
-            <span id="stat-label1" class="stat-label">Kills</span>
-            <span id="stat-value1" class="stat-value">0</span>
+    <div id="appShell">
+        <canvas id="game"></canvas>
+        <div id="controlDock">
+            <div id="statsPanel">
+                <div id="stat1" class="stat">
+                    <span id="stat-label1" class="stat-label">Kills</span>
+                    <span id="stat-value1" class="stat-value">0</span>
+                </div>
+                <div id="stat2" class="stat">
+                    <span id="stat-label2" class="stat-label">Wave</span>
+                    <span id="stat-value2" class="stat-value">1</span>
+                </div>
+                <div id="stat3" class="stat">
+                    <span id="stat-label3" class="stat-label">Ammo</span>
+                    <span id="stat-value3" class="stat-value stat-ammo">30</span>
+                </div>
+            </div>
+            <div id="controlButtons">
+                <button id="newGameBtn" class="ctrl-btn" type="button" aria-label="New Game"
+                    title="New Game">♻️</button>
+                <button id="pauseBtn" class="ctrl-btn" type="button" aria-label="Pause game"
+                    title="Pause (P)">⏸️</button>
+                <button id="guideBtn" class="ctrl-btn" type="button" aria-label="Game Guide"
+                    title="Game Guide">📖</button>
+                <button id="volumeBtn" class="ctrl-btn" type="button" aria-label="Toggle sound"
+                    title="Toggle Sound">🔊</button>
+                <button id="settingsBtn" class="ctrl-btn" type="button" aria-label="Settings"
+                    title="Settings">⚙️</button>
+                <button id="installBtn" class="ctrl-btn" type="button" aria-label="Install app"
+                    title="Install App">📲</button>
+            </div>
         </div>
-        <div id="stat2" class="stat">
-            <span id="stat-label2" class="stat-label">Wave</span>
-            <span id="stat-value2" class="stat-value">1</span>
+    </div>
+
+    <div id="settingsBackdrop" class="settings-backdrop"></div>
+    <div id="settingsPanel" role="dialog" aria-modal="true" aria-label="Game settings">
+        <h3>Settings</h3>
+        <div class="setting-row">
+            <label for="soundToggle">Sound Effects</label>
+            <input id="soundToggle" type="checkbox">
         </div>
-        <div id="stat3" class="stat">
-            <span id="stat-label3" class="stat-label">Ammo</span>
-            <span id="stat-value3" class="stat-value stat-ammo">30</span>
+        <div class="setting-row">
+            <label for="aimGuideToggle">Aim Guide</label>
+            <input id="aimGuideToggle" type="checkbox">
         </div>
+        <button id="closeSettingsBtn" class="ctrl-btn close-settings" type="button">Close</button>
     </div>
-    <div id="controlButtons">
-        <button id="newGameBtn" class="ctrl-btn" type="button" aria-label="New Game" title="New Game">♻️</button>
-        <button id="pauseBtn" class="ctrl-btn" type="button" aria-label="Pause game" title="Pause (P)">⏸️</button>
-        <button id="guideBtn" class="ctrl-btn" type="button" aria-label="Game Guide" title="Game Guide">📖</button>
-        <button id="volumeBtn" class="ctrl-btn" type="button" aria-label="Toggle sound" title="Toggle Sound">🔊</button>
-        <button id="settingsBtn" class="ctrl-btn" type="button" aria-label="Settings" title="Settings">⚙️</button>
-        <button id="installBtn" class="ctrl-btn" type="button" aria-label="Install app" title="Install App">📲</button>
+
+    <div id="guidePanel" role="dialog" aria-modal="true" aria-label="Game guide">
+        <h3>Mission Guide</h3>
+        <p>Each level has a mission target. Destroy enough hostile devices to clear the level.</p>
+        <ul>
+            <li>Protect all city buildings. If buildings are destroyed, you lose.</li>
+            <li>Use your Iron Dome launcher to intercept missiles.</li>
+            <li>Starting Wave 3, a Laser Dome unlocks. Click the battery or press Tab/1/2 to switch active weapons.</li>
+            <li>Friendly F-35 jets and the carrier can help intercept threats.</li>
+            <li>Keyboard: <strong>Space</strong> shoot, <strong>P</strong> pause, <strong>N</strong> new game,
+                <strong>M</strong> mute.
+            </li>
+        </ul>
+        <button id="closeGuideBtn" class="ctrl-btn close-guide" type="button">Close Guide</button>
     </div>
-</div>
-</div>
 
-<div id="settingsBackdrop" class="settings-backdrop"></div>
-<div id="settingsPanel" role="dialog" aria-modal="true" aria-label="Game settings">
-    <h3>Settings</h3>
-    <div class="setting-row">
-        <label for="soundToggle">Sound Effects</label>
-        <input id="soundToggle" type="checkbox">
+    <div id="uiOverlay">
+        <h1 id="uiTitle">Game Over</h1>
+        <h2 id="uiScore">Score: 0</h2>
+
+        <div class="share-row" aria-label="Share score">
+            <button class="share-btn share-x" type="button" onclick="shareScore('x')" aria-label="Share on X"
+                title="Share on X"><img alt=""
+                    src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23000%22/%3E%3Cpath%20d%3D%22M12%2012Z%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M12%2012Z%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M12%2012Z%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M20.06%204.18%2019.04%204.18%204.03%2019.74%205.23%2019.68Z%22%20fill%3D%22%23000101%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M2.48%204.21%206.48%204.21%2021.49%2019.77%2017.31%2019.71Z%22%20fill%3D%22%23000101%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.2%22/%3E%3C/svg%3E"></button>
+            <button class="share-btn share-wa" type="button" onclick="shareScore('wa')" aria-label="Share on WhatsApp"
+                title="Share on WhatsApp"><img alt=""
+                    src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M12%203a9%209%200%200%200-7.8%2013.4L3%2021l4.8-1.2A9%209%200%201%200%2012%203zm4.8%2012.5c-.2.5-1%20.9-1.5%201-.4.1-.9.2-1.4.1-.9-.1-2-.6-3.2-1.6-1.5-1.2-2.5-2.7-2.9-3.4-.4-.7%200-1.5.3-1.9.3-.3.6-.5.9-.5h.7c.2%200%20.4.1.5.4l.6%201.6c.1.3.1.4%200%20.6l-.3.5c-.1.1-.2.2%200%20.5.2.3.8%201.3%201.9%202%20.9.6%201.2.7%201.4.5l.6-.7c.2-.2.3-.2.6-.1l1.6.8c.3.1.4.2.4.4.1.2%200%20.6-.2%201.1z'/%3E%3C/svg%3E"></button>
+            <button class="share-btn share-tg" type="button" onclick="shareScore('tg')" aria-label="Share on Telegram"
+                title="Share on Telegram"><img alt=""
+                    src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M21.2%205.1c.3-.1.6.1.5.5l-2.8%2013.2c-.1.4-.6.6-.9.4l-4.3-3.1-2.1%202.1c-.2.2-.6.1-.7-.2l-.3-4.1L18.2%208%206.1%2012.5l-3.8-1.4c-.4-.1-.4-.7%200-.9z'/%3E%3C/svg%3E"></button>
+            <button class="share-btn share-copy" type="button" onclick="shareScore('copy')" aria-label="Copy score"
+                title="Copy score"><img alt=""
+                    src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M8%203h10a2%202%200%200%201%202%202v11h-2V5H8z'/%3E%3Cpath%20fill='white'%20d='M4%207h11a2%202%200%200%201%202%202v10a2%202%200%200%201-2%202H4a2%202%200%200%201-2-2V9a2%202%200%200%201%202-2zm0%202v10h11V9z'/%3E%3C/svg%3E"></button>
+        </div>
+
+        <button class="btn btn-new" onclick="startNewGame()">Play Again</button>
     </div>
-    <div class="setting-row">
-        <label for="aimGuideToggle">Aim Guide</label>
-        <input id="aimGuideToggle" type="checkbox">
-    </div>
-    <button id="closeSettingsBtn" class="ctrl-btn close-settings" type="button">Close</button>
-</div>
 
-<div id="guidePanel" role="dialog" aria-modal="true" aria-label="Game guide">
-    <h3>Mission Guide</h3>
-    <p>Each level has a mission target. Destroy enough hostile devices to clear the level.</p>
-    <ul>
-        <li>Protect all city buildings. If buildings are destroyed, you lose.</li>
-        <li>Use your Iron Dome launcher to intercept missiles.</li>
-        <li>Starting Wave 3, a Laser Dome unlocks. Click the battery or press Tab/1/2 to switch active weapons.</li>
-        <li>Friendly F-35 jets and the carrier can help intercept threats.</li>
-        <li>Keyboard: <strong>Space</strong> shoot, <strong>P</strong> pause, <strong>N</strong> new game, <strong>M</strong> mute.</li>
-    </ul>
-    <button id="closeGuideBtn" class="ctrl-btn close-guide" type="button">Close Guide</button>
-</div>
+    <script>
+        const canvas = document.getElementById("game");
+        const ctx = canvas.getContext("2d");
+        const appShell = document.getElementById("appShell");
+        const controlDock = document.getElementById("controlDock");
+        const newGameBtn = document.getElementById("newGameBtn");
+        const pauseBtn = document.getElementById("pauseBtn");
+        const guideBtn = document.getElementById("guideBtn");
+        const volumeBtn = document.getElementById("volumeBtn");
+        const settingsBtn = document.getElementById("settingsBtn");
+        const settingsPanel = document.getElementById("settingsPanel");
+        const guidePanel = document.getElementById("guidePanel");
+        const settingsBackdrop = document.getElementById("settingsBackdrop");
+        const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+        const closeGuideBtn = document.getElementById("closeGuideBtn");
+        const soundToggle = document.getElementById("soundToggle");
+        const aimGuideToggle = document.getElementById("aimGuideToggle");
+        const uiOverlay = document.getElementById("uiOverlay");
+        const uiTitle = document.getElementById("uiTitle");
+        const uiScore = document.getElementById("uiScore");
+        const installBtn = document.getElementById("installBtn");
+        const manifestLink = document.getElementById("manifestLink");
 
-<div id="uiOverlay">
-    <h1 id="uiTitle">Game Over</h1>
-    <h2 id="uiScore">Score: 0</h2>
-    
-    <div class="share-row" aria-label="Share score">
-        <button class="share-btn share-x" type="button" onclick="shareScore('x')" aria-label="Share on X" title="Share on X"><img alt="" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http://www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23000%22/%3E%3Cpath%20d%3D%22M12%2012Z%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M12%2012Z%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M12%2012Z%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221%22/%3E%3Cpath%20d%3D%22M20.06%204.18%2019.04%204.18%204.03%2019.74%205.23%2019.68Z%22%20fill%3D%22%23000101%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M2.48%204.21%206.48%204.21%2021.49%2019.77%2017.31%2019.71Z%22%20fill%3D%22%23000101%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.2%22/%3E%3C/svg%3E"></button>
-        <button class="share-btn share-wa" type="button" onclick="shareScore('wa')" aria-label="Share on WhatsApp" title="Share on WhatsApp"><img alt="" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M12%203a9%209%200%200%200-7.8%2013.4L3%2021l4.8-1.2A9%209%200%201%200%2012%203zm4.8%2012.5c-.2.5-1%20.9-1.5%201-.4.1-.9.2-1.4.1-.9-.1-2-.6-3.2-1.6-1.5-1.2-2.5-2.7-2.9-3.4-.4-.7%200-1.5.3-1.9.3-.3.6-.5.9-.5h.7c.2%200%20.4.1.5.4l.6%201.6c.1.3.1.4%200%20.6l-.3.5c-.1.1-.2.2%200%20.5.2.3.8%201.3%201.9%202%20.9.6%201.2.7%201.4.5l.6-.7c.2-.2.3-.2.6-.1l1.6.8c.3.1.4.2.4.4.1.2%200%20.6-.2%201.1z'/%3E%3C/svg%3E"></button>
-        <button class="share-btn share-tg" type="button" onclick="shareScore('tg')" aria-label="Share on Telegram" title="Share on Telegram"><img alt="" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M21.2%205.1c.3-.1.6.1.5.5l-2.8%2013.2c-.1.4-.6.6-.9.4l-4.3-3.1-2.1%202.1c-.2.2-.6.1-.7-.2l-.3-4.1L18.2%208%206.1%2012.5l-3.8-1.4c-.4-.1-.4-.7%200-.9z'/%3E%3C/svg%3E"></button>
-        <button class="share-btn share-copy" type="button" onclick="shareScore('copy')" aria-label="Copy score" title="Copy score"><img alt="" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='white'%20d='M8%203h10a2%202%200%200%201%202%202v11h-2V5H8z'/%3E%3Cpath%20fill='white'%20d='M4%207h11a2%202%200%200%201%202%202v10a2%202%200%200%201-2%202H4a2%202%200%200%201-2-2V9a2%202%200%200%201%202-2zm0%202v10h11V9z'/%3E%3C/svg%3E"></button>
-    </div>
-    
-    <button class="btn btn-new" onclick="startNewGame()">Play Again</button>
-</div>
+        const statValue1 = document.getElementById("stat-value1");
+        const statValue2 = document.getElementById("stat-value2");
+        const statValue3 = document.getElementById("stat-value3");
+        const statLabel2 = document.getElementById("stat-label2");
 
-<script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-const appShell = document.getElementById("appShell");
-const controlDock = document.getElementById("controlDock");
-const newGameBtn = document.getElementById("newGameBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-const guideBtn = document.getElementById("guideBtn");
-const volumeBtn = document.getElementById("volumeBtn");
-const settingsBtn = document.getElementById("settingsBtn");
-const settingsPanel = document.getElementById("settingsPanel");
-const guidePanel = document.getElementById("guidePanel");
-const settingsBackdrop = document.getElementById("settingsBackdrop");
-const closeSettingsBtn = document.getElementById("closeSettingsBtn");
-const closeGuideBtn = document.getElementById("closeGuideBtn");
-const soundToggle = document.getElementById("soundToggle");
-const aimGuideToggle = document.getElementById("aimGuideToggle");
-const uiOverlay = document.getElementById("uiOverlay");
-const uiTitle = document.getElementById("uiTitle");
-const uiScore = document.getElementById("uiScore");
-const installBtn = document.getElementById("installBtn");
-const manifestLink = document.getElementById("manifestLink");
+        const SETTINGS_KEY = "missileDefenseSettings";
+        const defaultSettings = { soundEnabled: false, aimGuide: false };
+        let settings = loadSettings();
+        let audioContext = null;
 
-const statValue1 = document.getElementById("stat-value1");
-const statValue2 = document.getElementById("stat-value2");
-const statValue3 = document.getElementById("stat-value3");
-const statLabel2 = document.getElementById("stat-label2");
+        const toRadians = (degrees) => degrees * (Math.PI / 180);
 
-const SETTINGS_KEY = "missileDefenseSettings";
-const defaultSettings = { soundEnabled: false, aimGuide: false };
-let settings = loadSettings();
-let audioContext = null;
+        // Game parameters
+        const REFERENCE_FPS = 60;
+        const SPEED = 15;
+        const INTERCEPTOR_SPEED = 10;
+        const SPAWN_RATE_BASE = 0.03;
+        const INITIAL_HEALTH = 3;
+        const BUILDING_HIT_PENALTY = 20;
 
-const toRadians = (degrees) => degrees * (Math.PI / 180);
+        // Level definitions
+        const LEVEL_CONFIGS = [
+            { // Level 1
+                name: "Rocket Barrage",
+                enemyTypes: ["rocket"],
+                spawnRate: 0.003,
+                message: "Defend against rockets!"
+            },
+            { // Level 2
+                name: "Missile Threats",
+                enemyTypes: ["rocket", "commet"],
+                spawnRate: 0.005,
+                message: "commet missiles incoming!"
+            },
+            { // Level 3
+                name: "Drone Threats",
+                enemyTypes: ["drone"],
+                spawnRate: 0.003,
+                message: "Drone threats detected!"
+            },
+            { // Level 4
+                name: "MIRV Threats",
+                enemyTypes: ["mirv"],
+                spawnRate: 0.005,
+                message: "MIRV threats detected!"
+            },
+            { // Level 5
+                name: "Full Assault",
+                enemyTypes: ["rocket", "commet", "drone", "mirv"],
+                spawnRate: 0.005,
+                message: "All threats detected!"
+            },
+            { // Level 6
+                name: "Saturation Attack",
+                enemyTypes: ["rocket", "commet", "drone", "mirv", "mirv"],
+                spawnRate: 0.007,
+                message: "Sustained hostile pressure!"
+            },
+            { // Level 7
+                name: "Heavy Barrage",
+                enemyTypes: ["rocket", "commet", "drone", "mirv", "mirv"],
+                spawnRate: 0.008,
+                message: "High-density missile waves!"
+            },
+            { // Level 8
+                name: "Airspace Collapse",
+                enemyTypes: ["rocket", "commet", "drone", "mirv"],
+                spawnRate: 0.009,
+                message: "Maintain intercept lock at all costs!"
+            },
+            { // Level 9+
+                name: "Extreme Defense",
+                enemyTypes: ["rocket", "commet", "drone", "mirv", "mirv"],
+                spawnRate: 0.01,
+                message: "Maximum intensity!"
+            }
+        ];
 
-// Game parameters
-const REFERENCE_FPS = 60;
-const SPEED = 15;
-const INTERCEPTOR_SPEED = 10;
-const SPAWN_RATE_BASE = 0.03;
-const INITIAL_HEALTH = 3;
-const BUILDING_HIT_PENALTY = 20;
-
-// Level definitions
-const LEVEL_CONFIGS = [
-    { // Level 1
-        name: "Rocket Barrage",
-        enemyTypes: ["rocket"],
-        spawnRate: 0.005,
-        message: "Defend against rockets!"
-    },
-    { // Level 2
-        name: "Missile Threats",
-        enemyTypes: ["rocket", "commet"],
-        spawnRate: 0.006,
-        message: "commet missiles incoming!"
-    },
-    { // Level 3
-        name: "Full Assault",
-        enemyTypes: ["rocket", "commet", "drone"],
-        spawnRate: 0.007,
-        message: "All threats detected!"
-    },
-    { // Level 4
-        name: "Coastal Raid",
-        enemyTypes: ["rocket", "commet", "drone"],
-        spawnRate: 0.008,
-        message: "Drones are flanking from the horizon!"
-    },
-    { // Level 5
-        name: "Saturation Attack",
-        enemyTypes: ["rocket", "commet", "drone"],
-        spawnRate: 0.009,
-        message: "Sustained hostile pressure!"
-    },
-    { // Level 6
-        name: "Heavy Barrage",
-        enemyTypes: ["rocket", "commet", "drone"],
-        spawnRate: 0.010,
-        message: "High-density missile waves!"
-    },
-    { // Level 7
-        name: "Airspace Collapse",
-        enemyTypes: ["rocket", "commet", "drone"],
-        spawnRate: 0.011,
-        message: "Maintain intercept lock at all costs!"
-    },
-    { // Level 8+
-        name: "Extreme Defense",
-        enemyTypes: ["rocket", "commet", "drone"],
-        spawnRate: 0.012,
-        message: "Maximum intensity!"
-    }
-];
-
-// Emojis for game objects
-const MISSILE_TYPES = {
-    // Rockets and commets spawn from the top and fall downward.
-    // Provide a base head angle so missiles can be rotated to align with their
-    // velocity direction automatically.
-    rocket: {
-        emoji: "🚀",
-        speed: 2,
-        health: 1,
-        score: 10,
-        size: 34,
-        damage: 2,
-        headAngle: toRadians(-45)
-    },
-    commet: {
-        emoji: "☄️",
-        speed: 3,
-        health: 1,
-        score: 15,
-        size: 36,
-        damage: 2,
-        headAngle: toRadians(135)
-    },
-    drone: { emoji: "🛩️", speed: 1.2, health: 2, score: 25, size: 32, damage: 2, horizontal: true, headAngle: toRadians(22.5) },
-    miniRocket: {
-        emoji: "🚀",
-        speed: 2.2,
-        health: 1,
-        score: 5,
-        size: 20,
-        damage: 1,
-        headAngle: toRadians(-45)
-    }
-};
-const BUILDING_EMOJIS = ["🏭", "🏚️", "🏘️", "🏡", "🏠", "🏩", "🏫", "🏪", "🏨", "🏤", "🏣", "🏬", "🏢"];
-
-// Interceptor types by source. Each has a base emoji, size, and a base head angle
-// that is used along with the interceptor's velocity to calculate its rotation.
-const INTERCEPTOR_TYPES = {
-    battery: {
-        emoji: "🪄",
-        size: 25,
-        headAngle: toRadians(135)
-    },
-    carrier: {
-        emoji: "🪄",
-        size: 38,
-        headAngle: toRadians(-45)
-    },
-    jet: {
-        emoji: "⚡",
-        size: 32,
-        headAngle: toRadians(-45)
-    }
-};
-
-const EXPLOSION_EMOJI = "💥";
-const CARRIER_EMOJI = "🛳️";
-const COMPACT_LAYOUT_MAX_WIDTH = 768;   
-
-const emojiSpriteCache = new Map();
-const f35SpriteCache = new Map();
-
-function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-function getEmojiSprite(emoji, size) {
-    const key = `${emoji}|${size}`;
-    let sprite = emojiSpriteCache.get(key);
-    if (sprite) return sprite;
-
-    // Pre-render the emoji into an offscreen canvas for faster repeated drawing.
-    const padding = Math.ceil(size * 0.2);
-    const canvas = document.createElement("canvas");
-    canvas.width = size + padding * 2;
-    canvas.height = size + padding * 2;
-    const ctx2 = canvas.getContext("2d");
-    ctx2.font = `${size}px Arial`;
-    ctx2.textAlign = "center";
-    ctx2.textBaseline = "middle";
-    ctx2.fillText(emoji, canvas.width / 2, canvas.height / 2);
-
-    emojiSpriteCache.set(key, canvas);
-    return canvas;
-}
-
-function drawEmoji(x, y, emoji, size = 32) {
-    const sprite = getEmojiSprite(emoji, size);
-    ctx.drawImage(sprite, x - sprite.width / 2, y - sprite.height / 2);
-}
-
-function drawOrientedEmoji(x, y, emoji, angle = 0, scaleX = 1, size = 32) {
-    const sprite = getEmojiSprite(emoji, size);
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-    ctx.scale(scaleX, 1);
-    ctx.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
-    ctx.restore();
-}
-
-function drawHostile(missile) {
-    const size = missile.typeData.size || 32;
-
-    // If the missile has a head angle defined, use it to rotate the emoji to match
-    // the direction of travel. This allows the emoji's original orientation to be
-    // expressed as a headAngle and the rest to be computed automatically.
-    const velocityAngle = Math.atan2(missile.vy, missile.vx);
-    const headAngle = missile.headAngle ?? missile.typeData.headAngle ?? 0;
-    const headingAngle = velocityAngle - headAngle;
-
-    drawOrientedEmoji(missile.x, missile.y, missile.typeData.emoji, headingAngle, 1, size);
-}
-
-function getCanvasPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-}
-
-function useCompactCoastLayout() {
-    return canvas.width <= COMPACT_LAYOUT_MAX_WIDTH;
-}
-
-function _computeCarrierMetrics() {
-    if (useCompactCoastLayout()) {
-        return {
-            fontSize: 50,
-            bodyWidth: 78,
-            wakeOffsetX: 10,
-            wakeWidth: 90,
-            wakeHeight: 8,
-            launchOffsetX: 54,
-            launchOffsetY: 22,
-            flagOffsetX: 50,
-            flagOffsetY: 28,
-            flagWidth: 16,
-            flagHeight: 10
+        // Emojis for game objects
+        const MISSILE_TYPES = {
+            // Rockets and commets spawn from the top and fall downward.
+            // Provide a base head angle so missiles can be rotated to align with their
+            // velocity direction automatically.
+            rocket: {
+                emoji: "🚀",
+                speed: 1.5,
+                health: 1,
+                score: 10,
+                size: 34,
+                damage: 2,
+                headAngle: toRadians(-45)
+            },
+            commet: {
+                emoji: "☄️",
+                speed: 2,
+                health: 1,
+                score: 15,
+                size: 36,
+                damage: 2,
+                headAngle: toRadians(135)
+            },
+            mirv: {
+                emoji: "☄️",
+                speed: 1.7,
+                health: 1,
+                score: 30,
+                size: 48,
+                damage: 2,
+                headAngle: toRadians(135)
+            },
+            drone: { emoji: "🛩️", speed: 1.2, health: 2, score: 25, size: 32, damage: 2, horizontal: true, headAngle: toRadians(22.5) },
+            miniRocket: {
+                emoji: "🚀",
+                speed: 1.7,
+                health: 1,
+                score: 5,
+                size: 20,
+                damage: 1,
+                headAngle: toRadians(-45)
+            }
         };
-    }
-
-    return {
-        fontSize: 64,
-        bodyWidth: 96,
-        wakeOffsetX: 12,
-        wakeWidth: 130,
-        wakeHeight: 10,
-        launchOffsetX: 66,
-        launchOffsetY: 26,
-        flagOffsetX: 62,
-        flagOffsetY: 36,
-        flagWidth: 20,
-        flagHeight: 12
-    };
-}
-let cachedCarrierMetrics = null;
-function getCarrierMetrics() { return cachedCarrierMetrics; }
-
-function _computeSeaCityBoundaryX() {
-    if (useCompactCoastLayout()) {
-        const maxCompactSeaWidth = canvas.width / 3;
-        const desiredSeaWidth = cachedCarrierMetrics.bodyWidth + 18;
-        return Math.min(maxCompactSeaWidth, desiredSeaWidth);
-    }
-
-    return Math.max(220, canvas.width * 0.24);
-}
-let cachedSeaCityBoundaryX = 0;
-function getSeaCityBoundaryX() { return cachedSeaCityBoundaryX; }
-
-function smoothStep01(t) {
-    const clamped = Math.max(0, Math.min(1, t));
-    return clamped * clamped * (3 - 2 * clamped);
-}
-
-function _rawGroundYAt(x) {
-    const seaTop = canvas.height - 56;
-    const boundaryX = cachedSeaCityBoundaryX;
-    const coastFlatY = seaTop - 24;
-    const peakY = seaTop - 84;
-    const farRightFlatY = seaTop - 30;
-
-    const riseStart = boundaryX + 28;
-    const riseEnd = canvas.width * 0.78;
-    const dropStart = canvas.width * 0.84;
-    const dropEnd = canvas.width * 0.93;
-
-    if (x <= riseStart) return coastFlatY;
-
-    if (x <= riseEnd) {
-        const t = (x - riseStart) / Math.max(1, riseEnd - riseStart);
-        return coastFlatY + (peakY - coastFlatY) * smoothStep01(t);
-    }
-
-    if (x <= dropStart) return peakY;
-
-    if (x <= dropEnd) {
-        const t = (x - dropStart) / Math.max(1, dropEnd - dropStart);
-        return peakY + (farRightFlatY - peakY) * smoothStep01(t);
-    }
-
-    return farRightFlatY;
-}
-
-let groundYCache = null;
-function buildGroundCache() {
-    const w = canvas.width | 0;
-    groundYCache = new Float32Array(w + 2);
-    for (let i = 0; i <= w + 1; i++) groundYCache[i] = _rawGroundYAt(i);
-}
-function getGroundYAt(x) {
-    const xi = x < 0 ? 0 : x > canvas.width ? canvas.width | 0 : x | 0;
-    return groundYCache ? groundYCache[xi] : _rawGroundYAt(x);
-}
-
-let gameOver = false;
-let score = 0;
-let kills = 0;
-let maxAmmo = 30;
-let ammo = maxAmmo;
-let wave = 1;
-let frameCount = 0;
-let levelKills = 0;
-let levelGoalKills = 15;
-let toastQueue = [];
-let activeToast = null;
-
-let missiles = [];  // Hostile missiles
-let interceptors = []; // Iron Dome interceptors
-let explosions = []; // Explosion particles
-let friendlyJets = []; // Friendly interceptor jets
-let buildings = []; // Ground buildings/camps
-let carrier = null; // US aircraft carrier that launches long-range interceptors
-let launcher = { x: 0, y: 0, angle: 0, health: 4, maxHealth: 4 };
-let activeWeapon = "ironDome"; 
-let laserLauncher = { x: 0, y: 0, active: false, health: 4, maxHealth: 4 };
-let lasers = []; // Laser Dome beams
-let laserDomeCooldown = 0;
-let flares = [];
-let shrapnels = [];
-
-let mouseX = 0;
-let mouseY = 0;
-let isTouchDevice = false;
-let touchAimActive = false;
-let installPromptEvent = null;
-let manifestObjectUrl = null;
-let isPaused = false;
-let pauseLockedByPanel = false;
-let screenShake = 0;
-let impactFlash = 0;
-
-function loadSettings() {
-    try {
-        const raw = localStorage.getItem(SETTINGS_KEY);
-        if (!raw) return { ...defaultSettings };
-        const parsed = JSON.parse(raw);
-        return { soundEnabled: parsed.soundEnabled === true, aimGuide: parsed.aimGuide === true };
-    } catch {
-        return { ...defaultSettings };
-    }
-}
-
-function saveSettings() {
-    try {
-        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    } catch (_error) {
-        // Ignore storage failures (private browsing, quota, etc.).
-    }
-}
-
-function syncSettingsUi() {
-    soundToggle.checked = settings.soundEnabled;
-    volumeBtn.setAttribute("aria-pressed", String(settings.soundEnabled));
-    volumeBtn.setAttribute("title", settings.soundEnabled ? "Sound On" : "Sound Off");
-    volumeBtn.textContent = settings.soundEnabled ? "🔊" : "🔇";
-    if (aimGuideToggle) aimGuideToggle.checked = settings.aimGuide;
-}
-
-function openSettings() {
-    if (!isPaused && !gameOver) {
-        togglePause(true);
-        pauseLockedByPanel = true;
-    }
-    setPanelVisibility("settings");
-    syncSettingsUi();
-}
-
-function openGuide() {
-    if (!isPaused && !gameOver) {
-        togglePause(true);
-        pauseLockedByPanel = true;
-    }
-    setPanelVisibility("guide");
-}
-
-function closeSettings() {
-    setPanelVisibility("none");
-    if (pauseLockedByPanel && !gameOver) {
-        togglePause(false);
-    }
-    pauseLockedByPanel = false;
-}
-
-function setPanelVisibility(panel) {
-    const showSettings = panel === "settings";
-    const showGuide = panel === "guide";
-    settingsBackdrop.style.display = showSettings || showGuide ? "block" : "none";
-    settingsPanel.style.display = showSettings ? "block" : "none";
-    guidePanel.style.display = showGuide ? "block" : "none";
-}
-
-function buildShareUrl(platform, text, encodedUrl) {
-    if (platform === "x") {
-        return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodedUrl}`;
-    }
-    if (platform === "wa") {
-        return `https://wa.me/?text=${encodeURIComponent(`${location.href}\n${text}`)}`;
-    }
-    if (platform === "tg") {
-        return `https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent(text)}`;
-    }
-    return "";
-}
-
-function announceInstallHelp() {
-    alert("To save this game as a web app on iPhone or iPad, open the browser share menu and choose Add to Home Screen.");
-}
-
-function isBlockingUiOpen() {
-    return settingsPanel.style.display === "block" ||
-        guidePanel.style.display === "block" ||
-        uiOverlay.style.display === "block";
-}
-
-function updatePauseButtonUi() {
-    pauseBtn.textContent = isPaused ? "▶️" : "⏸️";
-    pauseBtn.title = isPaused ? "Resume (P)" : "Pause (P)";
-    pauseBtn.setAttribute("aria-label", isPaused ? "Resume game" : "Pause game");
-    pauseBtn.setAttribute("aria-pressed", String(isPaused));
-}
-
-function togglePause(forceState) {
-    if (gameOver) return;
-    const next = typeof forceState === "boolean" ? forceState : !isPaused;
-    if (next === isPaused) return;
-    isPaused = next;
-    updatePauseButtonUi();
-    enqueueToast(isPaused ? "Paused" : "Resumed", isPaused ? "#ffd9a3" : "#b8dcff", 72);
-}
-
-function triggerHitFeedback(intensity = 1) {
-    const clamped = Math.max(0, Math.min(2.5, intensity));
-    screenShake = Math.min(10, screenShake + clamped * 2.4);
-    impactFlash = Math.min(0.4, impactFlash + clamped * 0.08);
-}
-
-function getShakeOffset() {
-    if (screenShake < 0.2) return { x: 0, y: 0 };
-    return {
-        x: (Math.random() * 2 - 1) * screenShake,
-        y: (Math.random() * 2 - 1) * screenShake
-    };
-}
-
-function decayFeedback(frameScale) {
-    const s = Math.max(0.1, frameScale);
-    impactFlash = Math.max(0, impactFlash - 0.012 * s);
-    screenShake *= Math.pow(0.84, s);
-}
-
-function revokeOldManifestUrl() {
-    if (manifestObjectUrl) {
-        URL.revokeObjectURL(manifestObjectUrl);
-        manifestObjectUrl = null;
-    }
-}
-
-function getCurrentMissionGoal() {
-    return levelGoalKills;
-}
-
-function enqueueToast(text, color = "#b8dcff", duration = 140) {
-    toastQueue.push({ text, color, duration, timer: duration });
-}
-
-function processMissionToasts() {
-    if (!activeToast && toastQueue.length > 0) {
-        activeToast = toastQueue.shift();
-    }
-    if (!activeToast) return;
-
-    activeToast.timer--;
-    if (activeToast.timer <= 0) {
-        activeToast = null;
-    }
-}
-
-function drawMissionToast() {
-    if (!activeToast) return;
-
-    const fadeFrames = 18;
-    const elapsed = activeToast.duration - activeToast.timer;
-    let alpha = 1;
-    if (elapsed < fadeFrames) {
-        alpha = elapsed / fadeFrames;
-    } else if (activeToast.timer < fadeFrames) {
-        alpha = activeToast.timer / fadeFrames;
-    }
-
-    const x = canvas.width / 2;
-    const y = 58;
-    ctx.save();
-    ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
-    ctx.font = "bold 18px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    const textWidth = ctx.measureText(activeToast.text).width;
-    const padX = 18;
-    const boxW = textWidth + padX * 2;
-    const boxH = 34;
-
-    ctx.fillStyle = "rgba(8, 14, 28, 0.78)";
-    ctx.fillRect(x - boxW / 2, y - boxH / 2, boxW, boxH);
-    ctx.strokeStyle = "rgba(125, 190, 255, 0.35)";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x - boxW / 2, y - boxH / 2, boxW, boxH);
-
-    ctx.fillStyle = activeToast.color;
-    ctx.fillText(activeToast.text, x, y + 1);
-    ctx.restore();
-}
-
-function handleMissionProgress(pointsAwarded) {
-    score += pointsAwarded;
-    kills++;
-    levelKills++;
-
-    if (levelKills < getCurrentMissionGoal()) return;
-
-    enqueueToast(`Mission ${wave} complete`, "#8cffc1", 110);
-
-    wave++;
-    levelKills = 0;
-    maxAmmo += 5;
-    ammo = maxAmmo;
-    levelGoalKills = Math.floor(Math.random() * 8) + 12 + Math.floor(wave * 1.5);
-    enqueueToast(`Mission ${wave} started: ${getCurrentMissionGoal()} intercepts`, "#b8dcff", 150);
-}
-
-function ensureAudioContext() {
-    if (!audioContext) {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return null;
-        audioContext = new AudioCtx();
-    }
-    if (audioContext.state === "suspended") {
-        audioContext.resume().catch(() => {});
-    }
-    return audioContext;
-}
-
-function playTone(type, options) {
-    if (!settings.soundEnabled) return;
-    const ctxAudio = ensureAudioContext();
-    if (!ctxAudio) return;
-
-    const now = ctxAudio.currentTime;
-    const osc = ctxAudio.createOscillator();
-    const gain = ctxAudio.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(options.startFreq, now);
-    if (options.endFreq !== undefined) {
-        osc.frequency.exponentialRampToValueAtTime(Math.max(1, options.endFreq), now + options.duration);
-    }
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(options.peak, now + options.attack);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + options.duration);
-    osc.connect(gain);
-    gain.connect(ctxAudio.destination);
-    osc.start(now);
-    osc.stop(now + options.duration + 0.02);
-}
-
-function playHitSound() {
-    // Short, deep impact boom.
-    playTone("triangle", { startFreq: 120, endFreq: 48, attack: 0.01, duration: 0.26, peak: 0.22 });
-}
-
-function playShootSound() {
-    // Lower launch thump.
-    playTone("sine", { startFreq: 95, endFreq: 58, attack: 0.008, duration: 0.2, peak: 0.18 });
-}
-
-function buildWebAppManifest() {
-    const iconSvg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='#1a1a2e'/><rect x='72' y='24' width='48' height='140' fill='#ff6b6b' rx='4'/><polygon points='96,20 108,32 84,32' fill='#ffd93d'/></svg>";
-    const iconUrl = "data:image/svg+xml," + encodeURIComponent(iconSvg);
-    const startUrl = new URL(location.pathname.split("/").pop() || "missile-defense.html", location.href).toString();
-    const scopeUrl = new URL(".", location.href).toString();
-    const manifest = {
-        name: "Iron Dome Defense",
-        short_name: "Missiles",
-        start_url: startUrl,
-        scope: scopeUrl,
-        display: "standalone",
-        background_color: "#111111",
-        theme_color: "#1a1a2e",
-        description: "Defend against waves of hostile missiles using Iron Dome interceptors.",
-        icons: [
-            { src: iconUrl, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
-            { src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
-        ]
-    };
-    const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
-    revokeOldManifestUrl();
-    manifestObjectUrl = URL.createObjectURL(blob);
-    manifestLink.href = manifestObjectUrl;
-}
-
-function updateInstallButton() {
-    if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true) {
-        installBtn.style.display = "none";
-        return;
-    }
-    if (installPromptEvent) {
-        installBtn.textContent = "📲";
-        installBtn.title = "Install App";
-        installBtn.style.display = "inline-flex";
-        return;
-    }
-    if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
-        installBtn.textContent = "🏠";
-        installBtn.title = "Add to Home Screen";
-        installBtn.style.display = "inline-flex";
-        return;
-    }
-    installBtn.style.display = "none";
-}
-
-async function registerWebAppSupport() {
-    buildWebAppManifest();
-    if (!("serviceWorker" in navigator) || location.protocol === "file:") {
-        updateInstallButton();
-        return;
-    }
-    try {
-        await navigator.serviceWorker.register("./service-worker.js");
-    } catch (error) {
-        console.warn("Service worker registration failed", error);
-    }
-    updateInstallButton();
-}
-
-let cachedSeaGradient = null, cachedLandGradient = null, cachedSandGradient = null, cachedRockGradient = null;
-let cachedSandEnd = 0, cachedRockyStart = 0, cachedRockyEnd = 0;
-function buildCachedGradients() {
-    const seaTop = canvas.height - 56;
-    const bx = cachedSeaCityBoundaryX;
-    cachedSandEnd = Math.min(canvas.width * 0.5, bx + 230);
-    cachedRockyStart = canvas.width * 0.64;
-    cachedRockyEnd = canvas.width * 0.9;
-    const sandEnd = cachedSandEnd;
-    const rockyStart = cachedRockyStart;
-    const rockyEnd = cachedRockyEnd;
-
-    cachedSeaGradient = ctx.createLinearGradient(0, seaTop, 0, canvas.height);
-    cachedSeaGradient.addColorStop(0, "rgba(27, 86, 140, 0.45)");
-    cachedSeaGradient.addColorStop(1, "rgba(15, 58, 102, 0.85)");
-
-    cachedLandGradient = ctx.createLinearGradient(bx, seaTop - 120, canvas.width, canvas.height);
-    cachedLandGradient.addColorStop(0, "#b8a77a");
-    cachedLandGradient.addColorStop(0.42, "#9d8d68");
-    cachedLandGradient.addColorStop(0.76, "#7f7c70");
-    cachedLandGradient.addColorStop(1, "#9d916f");
-
-    cachedSandGradient = ctx.createLinearGradient(bx, seaTop - 40, sandEnd, seaTop + 20);
-    cachedSandGradient.addColorStop(0, "rgba(221, 199, 143, 0.95)");
-    cachedSandGradient.addColorStop(1, "rgba(194, 165, 106, 0.85)");
-
-    cachedRockGradient = ctx.createLinearGradient(rockyStart, seaTop - 120, rockyEnd, seaTop + 10);
-    cachedRockGradient.addColorStop(0, "rgba(110, 108, 103, 0.84)");
-    cachedRockGradient.addColorStop(0.5, "rgba(86, 84, 80, 0.9)");
-    cachedRockGradient.addColorStop(1, "rgba(125, 119, 108, 0.78)");
-}
-
-function getViewportHeight() {
-    if (window.visualViewport && Number.isFinite(window.visualViewport.height)) {
-        // Prefer the smaller of the two heights to avoid extending under the browser nav bar.
-        return Math.floor(Math.min(window.innerHeight, window.visualViewport.height));
-    }
-    return window.innerHeight;
-}
-
-function resizeCanvas() {
-    const viewportHeight = getViewportHeight();
-    const shellWidth = Math.min(window.innerWidth, 1200);
-
-    appShell.style.width = shellWidth + "px";
-    appShell.style.height = viewportHeight + "px";
-
-    const dockHeight = controlDock.offsetHeight || 78;
-    canvas.height = Math.max(240, viewportHeight - dockHeight);
-    canvas.width = shellWidth;
-
-    cachedCarrierMetrics = _computeCarrierMetrics();
-    cachedSeaCityBoundaryX = _computeSeaCityBoundaryX();
-    buildGroundCache();
-    buildCachedGradients();
-    launcher.x = canvas.width * 0.35;
-    launcher.y = canvas.height - 40;
-    
-    laserLauncher.x = canvas.width * 0.65;
-    laserLauncher.y = canvas.height - 40;
-    
-    mouseX = launcher.x;
-    mouseY = launcher.y - 100;
-    
-    // Initialize buildings
-    initializeBuildings();
-    initializeCarrier();
-}
-
-window.addEventListener("resize", resizeCanvas);
-if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", resizeCanvas);
-    window.visualViewport.addEventListener("scroll", resizeCanvas);
-}
-resizeCanvas();
-syncSettingsUi();
-
-function initializeBuildings() {
-    buildings = [];
-    const buildingWidth = 50;
-    const buildingHeight = 40;
-    const clusterGap = 74;    // Keep clusters tighter
-    const buildingGap = 9;    // Buildings in each cluster are close together
-    const rowOffsetX = 12;    // Slight stagger for denser city look
-    const cityStartX = getSeaCityBoundaryX() + 18;
-    let x = cityStartX;
-    
-    while (x < canvas.width - 72) {
-        // Create a cluster with 2 lines (back row + front row)
-        const frontCount = 3 + Math.floor(Math.random() * 2);
-        const backCount = Math.max(2, frontCount - (Math.random() < 0.5 ? 0 : 1));
-
-        for (let i = 0; i < backCount; i++) {
-            const bx = x + rowOffsetX + i * (buildingWidth + buildingGap);
-            const centerX = bx + buildingWidth / 2;
-            const frontGroundY = getGroundYAt(centerX);
-            buildings.push({
-                x: bx,
-                y: Math.max(64, frontGroundY - buildingHeight - 6),
-                width: buildingWidth,
-                height: buildingHeight,
-                health: 2,
-                maxHealth: 2,
-                emoji: randomFrom(BUILDING_EMOJIS)
+        const BUILDING_EMOJIS = ["🏭", "🏚️", "🏘️", "🏡", "🏠", "🏩", "🏫", "🏪", "🏨", "🏤", "🏣", "🏬", "🏢"];
+
+        // Interceptor types by source. Each has a base emoji, size, and a base head angle
+        // that is used along with the interceptor's velocity to calculate its rotation.
+        const INTERCEPTOR_TYPES = {
+            battery: {
+                emoji: "🪄",
+                size: 25,
+                headAngle: toRadians(135)
+            },
+            carrier: {
+                emoji: "🪄",
+                size: 38,
+                headAngle: toRadians(-45)
+            },
+            jet: {
+                emoji: "⚡",
+                size: 32,
+                headAngle: toRadians(-45)
+            }
+        };
+
+        const EXPLOSION_EMOJI = "💥";
+        const CARRIER_EMOJI = "🛳️";
+        const COMPACT_LAYOUT_MAX_WIDTH = 768;
+
+        const emojiSpriteCache = new Map();
+        const f35SpriteCache = new Map();
+
+        function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        function getEmojiSprite(emoji, size) {
+            const key = `${emoji}|${size}`;
+            let sprite = emojiSpriteCache.get(key);
+            if (sprite) return sprite;
+
+            // Pre-render the emoji into an offscreen canvas for faster repeated drawing.
+            const padding = Math.ceil(size * 0.2);
+            const canvas = document.createElement("canvas");
+            canvas.width = size + padding * 2;
+            canvas.height = size + padding * 2;
+            const ctx2 = canvas.getContext("2d");
+            ctx2.font = `${size}px Arial`;
+            ctx2.textAlign = "center";
+            ctx2.textBaseline = "middle";
+            ctx2.fillText(emoji, canvas.width / 2, canvas.height / 2);
+
+            emojiSpriteCache.set(key, canvas);
+            return canvas;
+        }
+
+        function drawEmoji(x, y, emoji, size = 32) {
+            const sprite = getEmojiSprite(emoji, size);
+            ctx.drawImage(sprite, x - sprite.width / 2, y - sprite.height / 2);
+        }
+
+        function drawOrientedEmoji(x, y, emoji, angle = 0, scaleX = 1, size = 32) {
+            const sprite = getEmojiSprite(emoji, size);
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.scale(scaleX, 1);
+            ctx.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
+            ctx.restore();
+        }
+
+        function drawHostile(missile) {
+            const size = missile.typeData.size || 32;
+
+            // If the missile has a head angle defined, use it to rotate the emoji to match
+            // the direction of travel. This allows the emoji's original orientation to be
+            // expressed as a headAngle and the rest to be computed automatically.
+            const velocityAngle = Math.atan2(missile.vy, missile.vx);
+            const headAngle = missile.headAngle ?? missile.typeData.headAngle ?? 0;
+            const headingAngle = velocityAngle - headAngle;
+
+            drawOrientedEmoji(missile.x, missile.y, missile.typeData.emoji, headingAngle, 1, size);
+        }
+
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        function useCompactCoastLayout() {
+            return canvas.width <= COMPACT_LAYOUT_MAX_WIDTH;
+        }
+
+        function _computeCarrierMetrics() {
+            if (useCompactCoastLayout()) {
+                return {
+                    fontSize: 50,
+                    bodyWidth: 78,
+                    wakeOffsetX: 10,
+                    wakeWidth: 90,
+                    wakeHeight: 8,
+                    launchOffsetX: 54,
+                    launchOffsetY: 22,
+                    flagOffsetX: 50,
+                    flagOffsetY: 28,
+                    flagWidth: 16,
+                    flagHeight: 10
+                };
+            }
+
+            return {
+                fontSize: 64,
+                bodyWidth: 96,
+                wakeOffsetX: 12,
+                wakeWidth: 130,
+                wakeHeight: 10,
+                launchOffsetX: 66,
+                launchOffsetY: 26,
+                flagOffsetX: 62,
+                flagOffsetY: 36,
+                flagWidth: 20,
+                flagHeight: 12
+            };
+        }
+        let cachedCarrierMetrics = null;
+        function getCarrierMetrics() { return cachedCarrierMetrics; }
+
+        function _computeSeaCityBoundaryX() {
+            if (useCompactCoastLayout()) {
+                const maxCompactSeaWidth = canvas.width / 3;
+                const desiredSeaWidth = cachedCarrierMetrics.bodyWidth + 18;
+                return Math.min(maxCompactSeaWidth, desiredSeaWidth);
+            }
+
+            return Math.max(220, canvas.width * 0.24);
+        }
+        let cachedSeaCityBoundaryX = 0;
+        function getSeaCityBoundaryX() { return cachedSeaCityBoundaryX; }
+
+        function smoothStep01(t) {
+            const clamped = Math.max(0, Math.min(1, t));
+            return clamped * clamped * (3 - 2 * clamped);
+        }
+
+        function _rawGroundYAt(x) {
+            const seaTop = canvas.height - 56;
+            const boundaryX = cachedSeaCityBoundaryX;
+            const coastFlatY = seaTop - 24;
+            const peakY = seaTop - 84;
+            const farRightFlatY = seaTop - 30;
+
+            const riseStart = boundaryX + 28;
+            const riseEnd = canvas.width * 0.78;
+            const dropStart = canvas.width * 0.84;
+            const dropEnd = canvas.width * 0.93;
+
+            if (x <= riseStart) return coastFlatY;
+
+            if (x <= riseEnd) {
+                const t = (x - riseStart) / Math.max(1, riseEnd - riseStart);
+                return coastFlatY + (peakY - coastFlatY) * smoothStep01(t);
+            }
+
+            if (x <= dropStart) return peakY;
+
+            if (x <= dropEnd) {
+                const t = (x - dropStart) / Math.max(1, dropEnd - dropStart);
+                return peakY + (farRightFlatY - peakY) * smoothStep01(t);
+            }
+
+            return farRightFlatY;
+        }
+
+        let groundYCache = null;
+        function buildGroundCache() {
+            const w = canvas.width | 0;
+            groundYCache = new Float32Array(w + 2);
+            for (let i = 0; i <= w + 1; i++) groundYCache[i] = _rawGroundYAt(i);
+        }
+        function getGroundYAt(x) {
+            const xi = x < 0 ? 0 : x > canvas.width ? canvas.width | 0 : x | 0;
+            return groundYCache ? groundYCache[xi] : _rawGroundYAt(x);
+        }
+
+        let gameOver = false;
+        let score = 0;
+        let kills = 0;
+        let maxAmmo = 30;
+        let ammo = maxAmmo;
+        let wave = 1;
+        let frameCount = 0;
+        let levelKills = 0;
+        let levelGoalKills = 15;
+        let levelScore = 0;
+        let levelGoalScore = 150;
+        let toastQueue = [];
+        let activeToast = null;
+
+        let missiles = [];  // Hostile missiles
+        let interceptors = []; // Iron Dome interceptors
+        let explosions = []; // Explosion particles
+        let friendlyJets = []; // Friendly interceptor jets
+        let buildings = []; // Ground buildings/camps
+        let carrier = null; // US aircraft carrier that launches long-range interceptors
+        let launcher = { x: 0, y: 0, angle: 0, health: 4, maxHealth: 4, clip: 4, maxClip: 4, reloadTimer: 0, isDavidsSling: false };
+        let activeWeapon = "ironDome";
+        let laserLauncher = { x: 0, y: 0, active: false, health: 4, maxHealth: 4, angle: 0 };
+        let lasers = []; // Laser Dome beams
+        let laserDomeCooldown = 0;
+        let flares = [];
+        let shrapnels = [];
+        let floatingTexts = [];
+        let activeWaveAnnouncement = { timer: 0, text: "", alpha: 0 };
+
+        let mouseX = 0;
+        let mouseY = 0;
+        let isTouchDevice = false;
+        let touchAimActive = false;
+        let installPromptEvent = null;
+        let manifestObjectUrl = null;
+        let isPaused = false;
+        let pauseLockedByPanel = false;
+        let screenShake = 0;
+        let impactFlash = 0;
+
+        function loadSettings() {
+            try {
+                const raw = localStorage.getItem(SETTINGS_KEY);
+                if (!raw) return { ...defaultSettings };
+                const parsed = JSON.parse(raw);
+                return { soundEnabled: parsed.soundEnabled === true, aimGuide: parsed.aimGuide === true };
+            } catch {
+                return { ...defaultSettings };
+            }
+        }
+
+        function saveSettings() {
+            try {
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            } catch (_error) {
+                // Ignore storage failures (private browsing, quota, etc.).
+            }
+        }
+
+        function syncSettingsUi() {
+            soundToggle.checked = settings.soundEnabled;
+            volumeBtn.setAttribute("aria-pressed", String(settings.soundEnabled));
+            volumeBtn.setAttribute("title", settings.soundEnabled ? "Sound On" : "Sound Off");
+            volumeBtn.textContent = settings.soundEnabled ? "🔊" : "🔇";
+            if (aimGuideToggle) aimGuideToggle.checked = settings.aimGuide;
+        }
+
+        function openSettings() {
+            if (!isPaused && !gameOver) {
+                togglePause(true);
+                pauseLockedByPanel = true;
+            }
+            setPanelVisibility("settings");
+            syncSettingsUi();
+        }
+
+        function openGuide() {
+            if (!isPaused && !gameOver) {
+                togglePause(true);
+                pauseLockedByPanel = true;
+            }
+            setPanelVisibility("guide");
+        }
+
+        function closeSettings() {
+            setPanelVisibility("none");
+            if (pauseLockedByPanel && !gameOver) {
+                togglePause(false);
+            }
+            pauseLockedByPanel = false;
+        }
+
+        function setPanelVisibility(panel) {
+            const showSettings = panel === "settings";
+            const showGuide = panel === "guide";
+            settingsBackdrop.style.display = showSettings || showGuide ? "block" : "none";
+            settingsPanel.style.display = showSettings ? "block" : "none";
+            guidePanel.style.display = showGuide ? "block" : "none";
+        }
+
+        function buildShareUrl(platform, text, encodedUrl) {
+            if (platform === "x") {
+                return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodedUrl}`;
+            }
+            if (platform === "wa") {
+                return `https://wa.me/?text=${encodeURIComponent(`${location.href}\n${text}`)}`;
+            }
+            if (platform === "tg") {
+                return `https://t.me/share/url?url=${encodedUrl}&text=${encodeURIComponent(text)}`;
+            }
+            return "";
+        }
+
+        function announceInstallHelp() {
+            alert("To save this game as a web app on iPhone or iPad, open the browser share menu and choose Add to Home Screen.");
+        }
+
+        function isBlockingUiOpen() {
+            return settingsPanel.style.display === "block" ||
+                guidePanel.style.display === "block" ||
+                uiOverlay.style.display === "block";
+        }
+
+        function updatePauseButtonUi() {
+            pauseBtn.textContent = isPaused ? "▶️" : "⏸️";
+            pauseBtn.title = isPaused ? "Resume (P)" : "Pause (P)";
+            pauseBtn.setAttribute("aria-label", isPaused ? "Resume game" : "Pause game");
+            pauseBtn.setAttribute("aria-pressed", String(isPaused));
+        }
+
+        function togglePause(forceState) {
+            if (gameOver) return;
+            const next = typeof forceState === "boolean" ? forceState : !isPaused;
+            if (next === isPaused) return;
+            isPaused = next;
+            updatePauseButtonUi();
+            enqueueToast(isPaused ? "Paused" : "Resumed", isPaused ? "#ffd9a3" : "#b8dcff", 72);
+        }
+
+        function triggerHitFeedback(intensity = 1) {
+            const clamped = Math.max(0, Math.min(2.5, intensity));
+            screenShake = Math.min(10, screenShake + clamped * 2.4);
+            impactFlash = Math.min(0.4, impactFlash + clamped * 0.08);
+        }
+
+        function getShakeOffset() {
+            if (screenShake < 0.2) return { x: 0, y: 0 };
+            return {
+                x: (Math.random() * 2 - 1) * screenShake,
+                y: (Math.random() * 2 - 1) * screenShake
+            };
+        }
+
+        function decayFeedback(frameScale) {
+            const s = Math.max(0.1, frameScale);
+            impactFlash = Math.max(0, impactFlash - 0.012 * s);
+            screenShake *= Math.pow(0.84, s);
+        }
+
+        function revokeOldManifestUrl() {
+            if (manifestObjectUrl) {
+                URL.revokeObjectURL(manifestObjectUrl);
+                manifestObjectUrl = null;
+            }
+        }
+
+        function getCurrentMissionGoal() {
+            return levelGoalKills;
+        }
+
+        function enqueueToast(text, color = "#b8dcff", duration = 140) {
+            toastQueue.push({ text, color, duration, timer: duration });
+        }
+
+        function processMissionToasts() {
+            if (!activeToast && toastQueue.length > 0) {
+                activeToast = toastQueue.shift();
+            }
+            if (!activeToast) return;
+
+            activeToast.timer--;
+            if (activeToast.timer <= 0) {
+                activeToast = null;
+            }
+        }
+
+        function drawMissionToast() {
+            if (!activeToast) return;
+
+            const fadeFrames = 18;
+            const elapsed = activeToast.duration - activeToast.timer;
+            let alpha = 1;
+            if (elapsed < fadeFrames) {
+                alpha = elapsed / fadeFrames;
+            } else if (activeToast.timer < fadeFrames) {
+                alpha = activeToast.timer / fadeFrames;
+            }
+
+            const x = canvas.width / 2;
+            const y = 58;
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+            ctx.font = "bold 18px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            const textWidth = ctx.measureText(activeToast.text).width;
+            const padX = 18;
+            const boxW = textWidth + padX * 2;
+            const boxH = 34;
+
+            ctx.fillStyle = "rgba(8, 14, 28, 0.78)";
+            ctx.fillRect(x - boxW / 2, y - boxH / 2, boxW, boxH);
+            ctx.strokeStyle = "rgba(125, 190, 255, 0.35)";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x - boxW / 2, y - boxH / 2, boxW, boxH);
+
+            ctx.fillStyle = activeToast.color;
+            ctx.fillText(activeToast.text, x, y + 1);
+            ctx.restore();
+        }
+
+        function handleMissionProgress(pointsAwarded) {
+            score += pointsAwarded;
+            kills++;
+            levelKills++;
+            levelScore += pointsAwarded;
+
+            if (levelKills < levelGoalKills && levelScore < levelGoalScore) return;
+
+            enqueueToast(`Mission ${wave} complete`, "#8cffc1", 110);
+
+            wave++;
+            levelKills = 0;
+            levelScore = 0;
+            maxAmmo += 5;
+            ammo = maxAmmo;
+            levelGoalKills = Math.floor(Math.random() * 8) + 12 + Math.floor(wave * 1.5);
+            levelGoalScore = levelGoalKills * 10;
+            activeWaveAnnouncement = { timer: 180, text: `WAVE ${wave}`, alpha: 1 };
+            enqueueToast(`Mission ${wave} started`, "#b8dcff", 150);
+        }
+
+        function ensureAudioContext() {
+            if (!audioContext) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return null;
+                audioContext = new AudioCtx();
+            }
+            if (audioContext.state === "suspended") {
+                audioContext.resume().catch(() => { });
+            }
+            return audioContext;
+        }
+
+        function playTone(type, options) {
+            if (!settings.soundEnabled) return;
+            const ctxAudio = ensureAudioContext();
+            if (!ctxAudio) return;
+
+            const now = ctxAudio.currentTime;
+            const osc = ctxAudio.createOscillator();
+            const gain = ctxAudio.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(options.startFreq, now);
+            if (options.endFreq !== undefined) {
+                osc.frequency.exponentialRampToValueAtTime(Math.max(1, options.endFreq), now + options.duration);
+            }
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(options.peak, now + options.attack);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + options.duration);
+            osc.connect(gain);
+            gain.connect(ctxAudio.destination);
+            osc.start(now);
+            osc.stop(now + options.duration + 0.02);
+        }
+
+        function playHitSound() {
+            // Short, deep impact boom.
+            playTone("triangle", { startFreq: 120, endFreq: 48, attack: 0.01, duration: 0.26, peak: 0.22 });
+        }
+
+        function playShootSound() {
+            // Lower launch thump.
+            playTone("sine", { startFreq: 95, endFreq: 58, attack: 0.008, duration: 0.2, peak: 0.18 });
+        }
+
+        function buildWebAppManifest() {
+            const iconSvg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='38' fill='#1a1a2e'/><rect x='72' y='24' width='48' height='140' fill='#ff6b6b' rx='4'/><polygon points='96,20 108,32 84,32' fill='#ffd93d'/></svg>";
+            const iconUrl = "data:image/svg+xml," + encodeURIComponent(iconSvg);
+            const startUrl = new URL(location.pathname.split("/").pop() || "missile-defense.html", location.href).toString();
+            const scopeUrl = new URL(".", location.href).toString();
+            const manifest = {
+                name: "Iron Dome Defense",
+                short_name: "Missiles",
+                start_url: startUrl,
+                scope: scopeUrl,
+                display: "standalone",
+                background_color: "#111111",
+                theme_color: "#1a1a2e",
+                description: "Defend against waves of hostile missiles using Iron Dome interceptors.",
+                icons: [
+                    { src: iconUrl, sizes: "192x192", type: "image/svg+xml", purpose: "any maskable" },
+                    { src: iconUrl, sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }
+                ]
+            };
+            const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+            revokeOldManifestUrl();
+            manifestObjectUrl = URL.createObjectURL(blob);
+            manifestLink.href = manifestObjectUrl;
+        }
+
+        function updateInstallButton() {
+            if (window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true) {
+                installBtn.style.display = "none";
+                return;
+            }
+            if (installPromptEvent) {
+                installBtn.textContent = "📲";
+                installBtn.title = "Install App";
+                installBtn.style.display = "inline-flex";
+                return;
+            }
+            if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+                installBtn.textContent = "🏠";
+                installBtn.title = "Add to Home Screen";
+                installBtn.style.display = "inline-flex";
+                return;
+            }
+            installBtn.style.display = "none";
+        }
+
+        async function registerWebAppSupport() {
+            buildWebAppManifest();
+            if (!("serviceWorker" in navigator) || location.protocol === "file:") {
+                updateInstallButton();
+                return;
+            }
+            try {
+                await navigator.serviceWorker.register("./service-worker.js");
+            } catch (error) {
+                console.warn("Service worker registration failed", error);
+            }
+            updateInstallButton();
+        }
+
+        let cachedSeaGradient = null, cachedLandGradient = null, cachedSandGradient = null, cachedRockGradient = null;
+        let cachedSandEnd = 0, cachedRockyStart = 0, cachedRockyEnd = 0;
+        function buildCachedGradients() {
+            const seaTop = canvas.height - 56;
+            const bx = cachedSeaCityBoundaryX;
+            cachedSandEnd = Math.min(canvas.width * 0.5, bx + 230);
+            cachedRockyStart = canvas.width * 0.64;
+            cachedRockyEnd = canvas.width * 0.9;
+            const sandEnd = cachedSandEnd;
+            const rockyStart = cachedRockyStart;
+            const rockyEnd = cachedRockyEnd;
+
+            cachedSeaGradient = ctx.createLinearGradient(0, seaTop, 0, canvas.height);
+            cachedSeaGradient.addColorStop(0, "rgba(27, 86, 140, 0.45)");
+            cachedSeaGradient.addColorStop(1, "rgba(15, 58, 102, 0.85)");
+
+            cachedLandGradient = ctx.createLinearGradient(bx, seaTop - 120, canvas.width, canvas.height);
+            cachedLandGradient.addColorStop(0, "#b8a77a");
+            cachedLandGradient.addColorStop(0.42, "#9d8d68");
+            cachedLandGradient.addColorStop(0.76, "#7f7c70");
+            cachedLandGradient.addColorStop(1, "#9d916f");
+
+            cachedSandGradient = ctx.createLinearGradient(bx, seaTop - 40, sandEnd, seaTop + 20);
+            cachedSandGradient.addColorStop(0, "rgba(221, 199, 143, 0.95)");
+            cachedSandGradient.addColorStop(1, "rgba(194, 165, 106, 0.85)");
+
+            cachedRockGradient = ctx.createLinearGradient(rockyStart, seaTop - 120, rockyEnd, seaTop + 10);
+            cachedRockGradient.addColorStop(0, "rgba(110, 108, 103, 0.84)");
+            cachedRockGradient.addColorStop(0.5, "rgba(86, 84, 80, 0.9)");
+            cachedRockGradient.addColorStop(1, "rgba(125, 119, 108, 0.78)");
+        }
+
+        function getViewportHeight() {
+            if (window.visualViewport && Number.isFinite(window.visualViewport.height)) {
+                // Prefer the smaller of the two heights to avoid extending under the browser nav bar.
+                return Math.floor(Math.min(window.innerHeight, window.visualViewport.height));
+            }
+            return window.innerHeight;
+        }
+
+        function resizeCanvas() {
+            const viewportHeight = getViewportHeight();
+            const shellWidth = Math.min(window.innerWidth, 1200);
+
+            appShell.style.width = shellWidth + "px";
+            appShell.style.height = viewportHeight + "px";
+
+            const dockHeight = controlDock.offsetHeight || 78;
+            canvas.height = Math.max(240, viewportHeight - dockHeight);
+            canvas.width = shellWidth;
+
+            cachedCarrierMetrics = _computeCarrierMetrics();
+            cachedSeaCityBoundaryX = _computeSeaCityBoundaryX();
+            buildGroundCache();
+            buildCachedGradients();
+            launcher.x = canvas.width * 0.35;
+            launcher.y = canvas.height - 40;
+
+            laserLauncher.x = canvas.width * 0.65;
+            laserLauncher.y = canvas.height - 40;
+
+            mouseX = launcher.x;
+            mouseY = launcher.y - 100;
+
+            // Initialize buildings
+            initializeBuildings();
+            initializeCarrier();
+        }
+
+        window.addEventListener("resize", resizeCanvas);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", resizeCanvas);
+            window.visualViewport.addEventListener("scroll", resizeCanvas);
+        }
+        resizeCanvas();
+        syncSettingsUi();
+
+        function initializeBuildings() {
+            buildings = [];
+            const buildingWidth = 50;
+            const buildingHeight = 40;
+            const clusterGap = 74;    // Keep clusters tighter
+            const buildingGap = 9;    // Buildings in each cluster are close together
+            const rowOffsetX = 12;    // Slight stagger for denser city look
+            const cityStartX = getSeaCityBoundaryX() + 18;
+            let x = cityStartX;
+
+            while (x < canvas.width - 72) {
+                // Create a cluster with 2 lines (back row + front row)
+                const frontCount = 3 + Math.floor(Math.random() * 2);
+                const backCount = Math.max(2, frontCount - (Math.random() < 0.5 ? 0 : 1));
+
+                for (let i = 0; i < backCount; i++) {
+                    const bx = x + rowOffsetX + i * (buildingWidth + buildingGap);
+                    const centerX = bx + buildingWidth / 2;
+                    const frontGroundY = getGroundYAt(centerX);
+                    buildings.push({
+                        x: bx,
+                        y: Math.max(64, frontGroundY - buildingHeight - 6),
+                        width: buildingWidth,
+                        height: buildingHeight,
+                        health: 2,
+                        maxHealth: 2,
+                        emoji: randomFrom(BUILDING_EMOJIS)
+                    });
+                }
+
+                for (let i = 0; i < frontCount; i++) {
+                    const bx = x + i * (buildingWidth + buildingGap);
+                    const centerX = bx + buildingWidth / 2;
+                    const frontGroundY = getGroundYAt(centerX);
+                    buildings.push({
+                        x: bx,
+                        y: Math.max(72, frontGroundY - buildingHeight + 14),
+                        width: buildingWidth,
+                        height: buildingHeight,
+                        health: 2,
+                        maxHealth: 2,
+                        emoji: randomFrom(BUILDING_EMOJIS)
+                    });
+                }
+
+                // Move to next cluster location with large gap
+                const widestRow = Math.max(frontCount, backCount);
+                x += widestRow * (buildingWidth + buildingGap) + clusterGap;
+            }
+        }
+
+        function findHitBuilding(x, y) {
+            for (let i = 0; i < buildings.length; i++) {
+                const b = buildings[i];
+                if (x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height) return b;
+            }
+            return null;
+        }
+
+        function spawnFriendlyJet() {
+            const jetSpeed = 5;
+            const shotRange = 200;
+            const skyTop = 40;
+            const skyBottom = Math.max(120, canvas.height * 0.28);
+            friendlyJets.push({
+                x: Math.random() > 0.5 ? -20 : canvas.width + 20,
+                y: skyTop + Math.random() * (skyBottom - skyTop),
+                vx: Math.random() > 0.5 ? jetSpeed : -jetSpeed,
+                age: 0,
+                maxAge: 400,
+                shotRange,
+                shotCooldown: 0,
+                maxCooldown: 15
             });
         }
 
-        for (let i = 0; i < frontCount; i++) {
-            const bx = x + i * (buildingWidth + buildingGap);
-            const centerX = bx + buildingWidth / 2;
-            const frontGroundY = getGroundYAt(centerX);
-            buildings.push({
-                x: bx,
-                y: Math.max(72, frontGroundY - buildingHeight + 14),
-                width: buildingWidth,
-                height: buildingHeight,
-                health: 2,
-                maxHealth: 2,
-                emoji: randomFrom(BUILDING_EMOJIS)
+        function initializeCarrier() {
+            const seaY = canvas.height - 44;
+            const carrierMetrics = getCarrierMetrics();
+            const seaWidth = getSeaCityBoundaryX();
+            const carrierX = Math.max(8, seaWidth - carrierMetrics.bodyWidth - 10);
+            carrier = {
+                x: carrierX,
+                y: seaY,
+                vx: 0,
+                targetX: carrierX,
+                shotCooldown: 45,
+                maxCooldown: 45,
+                shotRange: 320
+            };
+        }
+
+        function updateCarrier(frameScale) {
+            if (!carrier) return;
+            const carrierMetrics = getCarrierMetrics();
+
+            if (carrier.x < carrier.targetX) {
+                carrier.x += carrier.vx * frameScale;
+            }
+
+            carrier.shotCooldown -= frameScale;
+            if (carrier.shotCooldown > 0) return;
+
+            let target = null;
+            let bestDist = carrier.shotRange;
+            const launchX = carrier.x + carrierMetrics.launchOffsetX;
+            const launchY = carrier.y - carrierMetrics.launchOffsetY;
+
+            for (const m of missiles) {
+                const dist = Math.hypot(m.x - launchX, m.y - launchY);
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    target = m;
+                }
+            }
+
+            if (!target) return;
+
+            const dx = target.x - launchX;
+            const dy = target.y - launchY;
+            const len = Math.max(1, Math.hypot(dx, dy));
+            interceptors.push({
+                x: launchX,
+                y: launchY,
+                vx: (dx / len) * (INTERCEPTOR_SPEED + 1.5),
+                vy: (dy / len) * (INTERCEPTOR_SPEED + 1.5),
+                age: 0,
+                source: "carrier",
+                headAngle: INTERCEPTOR_TYPES.carrier.headAngle || 0
             });
+            carrier.shotCooldown = carrier.maxCooldown;
         }
-        
-        // Move to next cluster location with large gap
-        const widestRow = Math.max(frontCount, backCount);
-        x += widestRow * (buildingWidth + buildingGap) + clusterGap;
-    }
-}
 
-function findHitBuilding(x, y) {
-    for (let i = 0; i < buildings.length; i++) {
-        const b = buildings[i];
-        if (x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height) return b;
-    }
-    return null;
-}
+        function getF35Sprite(scale) {
+            const key = `f35|${scale}`;
+            let sprite = f35SpriteCache.get(key);
+            if (sprite) return sprite;
 
-function spawnFriendlyJet() {
-    const jetSpeed = 5;
-    const shotRange = 200;
-    const skyTop = 40;
-    const skyBottom = Math.max(120, canvas.height * 0.28);
-    friendlyJets.push({
-        x: Math.random() > 0.5 ? -20 : canvas.width + 20,
-        y: skyTop + Math.random() * (skyBottom - skyTop),
-        vx: Math.random() > 0.5 ? jetSpeed : -jetSpeed,
-        age: 0,
-        maxAge: 400,
-        shotRange,
-        shotCooldown: 0,
-        maxCooldown: 15
-    });
-}
+            const size = Math.ceil(80 * scale);
+            const canvas = document.createElement("canvas");
+            canvas.width = size;
+            canvas.height = size;
+            const ctx2 = canvas.getContext("2d");
 
-function initializeCarrier() {
-    const seaY = canvas.height - 44;
-    const carrierMetrics = getCarrierMetrics();
-    const seaWidth = getSeaCityBoundaryX();
-    const carrierX = Math.max(8, seaWidth - carrierMetrics.bodyWidth - 10);
-    carrier = {
-        x: carrierX,
-        y: seaY,
-        vx: 0,
-        targetX: carrierX,
-        shotCooldown: 45,
-        maxCooldown: 45,
-        shotRange: 320
-    };
-}
+            ctx2.translate(size / 2, size / 2);
 
-function updateCarrier(frameScale) {
-    if (!carrier) return;
-    const carrierMetrics = getCarrierMetrics();
+            ctx2.fillStyle = "#a8afb9";
+            ctx2.beginPath();
+            ctx2.moveTo(17 * scale, -1 * scale);
+            ctx2.lineTo(12 * scale, -4 * scale);
+            ctx2.lineTo(6 * scale, -5 * scale);
+            ctx2.lineTo(0, -6 * scale);
+            ctx2.lineTo(-6 * scale, -6 * scale);
+            ctx2.lineTo(-12 * scale, -3 * scale);
+            ctx2.lineTo(-17 * scale, 0);
+            ctx2.lineTo(-13 * scale, 3 * scale);
+            ctx2.lineTo(-7 * scale, 6 * scale);
+            ctx2.lineTo(0, 7 * scale);
+            ctx2.lineTo(7 * scale, 5 * scale);
+            ctx2.lineTo(13 * scale, 2 * scale);
+            ctx2.closePath();
+            ctx2.fill();
 
-    if (carrier.x < carrier.targetX) {
-        carrier.x += carrier.vx * frameScale;
-    }
+            // Main wing (near side): straighter trailing edge, moderate sweep.
+            ctx2.beginPath();
+            ctx2.moveTo(2 * scale, -2 * scale);
+            ctx2.lineTo(-2 * scale, -12 * scale);
+            ctx2.lineTo(-15 * scale, -11 * scale);
+            ctx2.lineTo(-8 * scale, -3 * scale);
+            ctx2.closePath();
+            ctx2.fill();
 
-    carrier.shotCooldown -= frameScale;
-    if (carrier.shotCooldown > 0) return;
+            // Main wing (far side): compressed by perspective.
+            ctx2.beginPath();
+            ctx2.moveTo(2 * scale, 2 * scale);
+            ctx2.lineTo(-1 * scale, 7 * scale);
+            ctx2.lineTo(-11 * scale, 9 * scale);
+            ctx2.lineTo(-6 * scale, 4 * scale);
+            ctx2.closePath();
+            ctx2.fill();
 
-    let target = null;
-    let bestDist = carrier.shotRange;
-    const launchX = carrier.x + carrierMetrics.launchOffsetX;
-    const launchY = carrier.y - carrierMetrics.launchOffsetY;
+            // Horizontal tailplanes.
+            ctx2.beginPath();
+            ctx2.moveTo(-8 * scale, -2 * scale);
+            ctx2.lineTo(-14 * scale, -6 * scale);
+            ctx2.lineTo(-13 * scale, -3 * scale);
+            ctx2.lineTo(-8 * scale, 0);
+            ctx2.closePath();
+            ctx2.fill();
 
-    for (const m of missiles) {
-        const dist = Math.hypot(m.x - launchX, m.y - launchY);
-        if (dist < bestDist) {
-            bestDist = dist;
-            target = m;
+            ctx2.beginPath();
+            ctx2.moveTo(-8 * scale, 2 * scale);
+            ctx2.lineTo(-14 * scale, 6 * scale);
+            ctx2.lineTo(-13 * scale, 3 * scale);
+            ctx2.lineTo(-8 * scale, 0);
+            ctx2.closePath();
+            ctx2.fill();
+
+            // Single tall fin with slight rake (F-4 characteristic).
+            ctx2.beginPath();
+            ctx2.moveTo(-9 * scale, -3 * scale);
+            ctx2.lineTo(-12 * scale, -12 * scale);
+            ctx2.lineTo(-8 * scale, -11 * scale);
+            ctx2.lineTo(-6 * scale, -3 * scale);
+            ctx2.closePath();
+            ctx2.fill();
+
+            // Twin exhaust blocks at rear.
+            ctx2.beginPath();
+            ctx2.moveTo(-17 * scale, -2.4 * scale);
+            ctx2.lineTo(-13.4 * scale, -2.4 * scale);
+            ctx2.lineTo(-13.4 * scale, -0.3 * scale);
+            ctx2.lineTo(-17 * scale, -0.3 * scale);
+            ctx2.closePath();
+            ctx2.fill();
+
+            ctx2.beginPath();
+            ctx2.moveTo(-17 * scale, 0.3 * scale);
+            ctx2.lineTo(-13.4 * scale, 0.3 * scale);
+            ctx2.lineTo(-13.4 * scale, 2.4 * scale);
+            ctx2.lineTo(-17 * scale, 2.4 * scale);
+            ctx2.closePath();
+            ctx2.fill();
+
+            // Cockpit canopy hump.
+            ctx2.beginPath();
+            ctx2.moveTo(7 * scale, -3 * scale);
+            ctx2.lineTo(0, -3 * scale);
+            ctx2.lineTo(-2 * scale, -1 * scale);
+            ctx2.lineTo(5 * scale, -1 * scale);
+            ctx2.closePath();
+            ctx2.fill();
+
+            f35SpriteCache.set(key, canvas);
+            return canvas;
         }
-    }
 
-    if (!target) return;
+        function drawF35(x, y, scale, headingRight) {
+            const sprite = getF35Sprite(scale);
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(headingRight ? 1 : -1, 1);
+            ctx.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
+            ctx.restore();
+        }
 
-    const dx = target.x - launchX;
-    const dy = target.y - launchY;
-    const len = Math.max(1, Math.hypot(dx, dy));
-    interceptors.push({
-        x: launchX,
-        y: launchY,
-        vx: (dx / len) * (INTERCEPTOR_SPEED + 1.5),
-        vy: (dy / len) * (INTERCEPTOR_SPEED + 1.5),
-        age: 0,
-        source: "carrier",
-        headAngle: INTERCEPTOR_TYPES.carrier.headAngle || 0
-    });
-    carrier.shotCooldown = carrier.maxCooldown;
-}
+        function drawCarrier() {
+            if (!carrier) return;
+            const x = carrier.x;
+            const y = carrier.y;
+            const carrierMetrics = getCarrierMetrics();
 
-function getF35Sprite(scale) {
-    const key = `f35|${scale}`;
-    let sprite = f35SpriteCache.get(key);
-    if (sprite) return sprite;
+            // Hull shadow and sea wake
+            ctx.fillStyle = "rgba(20, 40, 70, 0.35)";
+            ctx.fillRect(x + carrierMetrics.wakeOffsetX, y + 10, carrierMetrics.wakeWidth, carrierMetrics.wakeHeight);
 
-    const size = Math.ceil(80 * scale);
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
-    const ctx2 = canvas.getContext("2d");
+            // Carrier emoji body
+            ctx.font = `${carrierMetrics.fontSize}px Arial`;
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+            ctx.fillText(CARRIER_EMOJI, x, y);
 
-    ctx2.translate(size / 2, size / 2);
+            // Small US flag to make the carrier identity explicit
+            ctx.fillStyle = "#0b3b8f";
+            ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY, carrierMetrics.flagWidth, carrierMetrics.flagHeight);
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 4, carrierMetrics.flagWidth, 2);
+            ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 8, carrierMetrics.flagWidth, 2);
+            ctx.fillStyle = "#d42027";
+            ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 2, carrierMetrics.flagWidth, 2);
+            ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 6, carrierMetrics.flagWidth, 2);
+            ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 10, carrierMetrics.flagWidth, 2);
+        }
 
-    ctx2.fillStyle = "#a8afb9";
-    ctx2.beginPath();
-    ctx2.moveTo(17 * scale, -1 * scale);
-    ctx2.lineTo(12 * scale, -4 * scale);
-    ctx2.lineTo(6 * scale, -5 * scale);
-    ctx2.lineTo(0, -6 * scale);
-    ctx2.lineTo(-6 * scale, -6 * scale);
-    ctx2.lineTo(-12 * scale, -3 * scale);
-    ctx2.lineTo(-17 * scale, 0);
-    ctx2.lineTo(-13 * scale, 3 * scale);
-    ctx2.lineTo(-7 * scale, 6 * scale);
-    ctx2.lineTo(0, 7 * scale);
-    ctx2.lineTo(7 * scale, 5 * scale);
-    ctx2.lineTo(13 * scale, 2 * scale);
-    ctx2.closePath();
-    ctx2.fill();
+        function startNewGame() {
+            resizeCanvas();
+            missiles = [];
+            interceptors = [];
+            explosions = [];
+            friendlyJets = [];
+            carrier = null;
+            score = 0;
+            kills = 0;
+            maxAmmo = 30;
+            ammo = maxAmmo;
+            wave = 1;
+            levelKills = 0;
+            levelGoalKills = Math.floor(Math.random() * 8) + 12;
+            levelScore = 0;
+            levelGoalScore = levelGoalKills * 10;
+            frameCount = 0;
+            lasers = [];
+            laserDomeCooldown = 0;
+            activeWeapon = "ironDome";
+            launcher.health = launcher.maxHealth;
+            launcher.isDavidsSling = false;
+            launcher.maxClip = 4;
+            launcher.clip = 4;
+            launcher.reloadTimer = 0;
+            laserLauncher.health = laserLauncher.maxHealth;
+            flares = [];
+            shrapnels = [];
+            floatingTexts = [];
+            activeWaveAnnouncement = { timer: 0, text: "", alpha: 0 };
+            isPaused = false;
+            pauseLockedByPanel = false;
+            screenShake = 0;
+            impactFlash = 0;
+            toastQueue = [];
+            activeToast = null;
+            gameOver = false;
+            initializeCarrier();
+            updatePauseButtonUi();
+            enqueueToast(`Mission 1 started`, "#b8dcff", 170);
+            uiOverlay.style.display = "none";
+            updateUI();
+        }
 
-    // Main wing (near side): straighter trailing edge, moderate sweep.
-    ctx2.beginPath();
-    ctx2.moveTo(2 * scale, -2 * scale);
-    ctx2.lineTo(-2 * scale, -12 * scale);
-    ctx2.lineTo(-15 * scale, -11 * scale);
-    ctx2.lineTo(-8 * scale, -3 * scale);
-    ctx2.closePath();
-    ctx2.fill();
-
-    // Main wing (far side): compressed by perspective.
-    ctx2.beginPath();
-    ctx2.moveTo(2 * scale, 2 * scale);
-    ctx2.lineTo(-1 * scale, 7 * scale);
-    ctx2.lineTo(-11 * scale, 9 * scale);
-    ctx2.lineTo(-6 * scale, 4 * scale);
-    ctx2.closePath();
-    ctx2.fill();
-
-    // Horizontal tailplanes.
-    ctx2.beginPath();
-    ctx2.moveTo(-8 * scale, -2 * scale);
-    ctx2.lineTo(-14 * scale, -6 * scale);
-    ctx2.lineTo(-13 * scale, -3 * scale);
-    ctx2.lineTo(-8 * scale, 0);
-    ctx2.closePath();
-    ctx2.fill();
-
-    ctx2.beginPath();
-    ctx2.moveTo(-8 * scale, 2 * scale);
-    ctx2.lineTo(-14 * scale, 6 * scale);
-    ctx2.lineTo(-13 * scale, 3 * scale);
-    ctx2.lineTo(-8 * scale, 0);
-    ctx2.closePath();
-    ctx2.fill();
-
-    // Single tall fin with slight rake (F-4 characteristic).
-    ctx2.beginPath();
-    ctx2.moveTo(-9 * scale, -3 * scale);
-    ctx2.lineTo(-12 * scale, -12 * scale);
-    ctx2.lineTo(-8 * scale, -11 * scale);
-    ctx2.lineTo(-6 * scale, -3 * scale);
-    ctx2.closePath();
-    ctx2.fill();
-
-    // Twin exhaust blocks at rear.
-    ctx2.beginPath();
-    ctx2.moveTo(-17 * scale, -2.4 * scale);
-    ctx2.lineTo(-13.4 * scale, -2.4 * scale);
-    ctx2.lineTo(-13.4 * scale, -0.3 * scale);
-    ctx2.lineTo(-17 * scale, -0.3 * scale);
-    ctx2.closePath();
-    ctx2.fill();
-
-    ctx2.beginPath();
-    ctx2.moveTo(-17 * scale, 0.3 * scale);
-    ctx2.lineTo(-13.4 * scale, 0.3 * scale);
-    ctx2.lineTo(-13.4 * scale, 2.4 * scale);
-    ctx2.lineTo(-17 * scale, 2.4 * scale);
-    ctx2.closePath();
-    ctx2.fill();
-
-    // Cockpit canopy hump.
-    ctx2.beginPath();
-    ctx2.moveTo(7 * scale, -3 * scale);
-    ctx2.lineTo(0, -3 * scale);
-    ctx2.lineTo(-2 * scale, -1 * scale);
-    ctx2.lineTo(5 * scale, -1 * scale);
-    ctx2.closePath();
-    ctx2.fill();
-
-    f35SpriteCache.set(key, canvas);
-    return canvas;
-}
-
-function drawF35(x, y, scale, headingRight) {
-    const sprite = getF35Sprite(scale);
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(headingRight ? 1 : -1, 1);
-    ctx.drawImage(sprite, -sprite.width / 2, -sprite.height / 2);
-    ctx.restore();
-}
-
-function drawCarrier() {
-    if (!carrier) return;
-    const x = carrier.x;
-    const y = carrier.y;
-    const carrierMetrics = getCarrierMetrics();
-
-    // Hull shadow and sea wake
-    ctx.fillStyle = "rgba(20, 40, 70, 0.35)";
-    ctx.fillRect(x + carrierMetrics.wakeOffsetX, y + 10, carrierMetrics.wakeWidth, carrierMetrics.wakeHeight);
-
-    // Carrier emoji body
-    ctx.font = `${carrierMetrics.fontSize}px Arial`;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText(CARRIER_EMOJI, x, y);
-
-    // Small US flag to make the carrier identity explicit
-    ctx.fillStyle = "#0b3b8f";
-    ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY, carrierMetrics.flagWidth, carrierMetrics.flagHeight);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 4, carrierMetrics.flagWidth, 2);
-    ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 8, carrierMetrics.flagWidth, 2);
-    ctx.fillStyle = "#d42027";
-    ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 2, carrierMetrics.flagWidth, 2);
-    ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 6, carrierMetrics.flagWidth, 2);
-    ctx.fillRect(x + carrierMetrics.flagOffsetX, y - carrierMetrics.flagOffsetY + 10, carrierMetrics.flagWidth, 2);
-}
-
-function startNewGame() {
-    resizeCanvas();
-    missiles = [];
-    interceptors = [];
-    explosions = [];
-    friendlyJets = [];
-    carrier = null;
-    score = 0;
-    kills = 0;
-    maxAmmo = 30;
-    ammo = maxAmmo;
-    wave = 1;
-    levelKills = 0;
-    levelGoalKills = Math.floor(Math.random() * 8) + 12;
-    frameCount = 0;
-    lasers = [];
-    laserDomeCooldown = 0;
-    activeWeapon = "ironDome";
-    launcher.health = launcher.maxHealth;
-    laserLauncher.health = laserLauncher.maxHealth;
-    flares = [];
-    shrapnels = [];
-    isPaused = false;
-    pauseLockedByPanel = false;
-    screenShake = 0;
-    impactFlash = 0;
-    toastQueue = [];
-    activeToast = null;
-    gameOver = false;
-    initializeCarrier();
-    updatePauseButtonUi();
-    enqueueToast(`Mission 1 started: ${getCurrentMissionGoal()} intercepts`, "#b8dcff", 170);
-    uiOverlay.style.display = "none";
-    updateUI();
-}
-
-startNewGame();
-registerWebAppSupport();
-
-window.addEventListener("beforeinstallprompt", event => {
-    event.preventDefault();
-    installPromptEvent = event;
-    updateInstallButton();
-});
-
-window.addEventListener("appinstalled", () => {
-    installPromptEvent = null;
-    updateInstallButton();
-});
-
-installBtn.addEventListener("click", async () => {
-    if (installPromptEvent) {
-        installPromptEvent.prompt();
-        await installPromptEvent.userChoice;
-        installPromptEvent = null;
-        updateInstallButton();
-        return;
-    }
-    if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
-        announceInstallHelp();
-    }
-});
-
-newGameBtn.addEventListener("click", startNewGame);
-pauseBtn.addEventListener("click", () => togglePause());
-
-function applySoundEnabled(val) {
-    settings.soundEnabled = val;
-    saveSettings();
-    syncSettingsUi();
-    if (val) { ensureAudioContext(); playShootSound(); }
-}
-
-function applyAimGuideEnabled(val) {
-    settings.aimGuide = val;
-    saveSettings();
-    syncSettingsUi();
-}
-
-volumeBtn.addEventListener("click", () => applySoundEnabled(!settings.soundEnabled));
-guideBtn.addEventListener("click", openGuide);
-settingsBtn.addEventListener("click", openSettings);
-closeSettingsBtn.addEventListener("click", closeSettings);
-closeGuideBtn.addEventListener("click", closeSettings);
-settingsBackdrop.addEventListener("click", closeSettings);
-soundToggle.addEventListener("change", () => applySoundEnabled(soundToggle.checked));
-if (aimGuideToggle) aimGuideToggle.addEventListener("change", () => applyAimGuideEnabled(aimGuideToggle.checked));
-
-window.addEventListener("keydown", event => {
-    if (event.repeat) return;
-    const key = event.key.toLowerCase();
-
-    if (key === "escape") {
-        closeSettings();
-        return;
-    }
-
-    if (key === "p") {
-        event.preventDefault();
-        if (!isBlockingUiOpen()) togglePause();
-        return;
-    }
-
-    if (key === "n") {
-        event.preventDefault();
         startNewGame();
-        return;
-    }
+        registerWebAppSupport();
 
-    if (key === "m") {
-        event.preventDefault();
-        applySoundEnabled(!settings.soundEnabled);
-        return;
-    }
-
-    if (key === "g") {
-        event.preventDefault();
-        if (guidePanel.style.display === "block") closeSettings();
-        else openGuide();
-        return;
-    }
-
-    if (key === "s") {
-        event.preventDefault();
-        if (settingsPanel.style.display === "block") closeSettings();
-        else openSettings();
-        return;
-    }
-    
-    if (key === "tab" || key === "1" || key === "2" || key === "q" || key === "e") {
-        event.preventDefault();
-        if (wave >= 3) {
-            activeWeapon = activeWeapon === "ironDome" ? "laserDome" : "ironDome";
-            enqueueToast(`Active Weapon: ${activeWeapon === "ironDome" ? "Iron Dome" : "Laser Dome"}`, "#b8dcff", 60);
-        }
-        return;
-    }
-
-    if ((event.key === " " || event.code === "Space") && !isBlockingUiOpen() && !isPaused) {
-        event.preventDefault();
-        ensureAudioContext();
-        shoot();
-    }
-});
-
-function trySelectBattery(tx, ty) {
-    if (wave < 3) return false;
-    const distIron = Math.hypot(tx - launcher.x, ty - launcher.y);
-    const distLaser = Math.hypot(tx - laserLauncher.x, ty - laserLauncher.y);
-    if (distIron < 50) { 
-        activeWeapon = "ironDome"; 
-        enqueueToast(`Active Weapon: Iron Dome`, "#b8dcff", 60);
-        return true; 
-    }
-    if (distLaser < 50) { 
-        activeWeapon = "laserDome"; 
-        enqueueToast(`Active Weapon: Laser Dome`, "#b8dcff", 60);
-        return true; 
-    }
-    return false;
-}
-
-canvas.addEventListener("mousemove", e => {
-    isTouchDevice = false;
-    const pos = getCanvasPos(e);
-    mouseX = pos.x;
-    mouseY = pos.y;
-    launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
-});
-
-canvas.addEventListener("click", e => {
-    ensureAudioContext();
-    if (!isTouchDevice) {
-        const pos = getCanvasPos(e);
-        if (trySelectBattery(pos.x, pos.y)) return;
-        shoot();
-    }
-});
-
-canvas.addEventListener("touchmove", e => {
-    isTouchDevice = true;
-    touchAimActive = true;
-    e.preventDefault();
-    const pos = getCanvasPos(e.touches[0]);
-    mouseX = pos.x;
-    mouseY = pos.y;
-    launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
-}, { passive: false });
-
-canvas.addEventListener("touchstart", e => {
-    ensureAudioContext();
-    isTouchDevice = true;
-    touchAimActive = true;
-    e.preventDefault();
-    const pos = getCanvasPos(e.touches[0]);
-    mouseX = pos.x;
-    mouseY = pos.y;
-}, { passive: false });
-
-canvas.addEventListener("touchend", e => {
-    if (!touchAimActive) return;
-    e.preventDefault();
-    if (e.changedTouches.length > 0) {
-        const pos = getCanvasPos(e.changedTouches[0]);
-        mouseX = pos.x;
-        mouseY = pos.y;
-        launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
-    }
-    touchAimActive = false;
-    if (trySelectBattery(mouseX, mouseY)) return;
-    shoot();
-}, { passive: false });
-
-function spawnShrapnel(x, y) {
-    const count = Math.floor(Math.random() * 3) + 1;
-    for(let i = 0; i < count; i++) {
-        shrapnels.push({
-            x: x, y: y,
-            vx: (Math.random() - 0.5) * 4,
-            vy: (Math.random() - 0.5) * 2,
-            age: 0
+        window.addEventListener("beforeinstallprompt", event => {
+            event.preventDefault();
+            installPromptEvent = event;
+            updateInstallButton();
         });
-    }
-}
 
-function shoot() {
-    if (gameOver || isPaused) return;
-    
-    let target = null;
-    let bestDist = Infinity;
-    
-    if (activeWeapon === "ironDome") {
-        if (ammo <= 0 || launcher.health <= 0) return;
-        ammo--;
-        let dx = mouseX - launcher.x;
-        let dy = mouseY - launcher.y;
-        let l = Math.hypot(dx, dy);
-        if (l < 1) return;
-        dx /= l;
-        dy /= l;
-        
-        for (const m of missiles) {
-            let dist = Math.hypot(m.x - mouseX, m.y - mouseY);
-            if (dist < bestDist) {
-                bestDist = dist;
-                target = m;
-            }
-        }
-        for (const jet of friendlyJets) {
-            let dist = Math.hypot(jet.x - mouseX, jet.y - mouseY);
-            if (dist < bestDist) {
-                bestDist = dist;
-                target = jet;
-            }
-        }
-        
-        let targetRef = target;
-        if (target && friendlyJets.includes(target)) {
-            targetRef = { x: target.x, y: target.y, vx: 0, vy: 1.5, type: 'flare', health: 1 };
-            flares.push(targetRef);
-            enqueueToast("Friendly Fire! Flares deployed", "#ffb8b8", 80);
-        }
-        
-        interceptors.push({
-            x: launcher.x,
-            y: launcher.y,
-            vx: dx * INTERCEPTOR_SPEED,
-            vy: dy * INTERCEPTOR_SPEED,
-            age: 0,
-            source: "battery",
-            headAngle: INTERCEPTOR_TYPES.battery.headAngle || 0,
-            target: targetRef
+        window.addEventListener("appinstalled", () => {
+            installPromptEvent = null;
+            updateInstallButton();
         });
-        
-        playShootSound();
-    } else if (activeWeapon === "laserDome") {
-        if (laserDomeCooldown > 0 || wave < 3 || laserLauncher.health <= 0) return;
-        for (const m of missiles) {
-            if (m.type !== "drone") continue;
-            let dist = Math.hypot(m.x - mouseX, m.y - mouseY);
-            if (dist < bestDist) {
-                bestDist = dist;
-                target = m;
+
+        installBtn.addEventListener("click", async () => {
+            if (installPromptEvent) {
+                installPromptEvent.prompt();
+                await installPromptEvent.userChoice;
+                installPromptEvent = null;
+                updateInstallButton();
+                return;
             }
-        }
-        if (target) {
-            target.health -= 2;
-            lasers.push({ startX: laserLauncher.x, startY: laserLauncher.y - 12, endX: target.x, endY: target.y, age: 0, maxAge: 15 });
-            if (target.health <= 0) {
-                const idx = missiles.indexOf(target);
-                if (idx !== -1) missiles.splice(idx, 1);
-                handleMissionProgress(target.typeData.score);
-                createExplosion(target.x, target.y);
-                spawnShrapnel(target.x, target.y);
+            if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+                announceInstallHelp();
             }
-            laserDomeCooldown = 45; // 0.75 seconds cooldown
-            playTone("square", { startFreq: 800, endFreq: 200, attack: 0.01, duration: 0.15, peak: 0.15 });
-        }
-    }
-}
+        });
 
-function spawnMissile() {
-    const levelIndex = Math.min(wave - 1, LEVEL_CONFIGS.length - 1);
-    const levelConfig = LEVEL_CONFIGS[levelIndex];
-    const typeKey = randomFrom(levelConfig.enemyTypes);
-    const type = MISSILE_TYPES[typeKey];
-    
-    let x, y, vx, vy;
-    
-    let targetBuilding = null;
-    let targetPoint = null;
-    if (type.horizontal) {
-        // Drone - moves horizontally initially
-        x = Math.random() > 0.5 ? -30 : canvas.width + 30;
-        y = Math.random() * (canvas.height * 0.4);
-        vx = x < canvas.width / 2 ? type.speed : -type.speed;
-        vy = (Math.random() - 0.5) * 0.5;
-        
-        let rn = Math.random();
-        if (rn < 0.6) {
-            const validBuildings = buildings.filter(b => b.health > 0);
-            if (validBuildings.length > 0) {
-                let b = randomFrom(validBuildings);
-                targetPoint = { x: b.x + b.width/2, y: b.y + b.height/2, type: 'building', ref: b };
+        newGameBtn.addEventListener("click", startNewGame);
+        pauseBtn.addEventListener("click", () => togglePause());
+
+        function applySoundEnabled(val) {
+            settings.soundEnabled = val;
+            saveSettings();
+            syncSettingsUi();
+            if (val) { ensureAudioContext(); playShootSound(); }
+        }
+
+        function applyAimGuideEnabled(val) {
+            settings.aimGuide = val;
+            saveSettings();
+            syncSettingsUi();
+        }
+
+        volumeBtn.addEventListener("click", () => applySoundEnabled(!settings.soundEnabled));
+        guideBtn.addEventListener("click", openGuide);
+        settingsBtn.addEventListener("click", openSettings);
+        closeSettingsBtn.addEventListener("click", closeSettings);
+        closeGuideBtn.addEventListener("click", closeSettings);
+        settingsBackdrop.addEventListener("click", closeSettings);
+        soundToggle.addEventListener("change", () => applySoundEnabled(soundToggle.checked));
+        if (aimGuideToggle) aimGuideToggle.addEventListener("change", () => applyAimGuideEnabled(aimGuideToggle.checked));
+
+        window.addEventListener("keydown", event => {
+            if (event.repeat) return;
+            const key = event.key.toLowerCase();
+
+            if (key === "escape") {
+                closeSettings();
+                return;
             }
-        } else if (rn < 0.8 && wave >= 3 && laserLauncher.health > 0) {
-            targetPoint = { x: laserLauncher.x, y: laserLauncher.y, type: 'battery', ref: laserLauncher };
-        } else if (rn < 0.9 && launcher.health > 0) {
-            targetPoint = { x: launcher.x, y: launcher.y, type: 'battery', ref: launcher };
+
+            if (key === "p") {
+                event.preventDefault();
+                if (!isBlockingUiOpen()) togglePause();
+                return;
+            }
+
+            if (key === "n") {
+                event.preventDefault();
+                startNewGame();
+                return;
+            }
+
+            if (key === "m") {
+                event.preventDefault();
+                applySoundEnabled(!settings.soundEnabled);
+                return;
+            }
+
+            if (key === "g") {
+                event.preventDefault();
+                if (guidePanel.style.display === "block") closeSettings();
+                else openGuide();
+                return;
+            }
+
+            if (key === "s") {
+                event.preventDefault();
+                if (settingsPanel.style.display === "block") closeSettings();
+                else openSettings();
+                return;
+            }
+
+            if (key === "tab" || key === "1" || key === "2" || key === "q" || key === "e") {
+                event.preventDefault();
+                if (wave >= 3) {
+                    activeWeapon = activeWeapon === "ironDome" ? "laserDome" : "ironDome";
+                    enqueueToast(`Active Weapon: ${activeWeapon === "ironDome" ? "Iron Dome" : "Laser Dome"}`, "#b8dcff", 60);
+                }
+                return;
+            }
+
+            if ((event.key === " " || event.code === "Space") && !isBlockingUiOpen() && !isPaused) {
+                event.preventDefault();
+                ensureAudioContext();
+                shoot();
+            }
+        });
+
+        function trySelectBattery(tx, ty) {
+            if (wave < 3) return false;
+            const distIron = Math.hypot(tx - launcher.x, ty - launcher.y);
+            const distLaser = Math.hypot(tx - laserLauncher.x, ty - laserLauncher.y);
+            if (distIron < 50) {
+                activeWeapon = "ironDome";
+                enqueueToast(`Active Weapon: Iron Dome`, "#b8dcff", 60);
+                return true;
+            }
+            if (distLaser < 50) {
+                activeWeapon = "laserDome";
+                enqueueToast(`Active Weapon: Laser Dome`, "#b8dcff", 60);
+                return true;
+            }
+            return false;
         }
-        if (!targetPoint) {
-            let tx = Math.random() * canvas.width;
-            targetPoint = { x: tx, y: getGroundYAt(tx), type: 'ground' };
+
+        function tryReloadBattery(tx, ty) {
+            let hx = launcher.x + 60;
+            let hy = launcher.y + 10;
+            if (tx >= hx - 10 && tx <= hx + 40 && ty >= hy - 10 && ty <= hy + 20) {
+                if (launcher.clip < launcher.maxClip) {
+                    launcher.clip = launcher.maxClip;
+                    playTone("sine", { startFreq: 400, endFreq: 600, duration: 0.1 });
+                    enqueueToast("Battery Reloaded", "#8cffc1", 60);
+                }
+                return true;
+            }
+            return false;
         }
-    } else {
-        // Missiles - move downward
-        x = Math.random() * (canvas.width - 60) + 30;
-        y = -30;
-        vx = (Math.random() - 0.5) * 1;
-        vy = type.speed;
-    }
-    
-    missiles.push({ x, y, vx, vy, type: typeKey, typeData: type, headAngle: type.headAngle || 0, health: type.health, age: 0, targetPoint: targetPoint });
-}
 
-function createExplosion(x, y) {
-    explosions.push({
-        x: x,
-        y: y,
-        age: 0,
-        maxAge: 20
-    });
-}
+        canvas.addEventListener("mousemove", e => {
+            isTouchDevice = false;
+            const pos = getCanvasPos(e);
+            mouseX = pos.x;
+            mouseY = pos.y;
+            if (activeWeapon === "ironDome") {
+                launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+            } else if (activeWeapon === "laserDome") {
+                laserLauncher.angle = Math.atan2(mouseY - laserLauncher.y, mouseX - laserLauncher.x);
+            }
+        });
 
-function updateUI() {
-    statValue1.textContent = kills;
-    statLabel2.textContent = "Mission";
-    statValue2.textContent = `${wave}: ${levelKills}/${getCurrentMissionGoal()}`;
-    statValue3.textContent = ammo;
-}
+        canvas.addEventListener("click", e => {
+            ensureAudioContext();
+            if (!isTouchDevice) {
+                const pos = getCanvasPos(e);
+                if (trySelectBattery(pos.x, pos.y)) return;
+                if (tryReloadBattery(pos.x, pos.y)) return;
+                shoot();
+            }
+        });
 
-function update(deltaSeconds) {
-    if (gameOver) return;
+        canvas.addEventListener("touchmove", e => {
+            isTouchDevice = true;
+            touchAimActive = true;
+            e.preventDefault();
+            const pos = getCanvasPos(e.touches[0]);
+            mouseX = pos.x;
+            mouseY = pos.y;
+            if (activeWeapon === "ironDome") {
+                launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+            } else if (activeWeapon === "laserDome") {
+                laserLauncher.angle = Math.atan2(mouseY - laserLauncher.y, mouseX - laserLauncher.x);
+            }
+        }, { passive: false });
 
-    const frameScale = deltaSeconds * REFERENCE_FPS;
-    
-    frameCount += frameScale;
-    processMissionToasts();
-    
-    // Get current level config
-    const levelIndex = Math.min(wave - 1, LEVEL_CONFIGS.length - 1);
-    const levelConfig = LEVEL_CONFIGS[levelIndex];
-    
-    // Spawn chance
-    if (missiles.length < 6) {
-        const spawnChance = 1 - Math.pow(1 - levelConfig.spawnRate, frameScale);
-        if (Math.random() < spawnChance) {
-            spawnMissile();
-        }
-    }
-    
-    // Spawn friendly jets occasionally (bonus feature)
-    const previousBucket = Math.floor((frameCount - frameScale) / 180);
-    const currentBucket = Math.floor(frameCount / 180);
-    if (currentBucket > previousBucket && Math.random() < 0.6) {
-        spawnFriendlyJet();
-    }
+        canvas.addEventListener("touchstart", e => {
+            ensureAudioContext();
+            isTouchDevice = true;
+            touchAimActive = true;
+            e.preventDefault();
+            const pos = getCanvasPos(e.touches[0]);
+            mouseX = pos.x;
+            mouseY = pos.y;
+        }, { passive: false });
 
-    // Carrier lands on sea and contributes long-range interceptions.
-    updateCarrier(frameScale);
-    
-    // Update missiles
-    for (let i = missiles.length - 1; i >= 0; i--) {
-        const m = missiles[i];
-        
-        if (m.type === "commet" && wave >= 4 && m.y > canvas.height * 0.35 && !m.split) {
-            m.split = true;
-            m.health = 0;
-            for(let k=0; k<3; k++) {
-                missiles.push({
-                    x: m.x, y: m.y,
-                    vx: m.vx + (k - 1) * 1.5,
-                    vy: m.vy * 0.9,
-                    type: "miniRocket",
-                    typeData: MISSILE_TYPES.miniRocket,
-                    health: MISSILE_TYPES.miniRocket.health,
-                    age: 0,
-                    headAngle: MISSILE_TYPES.miniRocket.headAngle || 0
+        canvas.addEventListener("touchend", e => {
+            if (!touchAimActive) return;
+            e.preventDefault();
+            if (e.changedTouches.length > 0) {
+                const pos = getCanvasPos(e.changedTouches[0]);
+                mouseX = pos.x;
+                mouseY = pos.y;
+                launcher.angle = Math.atan2(mouseY - launcher.y, mouseX - launcher.x);
+            }
+            touchAimActive = false;
+            if (trySelectBattery(mouseX, mouseY)) return;
+            shoot();
+        }, { passive: false });
+
+        function spawnShrapnel(x, y) {
+            const count = Math.floor(Math.random() * 3) + 1;
+            for (let i = 0; i < count; i++) {
+                shrapnels.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 2,
+                    age: 0
                 });
             }
-            createExplosion(m.x, m.y);
-            spawnShrapnel(m.x, m.y);
-            missiles.splice(i, 1);
-            continue;
         }
 
-        if (m.type === "drone" && m.targetPoint) {
-            const dx = m.targetPoint.x - m.x;
-            const dy = m.targetPoint.y - m.y;
-            const len = Math.max(1, Math.hypot(dx, dy));
-            
-            if (len < 10) {
-                if (m.targetPoint.type === 'building' && m.targetPoint.ref.health > 0) {
-                    m.targetPoint.ref.health -= m.typeData.damage;
-                    score = Math.max(0, score - BUILDING_HIT_PENALTY);
-                } else if (m.targetPoint.type === 'battery' && m.targetPoint.ref.health > 0) {
-                    m.targetPoint.ref.health -= m.typeData.damage;
-                    score = Math.max(0, score - BUILDING_HIT_PENALTY);
+        function shoot() {
+            if (gameOver || isPaused) return;
+
+            let target = null;
+            let bestDist = Infinity;
+
+            if (activeWeapon === "ironDome") {
+                if (ammo <= 0 || launcher.health <= 0 || launcher.clip <= 0) return;
+                ammo--;
+                launcher.clip--;
+                let dx = mouseX - launcher.x;
+                let dy = mouseY - launcher.y;
+                let l = Math.hypot(dx, dy);
+                if (l < 1) return;
+                dx /= l;
+                dy /= l;
+
+                for (const m of missiles) {
+                    let dist = Math.hypot(m.x - mouseX, m.y - mouseY);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        target = m;
+                    }
                 }
-                createExplosion(m.x, m.y);
-                triggerHitFeedback(1.5);
-                missiles.splice(i, 1);
-                continue;
-            } else {
-                m.vx += (dx / len) * 0.05 * frameScale;
-                m.vy += (dy / len) * 0.05 * frameScale;
-                const currentSpeed = Math.hypot(m.vx, m.vy);
-                if (currentSpeed > m.typeData.speed) {
-                    m.vx = (m.vx / currentSpeed) * m.typeData.speed;
-                    m.vy = (m.vy / currentSpeed) * m.typeData.speed;
+                for (const jet of friendlyJets) {
+                    let dist = Math.hypot(jet.x - mouseX, jet.y - mouseY);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        target = jet;
+                    }
+                }
+
+                let targetRef = target;
+                if (target && friendlyJets.includes(target)) {
+                    targetRef = { x: target.x, y: target.y, vx: 0, vy: 1.5, type: 'flare', health: 1 };
+                    flares.push(targetRef);
+                    enqueueToast("Friendly Fire! Flares deployed", "#ffb8b8", 80);
+                }
+
+                let speed = launcher.isDavidsSling ? 14 : 10;
+
+                interceptors.push({
+                    x: launcher.x,
+                    y: launcher.y,
+                    vx: dx * speed,
+                    vy: dy * speed,
+                    age: 0,
+                    source: "battery",
+                    headAngle: INTERCEPTOR_TYPES.battery.headAngle || 0,
+                    target: targetRef
+                });
+
+                playShootSound();
+            } else if (activeWeapon === "laserDome") {
+                if (laserDomeCooldown > 0 || wave < 3 || laserLauncher.health <= 0) return;
+                for (const m of missiles) {
+                    if (m.type !== "drone") continue;
+                    let dist = Math.hypot(m.x - mouseX, m.y - mouseY);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        target = m;
+                    }
+                }
+                if (target) {
+                    target.health -= 2;
+                    lasers.push({ startX: laserLauncher.x, startY: laserLauncher.y - 12, endX: target.x, endY: target.y, age: 0, maxAge: 15 });
+                    if (target.health <= 0) {
+                        const idx = missiles.indexOf(target);
+                        if (idx !== -1) missiles.splice(idx, 1);
+                        handleMissionProgress(target.typeData.score);
+                        createExplosion(target.x, target.y);
+                        spawnFloatingText(target.x, target.y - 15, `+${target.typeData.score}`, "#8cffc1");
+                        // Drones vaporize from laser without shrapnel
+                    }
+                    laserDomeCooldown = 45; // 0.75 seconds cooldown
+                    playTone("square", { startFreq: 800, endFreq: 200, attack: 0.01, duration: 0.15, peak: 0.15 });
                 }
             }
-        } else if (m.type !== "drone") {
-            m.vy += 0.015 * frameScale;
         }
 
-        m.x += m.vx * frameScale;
-        m.y += m.vy * frameScale;
-        m.age += frameScale;
-        
-        // Check if missile left the screen (for horizontal drones)
-        if ((m.vx > 0 && m.x > canvas.width + 50) || (m.vx < 0 && m.x < -50)) {
-            missiles.splice(i, 1);
-            continue;
-        }
-        
-        // Check if missile reached ground
-        if (m.y >= getGroundYAt(m.x)) {
-            const hitBuilding = findHitBuilding(m.x, m.y);
-            if (hitBuilding) {
-                hitBuilding.health -= m.typeData.damage;
-                score = Math.max(0, score - BUILDING_HIT_PENALTY);
-            } else {
-                if (Math.abs(m.x - launcher.x) < 30) launcher.health -= m.typeData.damage;
-                else if (Math.abs(m.x - laserLauncher.x) < 30) laserLauncher.health -= m.typeData.damage;
-            }
-            createExplosion(m.x, m.y);
-            triggerHitFeedback(1.1);
-            missiles.splice(i, 1);
-            continue;
-        }
-        
-        // Check collision with interceptors
-        for (let j = interceptors.length - 1; j >= 0; j--) {
-            const inter = interceptors[j];
-            const dist = Math.hypot(m.x - inter.x, m.y - inter.y);
-            
-            if (dist < 30) {
-                createExplosion((m.x + inter.x) / 2, (m.y + inter.y) / 2);
-                spawnShrapnel((m.x + inter.x) / 2, (m.y + inter.y) / 2);
-                playHitSound();
-                triggerHitFeedback(0.7);
-                
-                m.health--;
-                if (m.health <= 0) {
-                    missiles.splice(i, 1);
-                    handleMissionProgress(m.typeData.score);
+        function spawnMissile() {
+            const levelIndex = Math.min(wave - 1, LEVEL_CONFIGS.length - 1);
+            const levelConfig = LEVEL_CONFIGS[levelIndex];
+            const typeKey = randomFrom(levelConfig.enemyTypes);
+            const type = MISSILE_TYPES[typeKey];
+
+            let x, y, vx, vy;
+
+            let targetBuilding = null;
+            let targetPoint = null;
+            if (type.horizontal) {
+                // Drone - moves horizontally initially
+                x = Math.random() > 0.5 ? -30 : canvas.width + 30;
+                y = Math.random() * (canvas.height * 0.4);
+                vx = x < canvas.width / 2 ? type.speed : -type.speed;
+                vy = (Math.random() - 0.5) * 0.5;
+
+                let rn = Math.random();
+                if (rn < 0.6) {
+                    const validBuildings = buildings.filter(b => b.health > 0);
+                    if (validBuildings.length > 0) {
+                        let b = randomFrom(validBuildings);
+                        targetPoint = { x: b.x + b.width / 2, y: b.y + b.height / 2, type: 'building', ref: b };
+                    }
+                } else if (rn < 0.8 && wave >= 3 && laserLauncher.health > 0) {
+                    targetPoint = { x: laserLauncher.x, y: laserLauncher.y, type: 'battery', ref: laserLauncher };
+                } else if (rn < 0.9 && launcher.health > 0) {
+                    targetPoint = { x: launcher.x, y: launcher.y, type: 'battery', ref: launcher };
                 }
-                
-                interceptors.splice(j, 1);
-                break;
-            }
-        }
-        
-        // Check collision with friendly jets
-        for (let j = friendlyJets.length - 1; j >= 0; j--) {
-            const jet = friendlyJets[j];
-            const dist = Math.hypot(m.x - jet.x, m.y - jet.y);
-            
-            if (dist < 35) {
-                createExplosion((m.x + jet.x) / 2, (m.y + jet.y) / 2);
-                spawnShrapnel((m.x + jet.x) / 2, (m.y + jet.y) / 2);
-                playHitSound();
-                triggerHitFeedback(0.55);
-                
-                m.health--;
-                if (m.health <= 0) {
-                    missiles.splice(i, 1);
-                    handleMissionProgress(Math.floor(m.typeData.score * 0.5));
+                if (!targetPoint) {
+                    let tx = Math.random() * canvas.width;
+                    targetPoint = { x: tx, y: getGroundYAt(tx), type: 'ground' };
                 }
-                break;
-            }
-        }
-    }
-    
-    // Update interceptors
-    for (let i = interceptors.length - 1; i >= 0; i--) {
-        const inter = interceptors[i];
-        
-        let hitFlare = false;
-        for (let j = 0; j < flares.length; j++) {
-            if (Math.hypot(inter.x - flares[j].x, inter.y - flares[j].y) < 30) {
-                createExplosion((inter.x + flares[j].x) / 2, (inter.y + flares[j].y) / 2);
-                flares.splice(j, 1);
-                interceptors.splice(i, 1);
-                hitFlare = true;
-                break;
-            }
-        }
-        if (hitFlare) continue;
-        
-        const hasValidTarget = inter.target && inter.target.health > 0 && (missiles.includes(inter.target) || flares.includes(inter.target));
-        if (inter.source === "battery" && hasValidTarget) {
-            const dx = inter.target.x - inter.x;
-            const dy = inter.target.y - inter.y;
-            const len = Math.max(1, Math.hypot(dx, dy));
-            
-            const dot = (inter.vx * dx + inter.vy * dy) / (INTERCEPTOR_SPEED * len);
-            if (dot < -0.1) {
-                inter.target = null; // Drop lock if overshot
             } else {
-                inter.vx = (dx / len) * INTERCEPTOR_SPEED;
-                inter.vy = (dy / len) * INTERCEPTOR_SPEED;
+                // Missiles - move downward
+                x = Math.random() * (canvas.width - 60) + 30;
+                y = -30;
+                vx = (Math.random() - 0.5) * 1;
+                vy = type.speed;
             }
+
+            missiles.push({ x, y, vx, vy, type: typeKey, typeData: type, headAngle: type.headAngle || 0, health: type.health, age: 0, targetPoint: targetPoint });
         }
-        inter.x += inter.vx * frameScale;
-        inter.y += inter.vy * frameScale;
-        inter.age += frameScale;
-        
-        // Remove if out of bounds or too old
-        if (inter.x < 0 || inter.x > canvas.width || inter.y < 0 || inter.y > canvas.height || inter.age > 300) {
-            interceptors.splice(i, 1);
-        }
-    }
-    
-    // Update friendly jets
-    for (let i = friendlyJets.length - 1; i >= 0; i--) {
-        const jet = friendlyJets[i];
-        const skyTop = 36;
-        const skyBottom = Math.max(120, canvas.height * 0.3);
-        jet.x += jet.vx * frameScale;
-        jet.age += frameScale;
-        jet.shotCooldown -= frameScale;
-        
-        // Find nearest missile to target (long range)
-        let nearestMissile = null;
-        let nearestDist = jet.shotRange;
-        
-        for (let m of missiles) {
-            const dist = Math.hypot(m.x - jet.x, m.y - jet.y);
-            if (dist < nearestDist) {
-                nearestDist = dist;
-                nearestMissile = m;
-            }
-        }
-        
-        // If target in range and cooldown ready, fire interceptor
-        if (nearestMissile && jet.shotCooldown <= 0) {
-            const dx = nearestMissile.x - jet.x;
-            const dy = nearestMissile.y - jet.y;
-            const len = Math.hypot(dx, dy);
-            
-            interceptors.push({
-                x: jet.x,
-                y: jet.y,
-                vx: (dx / len) * INTERCEPTOR_SPEED,
-                vy: (dy / len) * INTERCEPTOR_SPEED,
+
+        function createExplosion(x, y) {
+            explosions.push({
+                x: x,
+                y: y,
                 age: 0,
-                source: "jet",
-                headAngle: INTERCEPTOR_TYPES.jet.headAngle || 0
+                maxAge: 20
             });
-            
-            jet.shotCooldown = jet.maxCooldown;
-        }
-        
-        // Move towards target for better positioning
-        if (nearestMissile) {
-            const dx = nearestMissile.x - jet.x;
-            const dy = nearestMissile.y - jet.y;
-            const len = Math.max(1, Math.hypot(dx, dy));
-            jet.x += (dx / len) * 1.5 * frameScale;
-            jet.y += (dy / len) * 0.9 * frameScale;
         }
 
-        // Keep jet patrol strictly in the top sky band.
-        jet.y = Math.max(skyTop, Math.min(skyBottom, jet.y));
-        
-        // Remove if out of bounds or too old
-        if (jet.x < -50 || jet.x > canvas.width + 50 || jet.age > jet.maxAge) {
-            friendlyJets.splice(i, 1);
+        function spawnFloatingText(x, y, text, color) {
+            floatingTexts.push({
+                x: x,
+                y: y,
+                text: text,
+                color: color,
+                age: 0,
+                maxAge: 60,
+                vy: -1
+            });
         }
-    }
-    
-    // Update explosions
-    for (let i = explosions.length - 1; i >= 0; i--) {
-        explosions[i].age += frameScale;
-        if (explosions[i].age > explosions[i].maxAge) {
-            explosions.splice(i, 1);
-        }
-    }
-    
-    // Update flares
-    for (let i = flares.length - 1; i >= 0; i--) {
-        flares[i].x += flares[i].vx * frameScale;
-        flares[i].y += flares[i].vy * frameScale;
-        if (flares[i].y > canvas.height || flares[i].health <= 0) flares.splice(i, 1);
-    }
-    
-    // Update shrapnels
-    for (let i = shrapnels.length - 1; i >= 0; i--) {
-        let s = shrapnels[i];
-        s.vy += 0.05 * frameScale;
-        s.x += s.vx * frameScale;
-        s.y += s.vy * frameScale;
-        s.age += frameScale;
-        if (s.y >= getGroundYAt(s.x) || s.age > 200) {
-            const hitBuilding = findHitBuilding(s.x, s.y);
-            if (hitBuilding) hitBuilding.health -= 1;
-            else if (Math.abs(s.x - launcher.x) < 30) launcher.health -= 1;
-            else if (Math.abs(s.x - laserLauncher.x) < 30) laserLauncher.health -= 1;
-            shrapnels.splice(i, 1);
-        }
-    }
-    
-    // Update lasers
-    for (let i = lasers.length - 1; i >= 0; i--) {
-        lasers[i].age += frameScale;
-        if (lasers[i].age > lasers[i].maxAge) {
-            lasers.splice(i, 1);
-        }
-    }
-    
-    if (wave >= 3) {
-        laserDomeCooldown -= frameScale;
-    }
-    
-    // Remove destroyed buildings
-    buildings = buildings.filter(b => b.health > 0);
-    
-    // Check game over condition - all buildings destroyed, or all defenses destroyed
-    const defensesDown = launcher.health <= 0 && (wave < 3 || laserLauncher.health <= 0);
-    if (buildings.length === 0 || defensesDown) {
-        gameOver = true;
-        showOverlay("DEFENSES DOWN!", `Final Score: ${score}\nWave: ${wave}\nKills: ${kills}`);
-    }
-    
-    updateUI();
-}
 
-function drawLauncher() {
-    if (launcher.health <= 0) {
-        ctx.globalAlpha = 0.5;
-        drawEmoji(launcher.x, launcher.y, "🪨", 40);
-        ctx.globalAlpha = 1;
-        return;
-    }
-    
-    // iron dome active highlight
-    if (!gameOver && activeWeapon === "ironDome") {
-        ctx.strokeStyle = "rgba(255, 107, 107, 0.4)";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(launcher.x, launcher.y - 10, 35, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        if (isTouchDevice ? touchAimActive : true) {
-            const len = 100;
-            const endX = launcher.x + Math.cos(launcher.angle) * len;
-            const endY = launcher.y + Math.sin(launcher.angle) * len;
-            ctx.strokeStyle = "rgba(255, 107, 107, 0.3)";
-            ctx.lineWidth = 2;
-            ctx.setLineDash([8, 4]);
+        function updateUI() {
+            statValue1.textContent = kills;
+            statLabel2.textContent = "Mission";
+            statValue2.textContent = `${wave}: ${levelKills}/${levelGoalKills} or ${levelScore}/${levelGoalScore}`;
+            statValue3.textContent = ammo;
+        }
+
+        function update(deltaSeconds) {
+            if (gameOver) return;
+
+            const frameScale = deltaSeconds * REFERENCE_FPS;
+
+            // David's sling upgrade check
+            if (score >= 500 && !launcher.isDavidsSling) {
+                launcher.isDavidsSling = true;
+                launcher.maxClip = 6;
+                launcher.clip = 6;
+                enqueueToast("SYSTEM UPGRADE: DAVID'S SLING", "#ffd93d", 180);
+            }
+
+            frameCount += frameScale;
+            processMissionToasts();
+
+            // Get current level config
+            const levelIndex = Math.min(wave - 1, LEVEL_CONFIGS.length - 1);
+            const levelConfig = LEVEL_CONFIGS[levelIndex];
+
+            // Spawn chance
+            if (missiles.length < 6) {
+                const spawnChance = 1 - Math.pow(1 - levelConfig.spawnRate, frameScale);
+                if (Math.random() < spawnChance) {
+                    spawnMissile();
+                }
+            }
+
+            // Spawn friendly jets occasionally (bonus feature)
+            const previousBucket = Math.floor((frameCount - frameScale) / 180);
+            const currentBucket = Math.floor(frameCount / 180);
+            if (currentBucket > previousBucket && Math.random() < 0.6) {
+                spawnFriendlyJet();
+            }
+
+            // Carrier lands on sea and contributes long-range interceptions.
+            updateCarrier(frameScale);
+
+            // Update missiles
+            for (let i = missiles.length - 1; i >= 0; i--) {
+                const m = missiles[i];
+
+                if (m.type === "mirv" && m.y > canvas.height * 0.35 && !m.split) {
+                    m.split = true;
+                    m.health = 0;
+                    for (let k = 0; k < 3; k++) {
+                        missiles.push({
+                            x: m.x, y: m.y,
+                            vx: m.vx + (k - 1) * 1.5,
+                            vy: m.vy * 0.9,
+                            type: "miniRocket",
+                            typeData: MISSILE_TYPES.miniRocket,
+                            health: MISSILE_TYPES.miniRocket.health,
+                            age: 0,
+                            headAngle: MISSILE_TYPES.miniRocket.headAngle || 0
+                        });
+                    }
+                    createExplosion(m.x, m.y);
+                    spawnShrapnel(m.x, m.y);
+                    missiles.splice(i, 1);
+                    continue;
+                }
+
+                if (m.type === "drone" && m.targetPoint) {
+                    const dx = m.targetPoint.x - m.x;
+                    const dy = m.targetPoint.y - m.y;
+                    const len = Math.max(1, Math.hypot(dx, dy));
+
+                    if (len < 10) {
+                        if (m.targetPoint.type === 'building' && m.targetPoint.ref.health > 0) {
+                            m.targetPoint.ref.health -= m.typeData.damage;
+                            score = Math.max(0, score - BUILDING_HIT_PENALTY);
+                        } else if (m.targetPoint.type === 'battery' && m.targetPoint.ref.health > 0) {
+                            m.targetPoint.ref.health -= m.typeData.damage;
+                            score = Math.max(0, score - BUILDING_HIT_PENALTY);
+                        }
+                        createExplosion(m.x, m.y);
+                        triggerHitFeedback(1.5);
+                        missiles.splice(i, 1);
+                        continue;
+                    } else {
+                        m.vx += (dx / len) * 0.05 * frameScale;
+                        m.vy += (dy / len) * 0.05 * frameScale;
+                        const currentSpeed = Math.hypot(m.vx, m.vy);
+                        if (currentSpeed > m.typeData.speed) {
+                            m.vx = (m.vx / currentSpeed) * m.typeData.speed;
+                            m.vy = (m.vy / currentSpeed) * m.typeData.speed;
+                        }
+                    }
+                } else if (m.type !== "drone") {
+                    m.vy += 0.015 * frameScale;
+                }
+
+                m.x += m.vx * frameScale;
+                m.y += m.vy * frameScale;
+                m.age += frameScale;
+
+                // Check if missile left the screen (for horizontal drones)
+                if ((m.vx > 0 && m.x > canvas.width + 50) || (m.vx < 0 && m.x < -50)) {
+                    missiles.splice(i, 1);
+                    continue;
+                }
+
+                // Check if missile reached ground
+                if (m.y >= getGroundYAt(m.x)) {
+                    const hitBuilding = findHitBuilding(m.x, m.y);
+                    if (hitBuilding) {
+                        hitBuilding.health -= m.typeData.damage;
+                        score = Math.max(0, score - BUILDING_HIT_PENALTY);
+                        spawnFloatingText(hitBuilding.x + hitBuilding.width / 2, hitBuilding.y, `-${m.typeData.damage} HP`, "#ff6b6b");
+                    } else {
+                        if (Math.abs(m.x - launcher.x) < 30) {
+                            launcher.health -= m.typeData.damage;
+                            spawnFloatingText(launcher.x, launcher.y - 20, `-${m.typeData.damage} HP`, "#ff6b6b");
+                        } else if (Math.abs(m.x - laserLauncher.x) < 30) {
+                            laserLauncher.health -= m.typeData.damage;
+                            spawnFloatingText(laserLauncher.x, laserLauncher.y - 20, `-${m.typeData.damage} HP`, "#ff6b6b");
+                        }
+                    }
+                    createExplosion(m.x, m.y);
+                    if (m.type === "drone") {
+                        spawnShrapnel(m.x, m.y);
+                        for (let k = shrapnels.length - 1; k >= shrapnels.length - 4; k--) {
+                            if (shrapnels[k]) shrapnels[k].size *= 0.3;
+                        }
+                    } else {
+                        spawnShrapnel(m.x, m.y);
+                    }
+                    triggerHitFeedback(1.1);
+                    missiles.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision with interceptors
+                for (let j = interceptors.length - 1; j >= 0; j--) {
+                    const inter = interceptors[j];
+                    const dist = Math.hypot(m.x - inter.x, m.y - inter.y);
+
+                    if (dist < 30) {
+                        createExplosion((m.x + inter.x) / 2, (m.y + inter.y) / 2);
+                        if (m.type !== "drone") spawnShrapnel((m.x + inter.x) / 2, (m.y + inter.y) / 2);
+                        playHitSound();
+                        triggerHitFeedback(0.7);
+
+                        m.health--;
+                        if (m.health <= 0) {
+                            missiles.splice(i, 1);
+                            handleMissionProgress(m.typeData.score);
+                            spawnFloatingText((m.x + inter.x) / 2, (m.y + inter.y) / 2 - 15, `+${m.typeData.score}`, "#8cffc1");
+                        }
+
+                        interceptors.splice(j, 1);
+                        break;
+                    }
+                }
+
+                // Check collision with friendly jets
+                for (let j = friendlyJets.length - 1; j >= 0; j--) {
+                    const jet = friendlyJets[j];
+                    const dist = Math.hypot(m.x - jet.x, m.y - jet.y);
+
+                    if (dist < 35) {
+                        createExplosion((m.x + jet.x) / 2, (m.y + jet.y) / 2);
+                        if (m.type !== "drone") spawnShrapnel((m.x + jet.x) / 2, (m.y + jet.y) / 2);
+                        playHitSound();
+                        triggerHitFeedback(0.55);
+
+                        m.health--;
+                        if (m.health <= 0) {
+                            missiles.splice(i, 1);
+                            let pts = Math.floor(m.typeData.score * 0.5);
+                            handleMissionProgress(pts);
+                            spawnFloatingText((m.x + jet.x) / 2, (m.y + jet.y) / 2 - 15, `+${pts}`, "#8cffc1");
+                        }
+                        break;
+                    }
+                }
+            }
+
+            // Update interceptors
+            for (let i = interceptors.length - 1; i >= 0; i--) {
+                const inter = interceptors[i];
+
+                let hitFlare = false;
+                for (let j = 0; j < flares.length; j++) {
+                    if (Math.hypot(inter.x - flares[j].x, inter.y - flares[j].y) < 30) {
+                        createExplosion((inter.x + flares[j].x) / 2, (inter.y + flares[j].y) / 2);
+                        flares.splice(j, 1);
+                        interceptors.splice(i, 1);
+                        hitFlare = true;
+                        break;
+                    }
+                }
+                if (hitFlare) continue;
+
+                const hasValidTarget = inter.target && inter.target.health > 0 && (missiles.includes(inter.target) || flares.includes(inter.target));
+                if (inter.source === "battery" && hasValidTarget) {
+                    const dx = inter.target.x - inter.x;
+                    const dy = inter.target.y - inter.y;
+                    const len = Math.max(1, Math.hypot(dx, dy));
+
+                    const dot = (inter.vx * dx + inter.vy * dy) / (INTERCEPTOR_SPEED * len);
+                    if (dot < -0.1) {
+                        inter.target = null; // Drop lock if overshot
+                    } else {
+                        inter.vx = (dx / len) * INTERCEPTOR_SPEED;
+                        inter.vy = (dy / len) * INTERCEPTOR_SPEED;
+                    }
+                }
+                inter.x += inter.vx * frameScale;
+                inter.y += inter.vy * frameScale;
+                inter.age += frameScale;
+
+                // Remove if out of bounds or too old
+                if (inter.x < 0 || inter.x > canvas.width || inter.y < 0 || inter.y > canvas.height || inter.age > 300) {
+                    interceptors.splice(i, 1);
+                }
+            }
+
+            // Update friendly jets
+            for (let i = friendlyJets.length - 1; i >= 0; i--) {
+                const jet = friendlyJets[i];
+                const skyTop = 36;
+                const skyBottom = Math.max(120, canvas.height * 0.3);
+                jet.x += jet.vx * frameScale;
+                jet.age += frameScale;
+                jet.shotCooldown -= frameScale;
+
+                // Find nearest missile to target (long range)
+                let nearestMissile = null;
+                let nearestDist = jet.shotRange;
+
+                for (let m of missiles) {
+                    const dist = Math.hypot(m.x - jet.x, m.y - jet.y);
+                    if (dist < nearestDist) {
+                        nearestDist = dist;
+                        nearestMissile = m;
+                    }
+                }
+
+                // If target in range and cooldown ready, fire interceptor
+                if (nearestMissile && jet.shotCooldown <= 0) {
+                    const dx = nearestMissile.x - jet.x;
+                    const dy = nearestMissile.y - jet.y;
+                    const len = Math.hypot(dx, dy);
+
+                    interceptors.push({
+                        x: jet.x,
+                        y: jet.y,
+                        vx: (dx / len) * INTERCEPTOR_SPEED,
+                        vy: (dy / len) * INTERCEPTOR_SPEED,
+                        age: 0,
+                        source: "jet",
+                        headAngle: INTERCEPTOR_TYPES.jet.headAngle || 0
+                    });
+
+                    jet.shotCooldown = jet.maxCooldown;
+                }
+
+                // Move towards target for better positioning
+                if (nearestMissile) {
+                    const dx = nearestMissile.x - jet.x;
+                    const dy = nearestMissile.y - jet.y;
+                    const len = Math.max(1, Math.hypot(dx, dy));
+                    jet.x += (dx / len) * 1.5 * frameScale;
+                    jet.y += (dy / len) * 0.9 * frameScale;
+                }
+
+                // Keep jet patrol strictly in the top sky band.
+                jet.y = Math.max(skyTop, Math.min(skyBottom, jet.y));
+
+                // Remove if out of bounds or too old
+                if (jet.x < -50 || jet.x > canvas.width + 50 || jet.age > jet.maxAge) {
+                    friendlyJets.splice(i, 1);
+                }
+            }
+
+            // Update explosions
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                explosions[i].age += frameScale;
+                if (explosions[i].age > explosions[i].maxAge) {
+                    explosions.splice(i, 1);
+                }
+            }
+
+            // Update flares
+            for (let i = flares.length - 1; i >= 0; i--) {
+                flares[i].x += flares[i].vx * frameScale;
+                flares[i].y += flares[i].vy * frameScale;
+                if (flares[i].y > canvas.height || flares[i].health <= 0) flares.splice(i, 1);
+            }
+
+            // Update floating texts
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                let ft = floatingTexts[i];
+                ft.y += ft.vy * frameScale;
+                ft.age += frameScale;
+                if (ft.age > ft.maxAge) floatingTexts.splice(i, 1);
+            }
+
+            // Update wave announcement
+            if (activeWaveAnnouncement.timer > 0) {
+                activeWaveAnnouncement.timer -= frameScale;
+                if (activeWaveAnnouncement.timer < 60) {
+                    activeWaveAnnouncement.alpha = Math.max(0, activeWaveAnnouncement.timer / 60);
+                }
+            }
+
+            // Update shrapnels
+            for (let i = shrapnels.length - 1; i >= 0; i--) {
+                let s = shrapnels[i];
+                s.vy += 0.05 * frameScale;
+                s.x += s.vx * frameScale;
+                s.y += s.vy * frameScale;
+                s.age += frameScale;
+
+                s.size = Math.max(0, 1 - (s.age / 150));
+                if (s.size <= 0) {
+                    shrapnels.splice(i, 1);
+                    continue;
+                }
+
+                if (s.y >= getGroundYAt(s.x)) {
+                    const hitBuilding = findHitBuilding(s.x, s.y);
+                    const dmg = s.size * 0.5;
+                    if (dmg > 0.05) {
+                        const dmgLabel = `-${dmg.toFixed(1)} HP`;
+                        if (hitBuilding) {
+                            hitBuilding.health -= dmg;
+                            spawnFloatingText(hitBuilding.x + hitBuilding.width / 2, hitBuilding.y, dmgLabel, "#ff6b6b");
+                        }
+                        else if (Math.abs(s.x - launcher.x) < 30) {
+                            launcher.health -= dmg;
+                            spawnFloatingText(launcher.x, launcher.y - 20, dmgLabel, "#ff6b6b");
+                        }
+                        else if (Math.abs(s.x - laserLauncher.x) < 30) {
+                            laserLauncher.health -= dmg;
+                            spawnFloatingText(laserLauncher.x, laserLauncher.y - 20, dmgLabel, "#ff6b6b");
+                        }
+                    }
+                    shrapnels.splice(i, 1);
+                }
+            }
+
+            // Auto-heal
+            const healRateBldg = 0.007 * frameScale;
+            const healRateBat = 0.015 * frameScale;
+            if (launcher.health > 0 && launcher.health < launcher.maxHealth) {
+                launcher.health = Math.min(launcher.maxHealth, launcher.health + healRateBat);
+            }
+            if (laserLauncher.health > 0 && laserLauncher.health < laserLauncher.maxHealth) {
+                laserLauncher.health = Math.min(laserLauncher.maxHealth, laserLauncher.health + healRateBat);
+            }
+            buildings.forEach(b => {
+                if (b.health > 0 && b.health < b.maxHealth) {
+                    b.health = Math.min(b.maxHealth, b.health + healRateBldg);
+                }
+            });
+
+            // Update lasers
+            for (let i = lasers.length - 1; i >= 0; i--) {
+                lasers[i].age += frameScale;
+                if (lasers[i].age > lasers[i].maxAge) {
+                    lasers.splice(i, 1);
+                }
+            }
+
+            if (wave >= 3) {
+                laserDomeCooldown -= frameScale;
+            }
+
+            // Remove destroyed buildings
+            buildings = buildings.filter(b => b.health > 0);
+
+            // Check game over condition - all buildings destroyed, or all defenses destroyed
+            const defensesDown = launcher.health <= 0 && (wave < 3 || laserLauncher.health <= 0);
+            if (buildings.length === 0 || defensesDown) {
+                gameOver = true;
+                showOverlay("DEFENSES DOWN!", `Final Score: ${score}\nWave: ${wave}\nKills: ${kills}`);
+            }
+
+            updateUI();
+        }
+
+        function drawLauncher() {
+            if (launcher.health <= 0) {
+                ctx.globalAlpha = 0.5;
+                drawEmoji(launcher.x, launcher.y, "🪨", 40);
+                ctx.globalAlpha = 1;
+                return;
+            }
+
+            if (launcher.health < launcher.maxHealth) {
+                ctx.fillStyle = "rgba(255,0,0,0.5)";
+                ctx.fillRect(launcher.x - 20, launcher.y + 20, 40, 4);
+                ctx.fillStyle = "rgba(0,255,0,0.8)";
+                ctx.fillRect(launcher.x - 20, launcher.y + 20, 40 * (launcher.health / launcher.maxHealth), 4);
+            }
+
+            // Draw Missile Heap
+            if (launcher.isDavidsSling) {
+                ctx.fillStyle = "#55aa55";
+                ctx.fillRect(launcher.x + 60, launcher.y + 10, 30, 15);
+                ctx.fillStyle = "#338833";
+                ctx.fillRect(launcher.x + 65, launcher.y + 5, 20, 10);
+                ctx.fillStyle = "#ffaa00";
+                ctx.beginPath(); ctx.moveTo(launcher.x + 68, launcher.y + 5); ctx.lineTo(launcher.x + 72, launcher.y + 5); ctx.lineTo(launcher.x + 70, launcher.y); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(launcher.x + 78, launcher.y + 5); ctx.lineTo(launcher.x + 82, launcher.y + 5); ctx.lineTo(launcher.x + 80, launcher.y); ctx.fill();
+            } else {
+                ctx.fillStyle = "#888888";
+                ctx.fillRect(launcher.x + 60, launcher.y + 12, 26, 12);
+                ctx.fillStyle = "#777777";
+                ctx.fillRect(launcher.x + 64, launcher.y + 6, 18, 10);
+                ctx.fillStyle = "#ff5555";
+                ctx.beginPath(); ctx.moveTo(launcher.x + 66, launcher.y + 6); ctx.lineTo(launcher.x + 70, launcher.y + 6); ctx.lineTo(launcher.x + 68, launcher.y + 2); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(launcher.x + 72, launcher.y + 6); ctx.lineTo(launcher.x + 76, launcher.y + 6); ctx.lineTo(launcher.x + 74, launcher.y + 2); ctx.fill();
+            }
+
+            // iron dome active highlight
+            if (!gameOver && activeWeapon === "ironDome") {
+                ctx.strokeStyle = "rgba(255, 107, 107, 0.4)";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(launcher.x, launcher.y - 10, 35, 0, Math.PI * 2);
+                ctx.stroke();
+
+                if (isTouchDevice ? touchAimActive : true) {
+                    const len = 100;
+                    const endX = launcher.x + Math.cos(launcher.angle) * len;
+                    const endY = launcher.y + Math.sin(launcher.angle) * len;
+                    ctx.strokeStyle = "rgba(255, 107, 107, 0.3)";
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([8, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(launcher.x, launcher.y);
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+
+            // Iron Dome launcher platform
+            ctx.save();
+            ctx.translate(launcher.x, launcher.y);
+
+            // Ground mount base
+            ctx.fillStyle = "#4f5966";
+            ctx.fillRect(-30, 10, 60, 14);
+            ctx.fillStyle = "#3d4652";
+            ctx.fillRect(-24, 4, 48, 10);
+
+            // Dome radar
+            ctx.fillStyle = launcher.isDavidsSling ? "#4a6c8c" : "#6f7e90";
             ctx.beginPath();
-            ctx.moveTo(launcher.x, launcher.y);
-            ctx.lineTo(endX, endY);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            ctx.arc(0, 2, 10, Math.PI, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            // Missile canister bank (tilted toward aim angle)
+            const turretAngle = Math.max(-Math.PI + 0.2, Math.min(-0.2, launcher.angle));
+            ctx.rotate(turretAngle + Math.PI / 2);
+
+            if (launcher.isDavidsSling) {
+                // David's sling 2x3 block
+                ctx.fillStyle = "#6389a8";
+                ctx.fillRect(-16, -26, 10, 26);
+                ctx.fillRect(-4, -28, 10, 28);
+                ctx.fillRect(8, -26, 10, 26);
+
+                ctx.fillStyle = "#4a6a84";
+                ctx.fillRect(-22, -22, 12, 24);
+                ctx.fillRect(-6, -24, 12, 26);
+                ctx.fillRect(10, -22, 12, 24);
+
+                ctx.fillStyle = "#ffaa00";
+                for (let i = 0; i < Math.min(3, launcher.clip); i++) {
+                    let rx = i === 0 ? -11 : (i === 1 ? 1 : 13);
+                    let ry = i === 1 ? -28 : -26;
+                    ctx.beginPath();
+                    ctx.moveTo(rx - 3, ry); ctx.lineTo(rx + 3, ry); ctx.lineTo(rx, ry - 6); ctx.fill();
+                }
+                for (let i = 3; i < launcher.clip; i++) {
+                    let rx = i === 3 ? -16 : (i === 4 ? 0 : 16);
+                    let ry = i === 4 ? -24 : -22;
+                    ctx.beginPath();
+                    ctx.moveTo(rx - 4, ry); ctx.lineTo(rx + 4, ry); ctx.lineTo(rx, ry - 8); ctx.fill();
+                }
+            } else {
+                // Iron dome 1x4 block
+                ctx.fillStyle = "#8f9bad";
+                ctx.fillRect(-24, -26, 10, 26);
+                ctx.fillRect(-10, -28, 10, 28);
+                ctx.fillRect(4, -28, 10, 28);
+                ctx.fillRect(18, -26, 10, 26);
+
+                ctx.fillStyle = "#ff5555";
+                for (let i = 0; i < launcher.clip; i++) {
+                    let rx = -19 + i * 14;
+                    let ry = (i === 1 || i === 2) ? -28 : -26;
+                    ctx.beginPath();
+                    ctx.moveTo(rx - 3, ry); ctx.lineTo(rx + 3, ry); ctx.lineTo(rx, ry - 6); ctx.fill();
+                }
+            }
+
+            // Canister caps (bottom)
+            ctx.fillStyle = "#d7dee7";
+
+            ctx.restore();
         }
-    }
 
-    // Iron Dome launcher platform
-    ctx.save();
-    ctx.translate(launcher.x, launcher.y);
+        function drawLaserLauncher() {
+            if (wave < 3) return;
 
-    // Ground mount base
-    ctx.fillStyle = "#4f5966";
-    ctx.fillRect(-30, 10, 60, 14);
-    ctx.fillStyle = "#3d4652";
-    ctx.fillRect(-24, 4, 48, 10);
+            if (laserLauncher.health <= 0) {
+                ctx.globalAlpha = 0.5;
+                drawEmoji(laserLauncher.x, laserLauncher.y, "🪨", 40);
+                ctx.globalAlpha = 1;
+                return;
+            }
 
-    // Dome radar
-    ctx.fillStyle = "#6f7e90";
-    ctx.beginPath();
-    ctx.arc(0, 2, 10, Math.PI, 0);
-    ctx.closePath();
-    ctx.fill();
+            if (laserLauncher.health < laserLauncher.maxHealth) {
+                ctx.fillStyle = "rgba(255,0,0,0.5)";
+                ctx.fillRect(laserLauncher.x - 20, laserLauncher.y + 20, 40, 4);
+                ctx.fillStyle = "rgba(0,255,0,0.8)";
+                ctx.fillRect(laserLauncher.x - 20, laserLauncher.y + 20, 40 * (laserLauncher.health / laserLauncher.maxHealth), 4);
+            }
 
-    // Missile canister bank (tilted toward aim angle)
-    const turretAngle = Math.max(-Math.PI + 0.2, Math.min(-0.2, launcher.angle));
-    ctx.rotate(turretAngle + Math.PI / 2);
-    ctx.fillStyle = "#8f9bad";
-    ctx.fillRect(-18, -28, 12, 28);
-    ctx.fillRect(-2, -30, 12, 30);
-    ctx.fillRect(14, -26, 12, 26);
+            if (!gameOver && activeWeapon === "laserDome") {
+                ctx.strokeStyle = "rgba(100, 200, 255, 0.4)";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(laserLauncher.x, laserLauncher.y - 10, 35, 0, Math.PI * 2);
+                ctx.stroke();
+            }
 
-    // Canister caps
-    ctx.fillStyle = "#d7dee7";
-    ctx.fillRect(-18, -30, 12, 3);
-    ctx.fillRect(-2, -32, 12, 3);
-    ctx.fillRect(14, -28, 12, 3);
+            ctx.save();
+            ctx.translate(laserLauncher.x, laserLauncher.y);
 
-    ctx.restore();
-}
+            // laser base
+            ctx.fillStyle = "#2a4b66";
+            ctx.fillRect(-24, 6, 48, 14);
+            ctx.fillStyle = "#1e354a";
+            ctx.fillRect(-18, 0, 36, 6);
 
-function drawLaserLauncher() {
-    if (wave < 3) return;
-    
-    if (laserLauncher.health <= 0) {
-        ctx.globalAlpha = 0.5;
-        drawEmoji(laserLauncher.x, laserLauncher.y, "🪨", 40);
-        ctx.globalAlpha = 1;
-        return;
-    }
-    
-    if (!gameOver && activeWeapon === "laserDome") {
-        ctx.strokeStyle = "rgba(100, 200, 255, 0.4)";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(laserLauncher.x, laserLauncher.y - 10, 35, 0, Math.PI * 2);
-        ctx.stroke();
-    }
-    
-    ctx.save();
-    ctx.translate(laserLauncher.x, laserLauncher.y);
-    
-    // laser base
-    ctx.fillStyle = "#2a4b66";
-    ctx.fillRect(-24, 6, 48, 14);
-    ctx.fillStyle = "#1e354a";
-    ctx.fillRect(-18, 0, 36, 6);
-    
-    // laser emitter ball
-    ctx.fillStyle = "#5c9bbd";
-    ctx.beginPath();
-    ctx.arc(0, -6, 12, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // laser barrel pointed at aim
-    const aimAngle = Math.atan2(mouseY - laserLauncher.y, mouseX - laserLauncher.x);
-    ctx.rotate(aimAngle);
-    ctx.fillStyle = "#b8dcf2";
-    ctx.fillRect(8, -4, 16, 8);
-    
-    ctx.restore();
-}
-
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const shake = getShakeOffset();
-    ctx.save();
-    ctx.translate(shake.x, shake.y);
-
-    // Sea strip where the carrier lands and operates.
-    const seaTop = canvas.height - 56;
-    const seaCityBoundaryX = cachedSeaCityBoundaryX;
-    ctx.fillStyle = cachedSeaGradient;
-    ctx.fillRect(0, seaTop, canvas.width, canvas.height - seaTop);
-
-    // Curved land mass: flat near coast, climbs to the right, then drops to far-right flat.
-    ctx.beginPath();
-    ctx.moveTo(seaCityBoundaryX, canvas.height);
-    ctx.lineTo(seaCityBoundaryX, getGroundYAt(seaCityBoundaryX));
-    for (let x = seaCityBoundaryX; x <= canvas.width; x += 6) {
-        ctx.lineTo(x, getGroundYAt(x));
-    }
-    ctx.lineTo(canvas.width, canvas.height);
-    ctx.closePath();
-    ctx.fillStyle = cachedLandGradient;
-    ctx.fill();
-
-    const sandStart = seaCityBoundaryX;
-    const sandEnd = cachedSandEnd;
-    const rockyStart = cachedRockyStart;
-    const rockyEnd = cachedRockyEnd;
-
-    // Sandy coastal cap following the same curve.
-    ctx.beginPath();
-    ctx.moveTo(sandStart, getGroundYAt(sandStart));
-    for (let x = sandStart; x <= sandEnd; x += 6) {
-        ctx.lineTo(x, getGroundYAt(x));
-    }
-    for (let x = sandEnd; x >= sandStart; x -= 6) {
-        ctx.lineTo(x, getGroundYAt(x) + 16);
-    }
-    ctx.closePath();
-    ctx.fillStyle = cachedSandGradient;
-    ctx.fill();
-
-    // Rocky mountain cap on the right highlands.
-    ctx.beginPath();
-    ctx.moveTo(rockyStart, getGroundYAt(rockyStart));
-    for (let x = rockyStart; x <= rockyEnd; x += 6) {
-        const jag = 7 + Math.sin(x * 0.12) * 5;
-        ctx.lineTo(x, getGroundYAt(x) - jag);
-    }
-    for (let x = rockyEnd; x >= rockyStart; x -= 6) {
-        ctx.lineTo(x, getGroundYAt(x) + 18);
-    }
-    ctx.closePath();
-    ctx.fillStyle = cachedRockGradient;
-    ctx.fill();
-
-    // Draw buildings
-    buildings.forEach(b => {
-        drawEmoji(b.x + b.width / 2, b.y + b.height / 2, b.emoji);
-        
-        // Draw health indicator
-        if (b.health < b.maxHealth) {
-            ctx.fillStyle = "rgba(255, 100, 100, 0.5)";
-            ctx.globalAlpha = 0.5;
-            ctx.fillRect(b.x, b.y, b.width, b.height);
-            ctx.globalAlpha = 1;
-        }
-    });
-    
-    // Draw game objects
-    shrapnels.forEach(s => {
-        ctx.fillStyle = "#ffaa00";
-        ctx.fillRect(s.x, s.y, 4, 4);
-    });
-    
-    flares.forEach(f => {
-        ctx.fillStyle = "#ffffff";
-        ctx.shadowColor = "#ffddaa";
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(f.x, f.y, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    });
-
-    missiles.forEach(drawHostile);
-    interceptors.forEach(inter => {
-        const typeData = INTERCEPTOR_TYPES[inter.source] || INTERCEPTOR_TYPES.battery;
-        const size = typeData.size || 32;
-
-        const velocityAngle = Math.atan2(inter.vy, inter.vx);
-        const headAngle = inter.headAngle ?? typeData.headAngle ?? 0;
-        const headingAngle = velocityAngle - headAngle;
-
-        drawOrientedEmoji(inter.x, inter.y, typeData.emoji, headingAngle, 1, size);
-    });
-
-    drawCarrier();
-    
-    friendlyJets.forEach(jet => {
-        ctx.globalAlpha = 0.95;
-        drawF35(jet.x, jet.y, 1.05, jet.vx >= 0);
-        ctx.globalAlpha = 1;
-        
-        // Draw targeting range circle when in combat
-        if (missiles.length > 0) {
-            ctx.strokeStyle = "rgba(76, 175, 80, 0.1)";
-            ctx.lineWidth = 1;
+            // laser emitter ball
+            ctx.fillStyle = "#5c9bbd";
             ctx.beginPath();
-            ctx.arc(jet.x, jet.y, jet.shotRange, 0, Math.PI * 2);
-            ctx.stroke();
+            ctx.arc(0, -6, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // laser barrel pointed at aim
+            ctx.rotate(laserLauncher.angle || 0);
+            ctx.fillStyle = "#b8dcf2";
+            ctx.fillRect(8, -4, 16, 8);
+
+            ctx.restore();
         }
-    });
-    
-    if (settings.aimGuide && missiles.length > 0 && !gameOver && !isPaused) {
-        let bestDist = Infinity;
-        let aimTarget = null;
-        for (const m of missiles) {
-            let dist = Math.hypot(m.x - mouseX, m.y - mouseY);
-            if (dist < bestDist) {
-                bestDist = dist;
-                aimTarget = m;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const shake = getShakeOffset();
+            ctx.save();
+            ctx.translate(shake.x, shake.y);
+
+            // Sea strip where the carrier lands and operates.
+            const seaTop = canvas.height - 56;
+            const seaCityBoundaryX = cachedSeaCityBoundaryX;
+            ctx.fillStyle = cachedSeaGradient;
+            ctx.fillRect(0, seaTop, canvas.width, canvas.height - seaTop);
+
+            // Curved land mass: flat near coast, climbs to the right, then drops to far-right flat.
+            ctx.beginPath();
+            ctx.moveTo(seaCityBoundaryX, canvas.height);
+            ctx.lineTo(seaCityBoundaryX, getGroundYAt(seaCityBoundaryX));
+            for (let x = seaCityBoundaryX; x <= canvas.width; x += 6) {
+                ctx.lineTo(x, getGroundYAt(x));
+            }
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.closePath();
+            ctx.fillStyle = cachedLandGradient;
+            ctx.fill();
+
+            const sandStart = seaCityBoundaryX;
+            const sandEnd = cachedSandEnd;
+            const rockyStart = cachedRockyStart;
+            const rockyEnd = cachedRockyEnd;
+
+            // Sandy coastal cap following the same curve.
+            ctx.beginPath();
+            ctx.moveTo(sandStart, getGroundYAt(sandStart));
+            for (let x = sandStart; x <= sandEnd; x += 6) {
+                ctx.lineTo(x, getGroundYAt(x));
+            }
+            for (let x = sandEnd; x >= sandStart; x -= 6) {
+                ctx.lineTo(x, getGroundYAt(x) + 16);
+            }
+            ctx.closePath();
+            ctx.fillStyle = cachedSandGradient;
+            ctx.fill();
+
+            // Rocky mountain cap on the right highlands.
+            ctx.beginPath();
+            ctx.moveTo(rockyStart, getGroundYAt(rockyStart));
+            for (let x = rockyStart; x <= rockyEnd; x += 6) {
+                const jag = 7 + Math.sin(x * 0.12) * 5;
+                ctx.lineTo(x, getGroundYAt(x) - jag);
+            }
+            for (let x = rockyEnd; x >= rockyStart; x -= 6) {
+                ctx.lineTo(x, getGroundYAt(x) + 18);
+            }
+            ctx.closePath();
+            ctx.fillStyle = cachedRockGradient;
+            ctx.fill();
+
+            // Draw buildings
+            buildings.forEach(b => {
+                drawEmoji(b.x + b.width / 2, b.y + b.height / 2, b.emoji);
+
+                // Draw health indicator
+                if (b.health < b.maxHealth) {
+                    ctx.fillStyle = "rgba(255, 100, 100, 0.2)";
+                    ctx.fillRect(b.x, b.y, b.width, b.height);
+
+                    // Health bar
+                    ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+                    ctx.fillRect(b.x + 2, b.y + b.height - 6, b.width - 4, 4);
+                    ctx.fillStyle = "rgba(0, 255, 0, 0.8)";
+                    ctx.fillRect(b.x + 2, b.y + b.height - 6, (b.width - 4) * (b.health / b.maxHealth), 4);
+                }
+            });
+
+            // Draw game objects
+            shrapnels.forEach(s => {
+                if (!s.size) s.size = 1;
+                ctx.fillStyle = "#ffaa00";
+                ctx.fillRect(s.x, s.y, s.size * 5, s.size * 5);
+            });
+
+            flares.forEach(f => {
+                ctx.fillStyle = "#ffffff";
+                ctx.shadowColor = "#ffddaa";
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            missiles.forEach(drawHostile);
+            interceptors.forEach(inter => {
+                const typeData = INTERCEPTOR_TYPES[inter.source] || INTERCEPTOR_TYPES.battery;
+                const size = typeData.size || 32;
+
+                const velocityAngle = Math.atan2(inter.vy, inter.vx);
+                const headAngle = inter.headAngle ?? typeData.headAngle ?? 0;
+                const headingAngle = velocityAngle - headAngle;
+
+                drawOrientedEmoji(inter.x, inter.y, typeData.emoji, headingAngle, 1, size);
+            });
+
+            drawCarrier();
+
+            friendlyJets.forEach(jet => {
+                ctx.globalAlpha = 0.95;
+                drawF35(jet.x, jet.y, 1.05, jet.vx >= 0);
+                ctx.globalAlpha = 1;
+
+                // Draw targeting range circle when in combat
+                if (missiles.length > 0) {
+                    ctx.strokeStyle = "rgba(76, 175, 80, 0.1)";
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.arc(jet.x, jet.y, jet.shotRange, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            });
+
+            if (settings.aimGuide && missiles.length > 0 && !gameOver && !isPaused) {
+                let bestDist = Infinity;
+                let aimTarget = null;
+                for (const m of missiles) {
+                    let dist = Math.hypot(m.x - mouseX, m.y - mouseY);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        aimTarget = m;
+                    }
+                }
+                if (aimTarget) {
+                    ctx.strokeStyle = activeWeapon === "laserDome" ? "rgba(100, 200, 255, 0.8)" : "rgba(255, 100, 100, 0.8)";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    const sz = 16;
+                    ctx.moveTo(aimTarget.x - sz, aimTarget.y);
+                    ctx.lineTo(aimTarget.x + sz, aimTarget.y);
+                    ctx.moveTo(aimTarget.x, aimTarget.y - sz);
+                    ctx.lineTo(aimTarget.x, aimTarget.y + sz);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(aimTarget.x, aimTarget.y, sz * 0.7, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+
+            explosions.forEach(exp => {
+                ctx.globalAlpha = 1 - (exp.age / exp.maxAge);
+                drawEmoji(exp.x, exp.y, EXPLOSION_EMOJI);
+                ctx.globalAlpha = 1;
+            });
+
+            lasers.forEach(laser => {
+                const alpha = 1 - (laser.age / laser.maxAge);
+                ctx.strokeStyle = `rgba(100, 200, 255, ${alpha})`;
+                ctx.lineWidth = 4;
+                ctx.shadowColor = "rgba(100, 200, 255, 0.8)";
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.moveTo(laser.startX, laser.startY);
+                ctx.lineTo(laser.endX, laser.endY);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            });
+
+            drawLauncher();
+            drawLaserLauncher();
+            drawMissionToast();
+
+            // Draw floating texts
+            floatingTexts.forEach(ft => {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, ft.age / ft.maxAge <= 0.7 ? 1 : 1 - ((ft.age - ft.maxAge * 0.7) / (ft.maxAge * 0.3)));
+                ctx.fillStyle = ft.color;
+                ctx.font = "bold 16px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.shadowColor = "rgba(0,0,0,0.8)";
+                ctx.shadowBlur = 4;
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.restore();
+            });
+
+            // Draw wave announcement
+            if (activeWaveAnnouncement.timer > 0) {
+                ctx.save();
+                ctx.globalAlpha = activeWaveAnnouncement.alpha;
+                ctx.fillStyle = "#ffeb3b";
+                // Scale up dynamically as it fades
+                const scale = 1 + (1 - activeWaveAnnouncement.alpha) * 0.5;
+                ctx.translate(canvas.width / 2, canvas.height / 3);
+                ctx.scale(scale, scale);
+                ctx.font = "bold " + (useCompactCoastLayout() ? "50px" : "80px") + " sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.shadowColor = "rgba(255, 107, 107, 0.8)";
+                ctx.shadowBlur = 20;
+                ctx.fillText(activeWaveAnnouncement.text, 0, 0);
+                ctx.restore();
+            }
+
+            // Draw score
+            ctx.save();
+            ctx.font = "bold 28px sans-serif";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "top";
+            ctx.fillStyle = "#ffd93d";
+            ctx.shadowColor = "rgba(255, 217, 61, 0.5)";
+            ctx.shadowBlur = 10;
+            ctx.fillText("Score: " + score, 20, 20);
+            ctx.restore();
+
+            ctx.restore();
+
+            if (impactFlash > 0.001) {
+                ctx.fillStyle = `rgba(255, 90, 90, ${impactFlash})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            if (isPaused && !gameOver) {
+                ctx.fillStyle = "rgba(5, 10, 20, 0.55)";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "#d2e7ff";
+                ctx.font = "bold 40px sans-serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2 - 8);
+                ctx.font = "16px sans-serif";
+                ctx.fillStyle = "rgba(225, 237, 255, 0.9)";
+                ctx.fillText("Press P to resume", canvas.width / 2, canvas.height / 2 + 26);
             }
         }
-        if (aimTarget) {
-            ctx.strokeStyle = activeWeapon === "laserDome" ? "rgba(100, 200, 255, 0.8)" : "rgba(255, 100, 100, 0.8)";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            const sz = 16;
-            ctx.moveTo(aimTarget.x - sz, aimTarget.y);
-            ctx.lineTo(aimTarget.x + sz, aimTarget.y);
-            ctx.moveTo(aimTarget.x, aimTarget.y - sz);
-            ctx.lineTo(aimTarget.x, aimTarget.y + sz);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(aimTarget.x, aimTarget.y, sz * 0.7, 0, Math.PI * 2);
-            ctx.stroke();
+
+        let lastFrameTime = performance.now();
+
+        function loop(timestamp) {
+            const deltaSeconds = Math.min((timestamp - lastFrameTime) / 1000, 0.05);
+            lastFrameTime = timestamp;
+            const frameScale = deltaSeconds * REFERENCE_FPS;
+            if (!isPaused) {
+                update(deltaSeconds);
+            }
+            decayFeedback(frameScale);
+            draw();
+            requestAnimationFrame(loop);
         }
-    }
-    
-    explosions.forEach(exp => {
-        ctx.globalAlpha = 1 - (exp.age / exp.maxAge);
-        drawEmoji(exp.x, exp.y, EXPLOSION_EMOJI);
-        ctx.globalAlpha = 1;
-    });
-    
-    lasers.forEach(laser => {
-        const alpha = 1 - (laser.age / laser.maxAge);
-        ctx.strokeStyle = `rgba(100, 200, 255, ${alpha})`;
-        ctx.lineWidth = 4;
-        ctx.shadowColor = "rgba(100, 200, 255, 0.8)";
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.moveTo(laser.startX, laser.startY);
-        ctx.lineTo(laser.endX, laser.endY);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-    });
-    
-    drawLauncher();
-    drawLaserLauncher();
-    drawMissionToast();
-    
-    // Draw score
-    ctx.save();
-    ctx.font = "bold 28px sans-serif";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "top";
-    ctx.fillStyle = "#ffd93d";
-    ctx.shadowColor = "rgba(255, 217, 61, 0.5)";
-    ctx.shadowBlur = 10;
-    ctx.fillText("Score: " + score, 20, 20);
-    ctx.restore();
 
-    ctx.restore();
+        function showOverlay(title, message) {
+            isPaused = false;
+            pauseLockedByPanel = false;
+            updatePauseButtonUi();
+            uiTitle.innerText = title;
+            uiScore.innerText = message;
+            uiOverlay.style.display = "block";
+        }
 
-    if (impactFlash > 0.001) {
-        ctx.fillStyle = `rgba(255, 90, 90, ${impactFlash})`;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
+        function shareScore(platform) {
+            const text = `Iron Dome Defense score: ${score} points, Wave ${wave}, ${kills} kills. Can you survive longer? 🚀💥🛩️`;
+            const encodedUrl = encodeURIComponent(location.href);
 
-    if (isPaused && !gameOver) {
-        ctx.fillStyle = "rgba(5, 10, 20, 0.55)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#d2e7ff";
-        ctx.font = "bold 40px sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2 - 8);
-        ctx.font = "16px sans-serif";
-        ctx.fillStyle = "rgba(225, 237, 255, 0.9)";
-        ctx.fillText("Press P to resume", canvas.width / 2, canvas.height / 2 + 26);
-    }
-}
+            if (platform === 'copy') {
+                navigator.clipboard.writeText(`${text}\n${location.href}`).then(() => {
+                    alert("Score copied to clipboard!");
+                }).catch(() => {
+                    alert("Failed to copy to clipboard");
+                });
+                return;
+            }
 
-let lastFrameTime = performance.now();
+            const shareUrl = buildShareUrl(platform, text, encodedUrl);
 
-function loop(timestamp) {
-    const deltaSeconds = Math.min((timestamp - lastFrameTime) / 1000, 0.05);
-    lastFrameTime = timestamp;
-    const frameScale = deltaSeconds * REFERENCE_FPS;
-    if (!isPaused) {
-        update(deltaSeconds);
-    }
-    decayFeedback(frameScale);
-    draw();
-    requestAnimationFrame(loop);
-}
+            if (shareUrl) window.open(shareUrl, "_blank");
+        }
 
-function showOverlay(title, message) {
-    isPaused = false;
-    pauseLockedByPanel = false;
-    updatePauseButtonUi();
-    uiTitle.innerText = title;
-    uiScore.innerText = message;
-    uiOverlay.style.display = "block";
-}
+        window.addEventListener("beforeunload", revokeOldManifestUrl);
 
-function shareScore(platform) {
-    const text = `Iron Dome Defense score: ${score} points, Wave ${wave}, ${kills} kills. Can you survive longer? 🚀💥🛩️`;
-    const encodedUrl = encodeURIComponent(location.href);
-
-    if (platform === 'copy') {
-        navigator.clipboard.writeText(`${text}\n${location.href}`).then(() => {
-            alert("Score copied to clipboard!");
-        }).catch(() => {
-            alert("Failed to copy to clipboard");
-        });
-        return;
-    }
-
-    const shareUrl = buildShareUrl(platform, text, encodedUrl);
-
-    if (shareUrl) window.open(shareUrl, "_blank");
-}
-
-window.addEventListener("beforeunload", revokeOldManifestUrl);
-
-requestAnimationFrame(loop);
-</script>
+        requestAnimationFrame(loop);
+    </script>
 
 </body>
+
 </html>
