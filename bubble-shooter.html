@@ -306,12 +306,12 @@ const game = {
         SETTINGS_KEY: "bubbleShooterSettings",
         defaultSettings: { soundEnabled: false, showAimGuide: true },
 
-        SPEED: 960,
+        SPEED: 1080,
         EXPLOSION_DELAY: 8 / 60,
         ISLAND_DELAY: 8 / 60,
         TRAJECTORY_STEP_SECONDS: 1 / 24,
         SHOT_EVENT_EPSILON: 0.0001,
-        SHOT_POSITION_EPSILON: 0.01,
+        SHOT_POSITION_EPSILON: 0.5,
         MAX_SHOT_EVENTS_PER_FRAME: 8,
         MAX_TRAJECTORY_EVENTS: 24,
         START_ROWS: 7,
@@ -333,6 +333,7 @@ const game = {
         score: 0,
         combo: 0,
         clearedColors: new Set(),
+        firstColorCleared: false,
         maxMissesForCycle: 3,
         currentMissesLeft: 3,
         dropShiftLeftNext: false,
@@ -428,6 +429,10 @@ Object.defineProperties(game, {
     unlockedColorCount: {
         get() { return this.state.unlockedColorCount; },
         set(value) { this.state.unlockedColorCount = value; }
+    },
+    firstColorCleared: {
+        get() { return this.state.firstColorCleared; },
+        set(value) { this.state.firstColorCleared = value; }
     },
     ceilingY: {
         get() { return this.state.ceilingY; },
@@ -721,6 +726,59 @@ function hexRound(q, r) {
     return [rx, rz];
 }
 
+function findNearestEmptyHex(x, y) {
+    let [q, r] = pixelToHex(x, y);
+    return findNearestEmptyHexAround(q, r, x, y);
+}
+
+function findNearestEmptyNeighbor(targetQ, targetR, x, y) {
+    const targetCenter = hexToPixel(targetQ, targetR);
+    const incomingX = x - targetCenter.x;
+    const incomingY = y - targetCenter.y;
+    let best = null;
+    let bestScore = -Infinity;
+    let bestDist = Infinity;
+    const candidates = [[targetQ, targetR], ...neighbors(targetQ, targetR)];
+
+    for (const [cq, cr] of candidates) {
+        const k = key(cq, cr);
+        if (game.grid.has(k)) continue;
+        const p = hexToPixel(cq, cr);
+        const dx = p.x - targetCenter.x;
+        const dy = p.y - targetCenter.y;
+        const dot = dx * incomingX + dy * incomingY;
+        const dist = (x - p.x) ** 2 + (y - p.y) ** 2;
+        if (dot > bestScore || (dot === bestScore && dist < bestDist)) {
+            bestScore = dot;
+            bestDist = dist;
+            best = [cq, cr];
+        }
+    }
+
+    return best || [targetQ, targetR];
+}
+
+function findNearestEmptyHexAround(q, r, x, y) {
+    let best = null;
+    let bestDist = Infinity;
+    const candidates = [[q, r], ...neighbors(q, r)];
+
+    for (const [cq, cr] of candidates) {
+        const k = key(cq, cr);
+        if (game.grid.has(k)) continue;
+        const p = hexToPixel(cq, cr);
+        const dx = x - p.x;
+        const dy = y - p.y;
+        const dist = dx * dx + dy * dy;
+        if (dist < bestDist) {
+            bestDist = dist;
+            best = [cq, cr];
+        }
+    }
+
+    return best || [q, r];
+}
+
 function activeColors() { let s=new Set(); game.grid.forEach(v=>s.add(v.color)); return [...s]; }
 function unlockedColors() { return game.COLORS.slice(0, game.unlockedColorCount); }
 function getPlayableRowSlots(row) {
@@ -742,8 +800,15 @@ function getColorPools(source = "shot") {
 
     let available = unlocked.filter(c => !game.clearedColors.has(c));
 
-    // Keep shots matchable: active pool should only include colors we may spawn.
+    // Keep shots matchable: active pool should include colors still present in the game,
+    // including bubbles already queued to fire.
     let active = activeColors().filter(c => available.includes(c));
+    if (game.currentBubble && available.includes(game.currentBubble.color) && !active.includes(game.currentBubble.color)) {
+        active.push(game.currentBubble.color);
+    }
+    if (game.nextBubble && available.includes(game.nextBubble.color) && !active.includes(game.nextBubble.color)) {
+        active.push(game.nextBubble.color);
+    }
     if (active.length === 0 && available.length > 0) active = [...available];
 
     return { available, active };
@@ -846,6 +911,7 @@ game.startNewGame = function() {
     resizeCanvas();
     game.score = 0; game.combo = 0; 
     game.clearedColors = new Set();
+    game.firstColorCleared = false;
     game.shotsFired = 0;
     game.unlockedColorCount = game.BASE_COLOR_COUNT;
     game.maxMissesForCycle = game.BASE_MISSES_PER_DROP;
@@ -1045,7 +1111,9 @@ function findSegmentBubbleCollision(startX, startY, endX, endY) {
                 earliestHit = {
                     t,
                     x: startX + dx * t,
-                    y: startY + dy * t
+                    y: startY + dy * t,
+                    targetQ: q,
+                    targetR: r
                 };
             }
         }
@@ -1142,7 +1210,7 @@ function advanceShotBubble(deltaSeconds) {
         if (event.type === "bubble") {
             playTingSound();
         }
-        snapBubble();
+        snapBubble(event);
         return;
     }
 }
@@ -1186,7 +1254,7 @@ function updateLevelFromShots() {
             game.COLORS.length
         );
 
-        if (targetUnlockedCount > game.unlockedColorCount) {
+        if (targetUnlockedCount > game.unlockedColorCount && !game.firstColorCleared) {
             game.unlockedColorCount = targetUnlockedCount;
             injectUnlockedColor(game.COLORS[game.unlockedColorCount - 1]);
         }
@@ -1200,9 +1268,17 @@ function updateLevelFromShots() {
     }
 }
 
-function snapBubble() {
+function snapBubble(collisionEvent) {
     if (!game.shotBubble) return;
-    let [q, r] = pixelToHex(game.shotBubble.x, game.shotBubble.y), k = key(q, r);
+
+    let q, r;
+    if (collisionEvent && collisionEvent.type === "bubble" && collisionEvent.targetQ !== undefined) {
+        [q, r] = findNearestEmptyNeighbor(collisionEvent.targetQ, collisionEvent.targetR, collisionEvent.x, collisionEvent.y);
+    } else {
+        [q, r] = findNearestEmptyHex(game.shotBubble.x, game.shotBubble.y);
+    }
+
+    let k = key(q, r);
     if (!game.grid.has(k)) game.grid.set(k, { color: game.shotBubble.color });
 
     let match = findMatches(q, r);
@@ -1286,9 +1362,14 @@ function removeFloating() {
 
 function checkLevelUp(prevColorsList) {
     const currentSet = new Set(activeColors());
+    if (game.currentBubble) currentSet.add(game.currentBubble.color);
+    if (game.nextBubble) currentSet.add(game.nextBubble.color);
     const cleared = prevColorsList.filter(c => !currentSet.has(c));
 
     if (cleared.length > 0) {
+        if (!game.firstColorCleared) {
+            game.firstColorCleared = true;
+        }
         game.score += game.COLOR_CLEAR_BONUS * cleared.length;
         cleared.forEach(c => game.clearedColors.add(c));
         refreshQueuedBubbleColors();
