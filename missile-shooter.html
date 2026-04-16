@@ -794,17 +794,22 @@ function armorFromId(id) {
 }
 
 function randomArmor(source = "shot") {
-    const activeIds = activeArmorIds();
+    const boardActiveIds = activeArmorIds();
+    const activeIds = new Set(boardActiveIds);
+    if (game.currentMissile) activeIds.add(game.currentMissile.armorId);
+    if (game.nextMissile) activeIds.add(game.nextMissile.armorId);
+
     const availableArmor = game.currentArmorTypes.slice(0, game.lastUnlockedArmorIndex + 1);
-    if (availableArmor.length === 0) return game.currentArmorTypes[0] || game.ARMOR_TYPES[0];
+    if (game.lastUnlockedArmorIndex <= 0) return game.currentArmorTypes[0] || game.ARMOR_TYPES[0];
 
     let preferActiveChance = source === "ceiling" ? 0.55 : 0.8;
-    if (activeIds.length <= 2) preferActiveChance = source === "ceiling" ? 0.25 : 0.45;
-    if (activeIds.length === 0 || Math.random() > preferActiveChance) {
+    if (activeIds.size <= 2) preferActiveChance = source === "ceiling" ? 0.25 : 0.45;
+    if (activeIds.size === 0 || Math.random() > preferActiveChance) {
         return availableArmor[Math.floor(Math.random() * availableArmor.length)];
     }
 
-    const id = activeIds[Math.floor(Math.random() * activeIds.length)];
+    const idArray = [...activeIds];
+    const id = idArray[Math.floor(Math.random() * idArray.length)];
     return armorFromId(id);
 }
 
@@ -1001,9 +1006,9 @@ function fireMissile() {
     game.currentMissile.moving = true;
     game.shotMissile = game.currentMissile;
     game.shotsFired++;
-    updateLevelFromShots();
     playLaunchSound();
-
+    updateLevelFromShots();
+    
     game.currentMissile = createMissile(armorFromId(game.nextMissile.armorId));
     game.nextMissile = createMissile(randomArmor("shot"));
 }
@@ -1413,24 +1418,27 @@ function removeFloating() {
 }
 
 function checkArmorClears(previousArmorList) {
-    const currentSet = new Set(activeArmorIds());
-    const nextArmorId = game.nextMissile ? game.nextMissile.armorId : null;
-    const clearedIds = previousArmorList.filter(id => !currentSet.has(id) && id !== nextArmorId);
+    // currentSet - currentMissile, nextMissile and current board armor types
+    const currentSet = new Set([activeArmorIds(), game.currentMissile ? game.currentMissile.armorId : null, game.nextMissile ? game.nextMissile.armorId : null].flat());
+    // clearedIds - armor types that were on the board before explosion but are not present in currentSet, meaning they have been cleared from the game
+    const clearedIds = previousArmorList.filter(id => !currentSet.has(id));
     if (clearedIds.length === 0) return;
 
-    console.log("Armor cleared:", clearedIds);
     game.score += game.ARMOR_CLEAR_BONUS * clearedIds.length;
-    pruneClearedArmorTypes(currentSet, nextArmorId);
+    pruneClearedArmorTypes(currentSet);
 }
 
-function pruneClearedArmorTypes(currentSet, preserveArmorId) {
+function pruneClearedArmorTypes(currentSet) {
     const oldLastIndex = game.lastUnlockedArmorIndex;
     const newArmorTypes = [];
 
     for (let i = 0; i <= oldLastIndex && i < game.currentArmorTypes.length; i++) {
         const armor = game.currentArmorTypes[i];
-        if (armor.id === preserveArmorId || currentSet.has(armor.id)) {
+        if (currentSet.has(armor.id)) {
             newArmorTypes.push(armor);
+        }
+        else {
+            console.log("Armor cleared from rotation:", armor.id);
         }
     }
 
