@@ -332,14 +332,14 @@ const game = {
         grid: new Map(),
         score: 0,
         combo: 0,
-        clearedColors: new Set(),
+        activeColorPool: [],
+        lastUnlockedColorIndex: 4,
         firstColorCleared: false,
         maxMissesForCycle: 3,
         currentMissesLeft: 3,
         dropShiftLeftNext: false,
         level: 1,
         shotsFired: 0,
-        unlockedColorCount: 5,
         ceilingY: 22,
         gameOver: false,
         win: false,
@@ -402,9 +402,13 @@ Object.defineProperties(game, {
         get() { return this.state.combo; },
         set(value) { this.state.combo = value; }
     },
-    clearedColors: {
-        get() { return this.state.clearedColors; },
-        set(value) { this.state.clearedColors = value; }
+    activeColorPool: {
+        get() { return this.state.activeColorPool; },
+        set(value) { this.state.activeColorPool = value; }
+    },
+    lastUnlockedColorIndex: {
+        get() { return this.state.lastUnlockedColorIndex; },
+        set(value) { this.state.lastUnlockedColorIndex = value; }
     },
     maxMissesForCycle: {
         get() { return this.state.maxMissesForCycle; },
@@ -425,10 +429,6 @@ Object.defineProperties(game, {
     shotsFired: {
         get() { return this.state.shotsFired; },
         set(value) { this.state.shotsFired = value; }
-    },
-    unlockedColorCount: {
-        get() { return this.state.unlockedColorCount; },
-        set(value) { this.state.unlockedColorCount = value; }
     },
     firstColorCleared: {
         get() { return this.state.firstColorCleared; },
@@ -780,7 +780,7 @@ function findNearestEmptyHexAround(q, r, x, y) {
 }
 
 function activeColors() { let s=new Set(); game.grid.forEach(v=>s.add(v.color)); return [...s]; }
-function unlockedColors() { return game.COLORS.slice(0, game.unlockedColorCount); }
+function unlockedColors() { return game.activeColorPool.slice(0, game.lastUnlockedColorIndex + 1); }
 function getPlayableRowSlots(row) {
     const slots = [];
     const startQ = -Math.floor((game.COLS + 4) / 2);
@@ -798,7 +798,7 @@ function getColorPools(source = "shot") {
         return { available: [game.COLORS[0]], active: [] };
     }
 
-    let available = unlocked.filter(c => !game.clearedColors.has(c));
+    let available = unlocked;
 
     // Keep shots matchable: active pool should include colors still present in the game,
     // including bubbles already queued to fire.
@@ -861,10 +861,10 @@ function randomColor(source = "shot") {
 }
 
 function refreshQueuedBubbleColors() {
-    if (game.currentBubble && game.clearedColors.has(game.currentBubble.color)) {
+    if (game.currentBubble && !game.activeColorPool.includes(game.currentBubble.color)) {
         game.currentBubble = createBubble(randomColor("shot"));
     }
-    if (game.nextBubble && game.clearedColors.has(game.nextBubble.color)) {
+    if (game.nextBubble && !game.activeColorPool.includes(game.nextBubble.color)) {
         game.nextBubble = createBubble(randomColor("shot"));
     }
 }
@@ -891,29 +891,14 @@ function initBoard() {
     }
 }
 
-function injectUnlockedColor(color) {
-    const topKeys = [];
-    game.grid.forEach((v, k) => {
-        let [, r] = parseKey(k);
-        if (r === 0) topKeys.push(k);
-    });
-    if (topKeys.length > 0) {
-        const picked = randomFrom(topKeys);
-        game.grid.set(picked, { color });
-        return;
-    }
-
-    const fallbackQ = 0;
-    game.grid.set(key(fallbackQ, 0), { color });
-}
 
 game.startNewGame = function() {
     resizeCanvas();
-    game.score = 0; game.combo = 0; 
-    game.clearedColors = new Set();
+    game.score = 0; game.combo = 0;
+    game.activeColorPool = [...game.COLORS];
+    game.lastUnlockedColorIndex = game.BASE_COLOR_COUNT - 1;
     game.firstColorCleared = false;
     game.shotsFired = 0;
-    game.unlockedColorCount = game.BASE_COLOR_COUNT;
     game.maxMissesForCycle = game.BASE_MISSES_PER_DROP;
     game.currentMissesLeft = game.maxMissesForCycle;
     game.dropShiftLeftNext = false;
@@ -1252,9 +1237,8 @@ function updateLevelFromShots() {
             game.COLORS.length
         );
 
-        if (targetUnlockedCount > game.unlockedColorCount && !game.firstColorCleared) {
-            game.unlockedColorCount = targetUnlockedCount;
-            injectUnlockedColor(game.COLORS[game.unlockedColorCount - 1]);
+        if (targetUnlockedCount > game.lastUnlockedColorIndex + 1 && !game.firstColorCleared) {
+            game.lastUnlockedColorIndex = Math.min(targetUnlockedCount - 1, game.activeColorPool.length - 1);
         }
 
         game.maxMissesForCycle = Math.max(
@@ -1371,7 +1355,21 @@ function checkLevelUp(prevColorsList) {
             game.firstColorCleared = true;
         }
         game.score += game.COLOR_CLEAR_BONUS * cleared.length;
-        cleared.forEach(c => game.clearedColors.add(c));
+
+        const oldUnlockedIndex = game.lastUnlockedColorIndex;
+        let removedBeforeOrAt = 0;
+        cleared.forEach(color => {
+            const removedIndex = game.activeColorPool.indexOf(color);
+            if (removedIndex !== -1) {
+                game.activeColorPool.splice(removedIndex, 1);
+                if (removedIndex <= oldUnlockedIndex) {
+                    removedBeforeOrAt++;
+                }
+            }
+        });
+        game.lastUnlockedColorIndex = Math.max(-1, oldUnlockedIndex - removedBeforeOrAt);
+        game.activeColorPool.length = Math.min(game.activeColorPool.length, game.lastUnlockedColorIndex + 1);
+
         refreshQueuedBubbleColors();
     }
 }
