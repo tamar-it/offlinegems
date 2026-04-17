@@ -1005,12 +1005,10 @@ function fireMissile() {
     game.currentMissile.vy = dy * game.SPEED;
     game.currentMissile.moving = true;
     game.shotMissile = game.currentMissile;
+    game.currentMissile = null;
     game.shotsFired++;
     playLaunchSound();
     updateLevelFromShots();
-    
-    game.currentMissile = createMissile(armorFromId(game.nextMissile.armorId));
-    game.nextMissile = createMissile(randomArmor("shot"));
 }
 
 function findSegmentDroneCollision(startX, startY, endX, endY) {
@@ -1277,6 +1275,15 @@ function snapMissile() {
     }
 
     game.shotMissile = null;
+    if (game.nextMissile) {
+        game.currentMissile = createMissile(armorFromId(game.nextMissile.armorId));
+    }
+    if (!game.pendingExplosion) {
+        game.nextMissile = createMissile(randomArmor("shot"));
+    } else {
+        game.nextMissile = null;
+    }
+
     if (!game.pendingExplosion) {
         checkGameOver();
     }
@@ -1378,6 +1385,9 @@ function explodeMatch() {
     game.pendingExplosion = null;
     game.islandTimer = 15;
     checkArmorClears(prevArmor);
+    if (!game.nextMissile) {
+        game.nextMissile = createMissile(randomArmor("shot"));
+    }
     checkWin();
     checkGameOver();
 }
@@ -1418,8 +1428,12 @@ function removeFloating() {
 }
 
 function checkArmorClears(previousArmorList) {
-    // currentSet - currentMissile, nextMissile and current board armor types
-    const currentSet = new Set([activeArmorIds(), game.currentMissile ? game.currentMissile.armorId : null, game.nextMissile ? game.nextMissile.armorId : null].flat());
+    // currentSet - current board, current missile, and queued next missile armor types
+    const currentSet = new Set([
+        activeArmorIds(),
+        game.currentMissile ? game.currentMissile.armorId : null,
+        game.nextMissile ? game.nextMissile.armorId : null
+    ].flat());
     // clearedIds - armor types that were on the board before explosion but are not present in currentSet, meaning they have been cleared from the game
     const clearedIds = previousArmorList.filter(id => !currentSet.has(id));
     if (clearedIds.length === 0) return;
@@ -1682,11 +1696,13 @@ function drawLauncher() {
     ctx.stroke();
     ctx.restore();
 
-    ctx.save();
-    ctx.translate(game.launcher.x, game.launcher.y - 6);
-    ctx.rotate(aimAngle);
-    drawMissileSprite(ctx, 0, 0, game.currentMissile.armorId, Math.max(1, game.R / 16));
-    ctx.restore();
+    if (game.currentMissile) {
+        ctx.save();
+        ctx.translate(game.launcher.x, game.launcher.y - 6);
+        ctx.rotate(aimAngle);
+        drawMissileSprite(ctx, 0, 0, game.currentMissile.armorId, Math.max(1, game.R / 16));
+        ctx.restore();
+    }
 
     if (game.shotMissile) {
         const angle = Math.atan2(game.shotMissile.vy, game.shotMissile.vx);

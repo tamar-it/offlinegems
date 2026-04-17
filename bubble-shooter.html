@@ -1078,8 +1078,6 @@ function shoot() {
     game.shotBubble = game.currentBubble;
     game.shotsFired++;
     updateLevelFromShots();
-    game.currentBubble = createBubble(game.nextBubble.color);
-    game.nextBubble = createBubble(randomColor("shot"));
 }
 
 function findSegmentBubbleCollision(startX, startY, endX, endY) {
@@ -1089,7 +1087,7 @@ function findSegmentBubbleCollision(startX, startY, endX, endY) {
     if (segmentLengthSq === 0) return null;
 
     let earliestHit = null;
-    const collisionRadius = game.R * 2 - 2;
+    const collisionRadius = game.R * 2 - 10;
     const collisionRadiusSq = collisionRadius * collisionRadius;
 
     for (let [k] of game.grid) {
@@ -1304,6 +1302,8 @@ function snapBubble(collisionEvent) {
     }
 
     game.shotBubble = null;
+    game.currentBubble = createBubble(game.nextBubble.color);
+    game.nextBubble = createBubble(randomColor("shot"));
     checkGameOver();
 }
 
@@ -1508,7 +1508,9 @@ function drawGrid() {
 
 function drawShooter() {
     drawTrajectory();
-    drawBubble(game.shooter.x, game.shooter.y, game.currentBubble.color);
+    if (!game.shotBubble) {
+        drawBubble(game.shooter.x, game.shooter.y, game.currentBubble.color);
+    }
     if (game.shotBubble) drawBubble(game.shotBubble.x, game.shotBubble.y, game.shotBubble.color);
 
     // Draw Miss Indicators
